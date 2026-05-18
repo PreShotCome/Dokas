@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline';" />
+    <title>Screen Dissector</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header>
+      <h1>Screen Dissector</h1>
+      <p class="tagline">Watches one window and tells you what it sees.</p>
+    </header>
+
+    <section class="controls">
+      <label>
+        Window to watch
+        <select id="source"></select>
+      </label>
+      <label>
+        Check every
+        <span class="interval-wrap">
+          <input id="interval" type="number" min="10" max="600" value="30" />
+          <span>sec</span>
+        </span>
+      </label>
+      <button id="refresh" type="button">Refresh list</button>
+      <button id="toggle" type="button" class="primary">Start</button>
+    </section>
+
+    <p id="status" class="status">Idle. Pick a window and press Start.</p>
+
+    <section class="panel">
+      <h2>What's on screen now</h2>
+      <p id="summary" class="summary">No analysis yet.</p>
+    </section>
+
+    <section class="panel">
+      <h2>Reminders</h2>
+      <ul id="reminders" class="reminders">
+        <li class="empty">Nothing yet.</li>
+      </ul>
+    </section>
+
+    <section class="panel">
+      <h2>Timeline</h2>
+      <div id="timeline" class="timeline"></div>
+    </section>
+
+    <footer>
+      <span id="cost">Cloud cost this session: $0.0000</span>
+    </footer>
+
+    <video id="video" muted></video>
+    <script src="renderer.js"></script>
+  </body>
+</html>

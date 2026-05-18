@@ -1,0 +1,15 @@
+{
+  "name": "screen-dissector",
+  "version": "0.1.0",
+  "description": "Continuously monitors your screen and uses Claude to summarize what is on it and surface reminders.",
+  "main": "src/main.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "latest"
+  },
+  "devDependencies": {
+    "electron": "latest"
+  }
+}
