@@ -1,6 +1,18 @@
 const Anthropic = require('@anthropic-ai/sdk');
 
-const client = new Anthropic();
+let client = null;
+
+function setApiKey(key) {
+  const trimmed = (key || '').trim();
+  client = trimmed ? new Anthropic({ apiKey: trimmed }) : null;
+}
+
+function hasApiKey() {
+  return !!client;
+}
+
+// Fall back to an environment variable when one is present.
+if (process.env.ANTHROPIC_API_KEY) setApiKey(process.env.ANTHROPIC_API_KEY);
 
 const FRAME_PROMPT = `You are a screen monitoring assistant. You receive a screenshot taken during a screen recording and produce two things:
 
@@ -39,6 +51,8 @@ const SCHEMA = {
   additionalProperties: false,
 };
 
+const NO_KEY = { ok: false, error: 'No Anthropic API key set — add one in the app settings.' };
+
 function usageOf(response) {
   return {
     inputTokens: response.usage.input_tokens,
@@ -47,6 +61,7 @@ function usageOf(response) {
 }
 
 async function analyzeScreenshot(imageBase64) {
+  if (!client) return NO_KEY;
   try {
     const response = await client.messages.create({
       model: 'claude-haiku-4-5',
@@ -84,6 +99,7 @@ async function analyzeScreenshot(imageBase64) {
 }
 
 async function summarizeSession(summaries) {
+  if (!client) return NO_KEY;
   try {
     if (!summaries || summaries.length === 0) {
       return {
@@ -121,4 +137,4 @@ async function summarizeSession(summaries) {
   }
 }
 
-module.exports = { analyzeScreenshot, summarizeSession };
+module.exports = { analyzeScreenshot, summarizeSession, setApiKey, hasApiKey };

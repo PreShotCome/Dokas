@@ -1,4 +1,7 @@
 const els = {
+  apiKey: document.getElementById('apiKey'),
+  saveKey: document.getElementById('saveKey'),
+  keyStatus: document.getElementById('keyStatus'),
   source: document.getElementById('source'),
   refresh: document.getElementById('refresh'),
   video: document.getElementById('video'),
@@ -7,6 +10,7 @@ const els = {
   clearRegion: document.getElementById('clearRegion'),
   regionLabel: document.getElementById('regionLabel'),
   record: document.getElementById('record'),
+  pause: document.getElementById('pause'),
   timer: document.getElementById('timer'),
   aiToggle: document.getElementById('aiToggle'),
   aiInterval: document.getElementById('aiInterval'),
@@ -29,10 +33,13 @@ let previewStream = null;
 let region = null; // { x, y, w, h } in source pixels, or null for the whole source
 
 let recording = false;
+let isPaused = false;
 let mediaRecorder = null;
 let recordedChunks = [];
 let recordMime = '';
 let recordStartTime = 0;
+let pauseStartedAt = 0;
+let pausedTotal = 0;
 let recordTimerId = null;
 
 let regionCanvas = null;
@@ -67,6 +74,33 @@ function formatTime(totalSeconds) {
   const m = Math.floor(totalSeconds / 60);
   const s = totalSeconds % 60;
   return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+}
+
+// --- API key ---------------------------------------------------------------
+
+function showKeyStatus(hasKey) {
+  els.keyStatus.textContent = hasKey ? 'Key saved.' : 'No key — AI recap is disabled.';
+  els.keyStatus.classList.toggle('ok', hasKey);
+  els.keyStatus.classList.toggle('missing', !hasKey);
+}
+
+async function refreshKeyStatus() {
+  try {
+    const status = await window.api.getStatus();
+    showKeyStatus(status.hasKey);
+  } catch {
+    showKeyStatus(false);
+  }
+}
+
+async function saveKey() {
+  const res = await window.api.setApiKey(els.apiKey.value.trim());
+  if (res.ok) {
+    showKeyStatus(res.hasKey);
+    setStatus('API key saved.');
+  } else {
+    setStatus(`Could not save key: ${res.error}`, true);
+  }
 }
 
 // --- Sources & preview -----------------------------------------------------
@@ -196,9 +230,19 @@ function regionDrawLoop() {
   drawRaf = requestAnimationFrame(regionDrawLoop);
 }
 
+function elapsedSeconds() {
+  let pausedMs = pausedTotal;
+  if (isPaused) pausedMs += Date.now() - pauseStartedAt;
+  return Math.floor((Date.now() - recordStartTime - pausedMs) / 1000);
+}
+
 function tickTimer() {
-  const elapsed = Math.floor((Date.now() - recordStartTime) / 1000);
-  els.timer.textContent = formatTime(elapsed);
+  els.timer.textContent = formatTime(elapsedSeconds());
+}
+
+function startAiTimer() {
+  const intervalMs = Math.max(10, Number(els.aiInterval.value) || 30) * 1000;
+  aiTimerId = setInterval(aiTick, intervalMs);
 }
 
 function startRecording() {
@@ -230,6 +274,8 @@ function startRecording() {
   mediaRecorder.onstop = finalizeRecording;
 
   recording = true;
+  isPaused = false;
+  pausedTotal = 0;
   if (region) regionDrawLoop();
   mediaRecorder.start(1000);
 
@@ -243,13 +289,14 @@ function startRecording() {
     sessionSummaries = [];
     seenReminders.clear();
     prevSignature = null;
-    const intervalMs = Math.max(10, Number(els.aiInterval.value) || 30) * 1000;
     setTimeout(aiTick, 1500);
-    aiTimerId = setInterval(aiTick, intervalMs);
+    startAiTimer();
   }
 
   els.record.textContent = 'Stop recording';
   els.record.classList.add('running');
+  els.pause.disabled = false;
+  els.pause.textContent = 'Pause';
   els.source.disabled = true;
   els.refresh.disabled = true;
   els.clearRegion.disabled = true;
@@ -259,9 +306,43 @@ function startRecording() {
   setStatus(region ? 'Recording region…' : 'Recording…');
 }
 
+function pauseRecording() {
+  if (!recording || isPaused) return;
+  if (mediaRecorder && mediaRecorder.state === 'recording') mediaRecorder.pause();
+  isPaused = true;
+  pauseStartedAt = Date.now();
+  if (aiTimerId) {
+    clearInterval(aiTimerId);
+    aiTimerId = null;
+  }
+  els.pause.textContent = 'Resume';
+  els.timer.classList.remove('running');
+  els.timer.classList.add('paused');
+  setStatus('Paused.');
+}
+
+function resumeRecording() {
+  if (!recording || !isPaused) return;
+  pausedTotal += Date.now() - pauseStartedAt;
+  isPaused = false;
+  if (mediaRecorder && mediaRecorder.state === 'paused') mediaRecorder.resume();
+  if (aiWasOn) startAiTimer();
+  els.pause.textContent = 'Pause';
+  els.timer.classList.remove('paused');
+  els.timer.classList.add('running');
+  setStatus(region ? 'Recording region…' : 'Recording…');
+}
+
+function togglePause() {
+  if (!recording) return;
+  if (isPaused) resumeRecording();
+  else pauseRecording();
+}
+
 function stopRecording() {
   if (!recording) return;
   recording = false;
+  isPaused = false;
 
   if (recordTimerId) clearInterval(recordTimerId);
   recordTimerId = null;
@@ -305,9 +386,11 @@ async function finalizeRecording() {
     }
   }
 
-  els.timer.classList.remove('running');
+  els.timer.classList.remove('running', 'paused');
   els.record.textContent = 'Start recording';
   els.record.classList.remove('running');
+  els.pause.disabled = true;
+  els.pause.textContent = 'Pause';
   els.source.disabled = false;
   els.refresh.disabled = false;
   els.clearRegion.disabled = false;
@@ -397,7 +480,7 @@ function renderFrameResult(result) {
 }
 
 async function aiTick() {
-  if (analyzing || !recording || !previewStream) return;
+  if (analyzing || !recording || isPaused || !previewStream) return;
 
   const signature = computeSignature();
   if (changeAmount(prevSignature, signature) < CHANGE_THRESHOLD) {
@@ -430,12 +513,14 @@ async function aiTick() {
 
 // --- Wiring ----------------------------------------------------------------
 
+els.saveKey.addEventListener('click', saveKey);
 els.source.addEventListener('change', () => startPreview(els.source.value));
 els.refresh.addEventListener('click', loadSources);
 els.clearRegion.addEventListener('click', () => {
   if (!recording) clearRegion();
 });
 els.record.addEventListener('click', toggleRecording);
+els.pause.addEventListener('click', togglePause);
 
 els.selectionLayer.addEventListener('pointerdown', onPointerDown);
 window.addEventListener('pointermove', onPointerMove);
@@ -446,4 +531,5 @@ window.api.onHotkeyFailed(() => {
   setStatus('Global hotkey unavailable (in use by another app). Use the button instead.', true);
 });
 
+refreshKeyStatus();
 loadSources().catch((err) => setStatus(`Could not list sources: ${err.message}`, true));
