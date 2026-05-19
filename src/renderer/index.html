@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; style-src 'self' 'unsafe-inline'; media-src 'self' blob:;"
+    />
+    <title>Screen Dissector</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header>
+      <h1>Screen Dissector</h1>
+      <p class="tagline">Record a window, screen, or region — with an optional AI recap.</p>
+    </header>
+
+    <section class="settings">
+      <label>
+        Anthropic API key <span class="faint">(only needed for the AI recap)</span>
+        <input id="apiKey" type="password" placeholder="sk-ant-..." autocomplete="off" />
+      </label>
+      <button id="saveKey" type="button">Save key</button>
+      <span id="keyStatus" class="key-status"></span>
+    </section>
+
+    <section class="controls">
+      <label>
+        Source
+        <select id="source"></select>
+      </label>
+      <button id="refresh" type="button">Refresh list</button>
+    </section>
+
+    <section class="preview-wrap">
+      <video id="video" muted></video>
+      <div id="regionBox" class="region-box hidden"></div>
+      <div id="selectionLayer" class="selection-layer"></div>
+    </section>
+    <p class="hint">
+      Drag on the preview to record just a region.
+      <button id="clearRegion" type="button" class="link">Clear region</button>
+      <span id="regionLabel"></span>
+    </p>
+
+    <section class="record-row">
+      <button id="record" type="button" class="primary" disabled>Start recording</button>
+      <button id="pause" type="button" disabled>Pause</button>
+      <span id="timer" class="timer">00:00</span>
+      <label class="checkbox">
+        <input id="aiToggle" type="checkbox" checked />
+        AI recap
+      </label>
+      <label>
+        Sample every
+        <span class="interval-wrap">
+          <input id="aiInterval" type="number" min="10" max="600" value="30" />
+          <span>sec</span>
+        </span>
+      </label>
+    </section>
+
+    <p id="status" class="status">Pick a source to begin.</p>
+
+    <section class="panel">
+      <h2>Summary</h2>
+      <p id="summary" class="summary">No analysis yet.</p>
+    </section>
+
+    <section class="panel">
+      <h2>Reminders</h2>
+      <ul id="reminders" class="reminders">
+        <li class="empty">Nothing yet.</li>
+      </ul>
+    </section>
+
+    <section class="panel">
+      <h2>Timeline</h2>
+      <div id="timeline" class="timeline"></div>
+    </section>
+
+    <footer>
+      <span id="cost">Cloud cost this session: $0.0000</span>
+      <span class="hotkey">Hotkey: Ctrl/Cmd + Shift + R</span>
+    </footer>
+
+    <script src="renderer.js"></script>
+  </body>
+</html>
