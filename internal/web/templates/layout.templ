@@ -1,0 +1,41 @@
+package templates
+
+import "github.com/preshotcome/anything/internal/auth"
+
+templ Layout(title string, user *auth.User) {
+	<!DOCTYPE html>
+	<html lang="en">
+		<head>
+			<meta charset="UTF-8"/>
+			<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+			<meta name="referrer" content="strict-origin-when-cross-origin"/>
+			<title>{ title } · Restore Drill</title>
+			<link rel="stylesheet" href="/static/app.css"/>
+			<script src="/static/htmx.min.js" defer></script>
+		</head>
+		<body class="min-h-screen flex flex-col">
+			<header class="border-b border-zinc-200 dark:border-zinc-800">
+				<div class="mx-auto flex max-w-5xl items-center justify-between px-4 py-3">
+					<a href="/" class="font-semibold tracking-tight">Restore Drill</a>
+					<nav class="flex items-center gap-3 text-sm">
+						if user != nil {
+							<span class="text-zinc-500 dark:text-zinc-400">{ user.Email }</span>
+							<form method="POST" action="/logout" class="inline">
+								<button type="submit" class="btn-ghost">Sign out</button>
+							</form>
+						} else {
+							<a href="/login" class="btn-ghost">Sign in</a>
+							<a href="/signup" class="btn-primary">Sign up</a>
+						}
+					</nav>
+				</div>
+			</header>
+			<main class="mx-auto w-full max-w-5xl flex-1 px-4 py-8">
+				{ children... }
+			</main>
+			<footer class="border-t border-zinc-200 px-4 py-4 text-center text-xs text-zinc-500 dark:border-zinc-800 dark:text-zinc-400">
+				Restore Drill — backup verification as a service.
+			</footer>
+		</body>
+	</html>
+}

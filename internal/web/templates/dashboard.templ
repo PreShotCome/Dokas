@@ -1,0 +1,46 @@
+package templates
+
+import "github.com/preshotcome/anything/internal/auth"
+
+templ Dashboard(user *auth.User) {
+	@Layout("Dashboard", user) {
+		<div class="mb-6 flex items-baseline justify-between">
+			<h1 class="text-2xl font-semibold tracking-tight">Drills</h1>
+		</div>
+		@DrillsEmpty()
+	}
+}
+
+// DrillsEmpty is the cold-start state — the first thing every new user sees.
+// Designed as the App-Store-screenshot moment per the plan.
+templ DrillsEmpty() {
+	<div class="card flex flex-col items-center justify-center gap-3 py-16 text-center">
+		<div class="rounded-full bg-zinc-100 p-3 dark:bg-zinc-800">
+			<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="h-8 w-8 text-zinc-500">
+				<path stroke-linecap="round" stroke-linejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z"/>
+			</svg>
+		</div>
+		<h2 class="text-lg font-semibold">Your first drill runs in 3 minutes.</h2>
+		<p class="max-w-md text-sm text-zinc-600 dark:text-zinc-400">
+			Connect a Postgres backup source and we'll restore the latest dump in
+			an isolated sandbox, run your assertions, and email you a signed PDF.
+		</p>
+		<a href="/databases/new" class="btn-primary mt-2">Connect a database</a>
+		<p class="text-xs text-zinc-500">No drill yet. No data. That's the point — let's fix it.</p>
+	</div>
+}
+
+// DrillsLoading is the HTMX swap target while a list page is fetching.
+templ DrillsLoading() {
+	<div class="card flex items-center justify-center py-16 text-sm text-zinc-500">
+		<span class="animate-pulse">Loading drills…</span>
+	</div>
+}
+
+// DrillsError is shown when the list query fails. Keep it actionable.
+templ DrillsError(msg string) {
+	<div class="alert-error">
+		<p>Couldn't load drills: { msg }</p>
+		<button hx-get="/drills" hx-target="#drills-pane" class="btn-ghost mt-2 text-xs">Retry</button>
+	</div>
+}
