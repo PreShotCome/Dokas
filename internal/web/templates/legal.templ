@@ -1,0 +1,196 @@
+package templates
+
+// LegalPage wraps a legal document body in the standard layout.
+templ LegalPage(lc LayoutCtx, title string, body templ.Component) {
+	@LayoutWith(title, lc) {
+		<article class="prose-sm mx-auto max-w-2xl">
+			<h1 class="mb-1 text-2xl font-semibold tracking-tight">{ title }</h1>
+			<div class="alert-error mb-6">
+				DRAFT — placeholder text, not legal advice. The production
+				documents are drafted by counsel before the first paid customer.
+			</div>
+			@body
+		</article>
+	}
+}
+
+templ LegalTerms() {
+	<div class="space-y-3 text-sm text-zinc-700 dark:text-zinc-300">
+		<p>
+			These Terms of Service govern use of Restore Drill, a backup
+			verification service. By creating an account you agree to them.
+		</p>
+		<h2 class="text-base font-semibold">The service</h2>
+		<p>
+			Restore Drill periodically restores database dumps you register in
+			an isolated sandbox, runs the assertions you configure, and
+			produces signed evidence of the result.
+		</p>
+		<h2 class="text-base font-semibold">Your responsibilities</h2>
+		<p>
+			You are responsible for the database dumps you register and for
+			keeping your credentials secure. Restore Drill is a verification
+			tool, not a backup provider — it does not create your backups.
+		</p>
+		<h2 class="text-base font-semibold">Availability</h2>
+		<p>
+			The service is provided as-is during the current phase. Production
+			SLAs will be published before general availability.
+		</p>
+	</div>
+}
+
+templ LegalPrivacy() {
+	<div class="space-y-3 text-sm text-zinc-700 dark:text-zinc-300">
+		<p>
+			This Privacy Policy explains what data Restore Drill holds and the
+			rights you have over it.
+		</p>
+		<h2 class="text-base font-semibold">What we store</h2>
+		<p>
+			Account and user records, the database targets you register, drill
+			results and their signed evidence, an immutable audit log, and
+			webhook delivery records.
+		</p>
+		<h2 class="text-base font-semibold">Your rights</h2>
+		<p>
+			You can export everything we hold for your account as JSON from
+			Account → Export, and you can delete your account from Account →
+			Danger zone. Deletion is a soft delete followed by a permanent
+			hard delete after a 30-day grace period.
+		</p>
+		<h2 class="text-base font-semibold">Retention</h2>
+		<p>
+			Drill evidence and audit logs are retained for seven years to meet
+			auditor requirements. Transient working copies of your dumps are
+			destroyed as soon as a drill finishes.
+		</p>
+	</div>
+}
+
+templ LegalSubprocessors() {
+	<div class="space-y-3 text-sm text-zinc-700 dark:text-zinc-300">
+		<p>
+			Restore Drill uses the third-party services below to process data
+			on your behalf. We notify customers in advance of material
+			changes to this list.
+		</p>
+		<div class="card overflow-x-auto p-0">
+			<table class="min-w-full divide-y divide-zinc-200 text-sm dark:divide-zinc-800">
+				<thead class="bg-zinc-50 dark:bg-zinc-900/50">
+					<tr>
+						<th class="px-4 py-2 text-left font-medium">Sub-processor</th>
+						<th class="px-4 py-2 text-left font-medium">Purpose</th>
+						<th class="px-4 py-2 text-left font-medium">Data</th>
+					</tr>
+				</thead>
+				<tbody class="divide-y divide-zinc-200 dark:divide-zinc-800">
+					<tr>
+						<td class="px-4 py-2 font-medium">Managed Postgres host</td>
+						<td class="px-4 py-2">Primary application database</td>
+						<td class="px-4 py-2">Account, user, drill, and audit records</td>
+					</tr>
+					<tr>
+						<td class="px-4 py-2 font-medium">Object storage</td>
+						<td class="px-4 py-2">Evidence retention</td>
+						<td class="px-4 py-2">Signed drill report PDFs</td>
+					</tr>
+					<tr>
+						<td class="px-4 py-2 font-medium">Sandbox compute</td>
+						<td class="px-4 py-2">Isolated restore execution</td>
+						<td class="px-4 py-2">Your database dumps, transiently, during a drill</td>
+					</tr>
+					<tr>
+						<td class="px-4 py-2 font-medium">Stripe</td>
+						<td class="px-4 py-2">Billing</td>
+						<td class="px-4 py-2">Billing contact + payment data (held by Stripe, not us)</td>
+					</tr>
+					<tr>
+						<td class="px-4 py-2 font-medium">Postmark</td>
+						<td class="px-4 py-2">Transactional email</td>
+						<td class="px-4 py-2">Recipient email address + message content</td>
+					</tr>
+					<tr>
+						<td class="px-4 py-2 font-medium">PostHog</td>
+						<td class="px-4 py-2">Product analytics</td>
+						<td class="px-4 py-2">Pseudonymous account/user IDs + event names</td>
+					</tr>
+					<tr>
+						<td class="px-4 py-2 font-medium">Sentry</td>
+						<td class="px-4 py-2">Error tracking</td>
+						<td class="px-4 py-2">Error diagnostics tagged with an account ID</td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
+	</div>
+}
+
+templ LegalCookies() {
+	<div class="space-y-3 text-sm text-zinc-700 dark:text-zinc-300">
+		<p>
+			The Restore Drill application sets only strictly-necessary
+			cookies. We do not use advertising or cross-site tracking
+			cookies, and product analytics is collected server-side — there
+			is no analytics cookie in your browser.
+		</p>
+		<p>
+			Because every cookie below is strictly necessary to provide a
+			service you asked for (a logged-in session), no consent banner
+			is required under GDPR/ePrivacy.
+		</p>
+		<div class="card overflow-x-auto p-0">
+			<table class="min-w-full divide-y divide-zinc-200 text-sm dark:divide-zinc-800">
+				<thead class="bg-zinc-50 dark:bg-zinc-900/50">
+					<tr>
+						<th class="px-4 py-2 text-left font-medium">Cookie</th>
+						<th class="px-4 py-2 text-left font-medium">Purpose</th>
+						<th class="px-4 py-2 text-left font-medium">Category</th>
+					</tr>
+				</thead>
+				<tbody class="divide-y divide-zinc-200 dark:divide-zinc-800">
+					<tr>
+						<td class="px-4 py-2 font-mono text-xs">__Host-rd_session</td>
+						<td class="px-4 py-2">Keeps you signed in</td>
+						<td class="px-4 py-2">Strictly necessary</td>
+					</tr>
+					<tr>
+						<td class="px-4 py-2 font-mono text-xs">__Host-rd_csrf</td>
+						<td class="px-4 py-2">Protects forms against cross-site request forgery</td>
+						<td class="px-4 py-2">Strictly necessary</td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
+		<p class="text-xs text-zinc-500">
+			In local development the cookie names drop the <code>__Host-</code>
+			prefix so they work without HTTPS.
+		</p>
+	</div>
+}
+
+templ LegalDPA() {
+	<div class="space-y-3 text-sm text-zinc-700 dark:text-zinc-300">
+		<p>
+			This Data Processing Addendum describes how Restore Drill processes
+			personal data on your behalf as a processor.
+		</p>
+		<h2 class="text-base font-semibold">Scope</h2>
+		<p>
+			Restore Drill processes the data contained in the database dumps
+			you register only to perform the verification you request. We do
+			not access that data for any other purpose.
+		</p>
+		<h2 class="text-base font-semibold">Sub-processors</h2>
+		<p>
+			A current sub-processor list will be published here before general
+			availability. Material changes will be notified in advance.
+		</p>
+		<h2 class="text-base font-semibold">Security</h2>
+		<p>
+			Drills run in isolated, ephemeral sandboxes. Evidence is signed and
+			retained under access control. See the Privacy Policy for retention
+			detail.
+		</p>
+	</div>
+}

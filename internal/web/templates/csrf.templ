@@ -1,0 +1,11 @@
+package templates
+
+import "github.com/preshotcome/anything/internal/web/csrf"
+
+// CSRFField renders the hidden token every POST form needs. It reads the
+// token from the request context (stamped by the csrf middleware) — templ
+// exposes that context as `ctx`, so callers just drop @CSRFField() inside a
+// <form> with no plumbing.
+templ CSRFField() {
+	<input type="hidden" name={ csrf.FieldName } value={ csrf.Token(ctx) }/>
+}

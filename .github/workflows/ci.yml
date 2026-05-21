@@ -1,0 +1,77 @@
+name: ci
+
+on:
+  push:
+    branches: [main, claude/**]
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: restoredrill
+          POSTGRES_PASSWORD: restoredrill
+          POSTGRES_DB: restoredrill
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd="pg_isready -U restoredrill"
+          --health-interval=2s
+          --health-timeout=5s
+          --health-retries=20
+    env:
+      DATABASE_URL: postgres://restoredrill:restoredrill@localhost:5432/restoredrill?sslmode=disable
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Install postgres client (for pg_restore in the drill integration test)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends postgresql-client
+
+      - name: Install templ
+        run: go install github.com/a-h/templ/cmd/templ@latest
+
+      - name: Generate templ
+        run: $(go env GOPATH)/bin/templ generate
+
+      - name: Tidy check
+        run: |
+          go mod tidy
+          git diff --exit-code -- go.mod go.sum
+
+      - name: Build CSS
+        run: |
+          npm install --no-audit --no-fund
+          npx tailwindcss -i assets/css/input.css -o assets/static/app.css --minify
+
+      - name: Vet
+        run: go vet ./...
+
+      - name: govulncheck
+        run: |
+          go install golang.org/x/vuln/cmd/govulncheck@latest
+          $(go env GOPATH)/bin/govulncheck ./...
+        continue-on-error: true
+
+      - name: Migrate
+        run: go run ./cmd/migrate up
+
+      - name: Test
+        run: go test ./...
+
+      - name: Build
+        run: |
+          go build -o /tmp/server ./cmd/server
+          go build -o /tmp/migrate ./cmd/migrate

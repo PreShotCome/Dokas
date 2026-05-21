@@ -1,0 +1,46 @@
+package templates
+
+import (
+	"github.com/preshotcome/anything/internal/account"
+	"github.com/preshotcome/anything/internal/auth"
+)
+
+templ InvitationAccept(user *auth.User, isLoggedIn bool, acct account.Account, inv account.Invitation, token string) {
+	@Layout("Join "+acct.Name, user) {
+		<div class="card mx-auto max-w-md space-y-4 text-center">
+			<h1 class="text-xl font-semibold">You've been invited</h1>
+			<p class="text-sm text-zinc-600 dark:text-zinc-400">
+				Join <strong>{ acct.Name }</strong> on Restore Drill as
+				<span class="font-medium">{ string(inv.Role) }</span>.
+			</p>
+			if isLoggedIn {
+				<p class="text-xs text-zinc-500">Signed in as { user.Email }</p>
+				<form method="POST" action={ templ.SafeURL("/invitations/" + token + "/accept") }>
+					@CSRFField()
+					<button type="submit" class="btn-primary w-full">Accept invitation</button>
+				</form>
+			} else {
+				<p class="text-xs text-zinc-500">
+					Sign up or sign in with <strong>{ inv.Email }</strong> to accept.
+				</p>
+				<div class="flex gap-2">
+					<a href={ templ.SafeURL("/signup?next=/invitations/" + token) } class="btn-primary flex-1">Sign up</a>
+					<a href={ templ.SafeURL("/login?next=/invitations/" + token) } class="btn-ghost flex-1">Sign in</a>
+				</div>
+			}
+		</div>
+	}
+}
+
+templ InvitationGone() {
+	@Layout("Invitation expired", nil) {
+		<div class="card mx-auto max-w-md space-y-2 text-center">
+			<h1 class="text-xl font-semibold">Invitation unavailable</h1>
+			<p class="text-sm text-zinc-600 dark:text-zinc-400">
+				This invitation has expired or has already been accepted. Ask an
+				account admin to send a new one.
+			</p>
+			<a href="/" class="btn-ghost mt-2 inline-block">Go home</a>
+		</div>
+	}
+}

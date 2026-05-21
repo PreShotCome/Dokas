@@ -1,0 +1,113 @@
+{
+  "__comment": "Grafana dashboard for Restore Drill. Import via Dashboards > Import. Expects a Prometheus datasource scraping the app's /metrics endpoint.",
+  "title": "Restore Drill — Service",
+  "uid": "restore-drill",
+  "schemaVersion": 39,
+  "timezone": "utc",
+  "refresh": "30s",
+  "time": { "from": "now-6h", "to": "now" },
+  "templating": {
+    "list": [
+      {
+        "name": "datasource",
+        "type": "datasource",
+        "query": "prometheus",
+        "current": { "text": "Prometheus", "value": "Prometheus" }
+      }
+    ]
+  },
+  "panels": [
+    {
+      "title": "HTTP request rate by status",
+      "type": "timeseries",
+      "datasource": "${datasource}",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
+      "targets": [
+        {
+          "expr": "sum by (status) (rate(http_requests_total[5m]))",
+          "legendFormat": "{{status}}"
+        }
+      ]
+    },
+    {
+      "title": "HTTP latency p50 / p95 / p99",
+      "type": "timeseries",
+      "datasource": "${datasource}",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.50, sum(rate(http_request_duration_seconds_bucket[5m])) by (le))",
+          "legendFormat": "p50"
+        },
+        {
+          "expr": "histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket[5m])) by (le))",
+          "legendFormat": "p95"
+        },
+        {
+          "expr": "histogram_quantile(0.99, sum(rate(http_request_duration_seconds_bucket[5m])) by (le))",
+          "legendFormat": "p99"
+        }
+      ]
+    },
+    {
+      "title": "Drill outcomes",
+      "type": "timeseries",
+      "datasource": "${datasource}",
+      "gridPos": { "h": 8, "w": 8, "x": 0, "y": 8 },
+      "targets": [
+        {
+          "expr": "sum by (status) (rate(drills_total[30m]))",
+          "legendFormat": "{{status}}"
+        }
+      ]
+    },
+    {
+      "title": "Drill success rate",
+      "type": "stat",
+      "datasource": "${datasource}",
+      "gridPos": { "h": 8, "w": 8, "x": 8, "y": 8 },
+      "fieldConfig": {
+        "defaults": { "unit": "percentunit", "min": 0, "max": 1 }
+      },
+      "targets": [
+        {
+          "expr": "sum(rate(drills_total{status=\"succeeded\"}[1h])) / clamp_min(sum(rate(drills_total[1h])), 0.001)"
+        }
+      ]
+    },
+    {
+      "title": "River queue depth",
+      "type": "timeseries",
+      "datasource": "${datasource}",
+      "gridPos": { "h": 8, "w": 8, "x": 16, "y": 8 },
+      "targets": [
+        { "expr": "river_jobs_available", "legendFormat": "available jobs" }
+      ]
+    },
+    {
+      "title": "Drill duration p95",
+      "type": "timeseries",
+      "datasource": "${datasource}",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 16 },
+      "fieldConfig": { "defaults": { "unit": "s" } },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, sum(rate(drill_duration_seconds_bucket[1h])) by (le))",
+          "legendFormat": "p95 drill duration"
+        }
+      ]
+    },
+    {
+      "title": "Webhook deliveries by outcome",
+      "type": "timeseries",
+      "datasource": "${datasource}",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 16 },
+      "targets": [
+        {
+          "expr": "sum by (outcome) (rate(webhook_deliveries_total[15m]))",
+          "legendFormat": "{{outcome}}"
+        }
+      ]
+    }
+  ]
+}

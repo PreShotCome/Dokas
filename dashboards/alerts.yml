@@ -1,0 +1,76 @@
+# Prometheus alerting rules for Restore Drill.
+# Load into Prometheus via rule_files; route to PagerDuty/Telegram per the
+# incident runbook. Thresholds are starting points — tune against real
+# traffic before GA.
+groups:
+  - name: restore-drill
+    rules:
+      - alert: AppDown
+        expr: up{job="restore-drill"} == 0
+        for: 1m
+        labels:
+          severity: sev1
+        annotations:
+          summary: "Restore Drill app is down"
+          runbook: "runbooks/incident-response.md#app-is-down-healthz-fails"
+
+      - alert: DrillFailureRateHigh
+        # More than 25% of drills failing over the last 15 minutes.
+        expr: |
+          sum(rate(drills_total{status="failed"}[15m]))
+            /
+          clamp_min(sum(rate(drills_total[15m])), 0.001)
+          > 0.25
+        for: 10m
+        labels:
+          severity: sev2
+        annotations:
+          summary: "Drill failure rate above 25%"
+          runbook: "runbooks/incident-response.md#common-incidents"
+
+      - alert: DrillQueueBacklog
+        # Sustained queue depth — workers can't keep up.
+        expr: river_jobs_available > 50
+        for: 10m
+        labels:
+          severity: sev2
+        annotations:
+          summary: "River queue depth above 50 for 10m"
+          runbook: "runbooks/incident-response.md#drill-queue-backed-up"
+
+      - alert: HTTP5xxRateHigh
+        expr: |
+          sum(rate(http_requests_total{status=~"5.."}[5m]))
+            /
+          clamp_min(sum(rate(http_requests_total[5m])), 0.001)
+          > 0.05
+        for: 5m
+        labels:
+          severity: sev2
+        annotations:
+          summary: "HTTP 5xx rate above 5%"
+
+      - alert: HTTPLatencyHigh
+        # p95 request latency above 2s.
+        expr: |
+          histogram_quantile(0.95,
+            sum(rate(http_request_duration_seconds_bucket[5m])) by (le))
+          > 2
+        for: 10m
+        labels:
+          severity: sev3
+        annotations:
+          summary: "HTTP p95 latency above 2s"
+
+      - alert: WebhookDeliveryFailures
+        expr: |
+          sum(rate(webhook_deliveries_total{outcome="failed"}[15m]))
+            /
+          clamp_min(sum(rate(webhook_deliveries_total[15m])), 0.001)
+          > 0.5
+        for: 15m
+        labels:
+          severity: sev3
+        annotations:
+          summary: "Over half of webhook deliveries failing"
+          runbook: "runbooks/incident-response.md#webhooks-not-delivering"

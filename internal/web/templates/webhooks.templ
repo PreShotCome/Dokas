@@ -1,0 +1,148 @@
+package templates
+
+import (
+	"strconv"
+
+	"github.com/preshotcome/anything/internal/webhooks"
+)
+
+templ WebhooksPage(lc LayoutCtx, endpoints []webhooks.Endpoint, revealID string) {
+	@webhooksPage(lc, endpoints, revealID, "")
+}
+
+templ WebhooksPageWithError(lc LayoutCtx, endpoints []webhooks.Endpoint, errMsg string) {
+	@webhooksPage(lc, endpoints, "", errMsg)
+}
+
+templ webhooksPage(lc LayoutCtx, endpoints []webhooks.Endpoint, revealID string, errMsg string) {
+	@LayoutWith("Webhooks", lc) {
+		<div class="mb-2 flex items-baseline justify-between">
+			<h1 class="text-2xl font-semibold tracking-tight">Webhooks</h1>
+			<a href="/account" class="text-sm underline">Back to account</a>
+		</div>
+		<p class="mb-6 text-sm text-zinc-600 dark:text-zinc-400">
+			We POST a signed JSON payload to your endpoints when a drill
+			finishes. Verify the <code>X-RestoreDrill-Signature</code> header
+			(<code>sha256=HMAC</code>) against your endpoint secret.
+		</p>
+
+		if errMsg != "" {
+			<div class="alert-error mb-4">{ errMsg }</div>
+		}
+
+		<form method="POST" action="/account/webhooks" class="card mb-6 flex flex-wrap items-end gap-3">
+			@CSRFField()
+			<div class="flex-1 min-w-[18rem]">
+				<label class="mb-1 block text-sm font-medium" for="url">Endpoint URL</label>
+				<input id="url" name="url" type="url" required class="form-input" placeholder="https://example.com/hooks/restore-drill"/>
+			</div>
+			<button type="submit" class="btn-primary">Add endpoint</button>
+		</form>
+
+		if len(endpoints) == 0 {
+			<p class="text-sm text-zinc-500">No webhook endpoints yet.</p>
+		} else {
+			<div class="card overflow-x-auto p-0">
+				<table class="min-w-full divide-y divide-zinc-200 text-sm dark:divide-zinc-800">
+					<thead class="bg-zinc-50 dark:bg-zinc-900/50">
+						<tr>
+							<th class="px-4 py-2 text-left font-medium">URL</th>
+							<th class="px-4 py-2 text-left font-medium">Secret</th>
+							<th class="px-4 py-2 text-right font-medium">Actions</th>
+						</tr>
+					</thead>
+					<tbody class="divide-y divide-zinc-200 dark:divide-zinc-800">
+						for _, e := range endpoints {
+							<tr>
+								<td class="px-4 py-2 font-mono text-xs">{ e.URL }</td>
+								<td class="px-4 py-2 font-mono text-xs">
+									if e.ID.String() == revealID {
+										<span class="text-emerald-700 dark:text-emerald-400">{ e.Secret }</span>
+										<span class="ml-1 text-zinc-400">(shown once)</span>
+									} else {
+										<span class="text-zinc-400">whsec_••••••••</span>
+									}
+								</td>
+								<td class="px-4 py-2 text-right">
+									<div class="flex items-center justify-end gap-2">
+										<a href={ templ.SafeURL("/account/webhooks/" + e.ID.String() + "/deliveries") } class="text-xs underline">Deliveries</a>
+										<form method="POST" action={ templ.SafeURL("/account/webhooks/" + e.ID.String() + "/delete") } class="inline">
+											@CSRFField()
+											<button type="submit" class="btn-ghost text-xs text-rose-600 dark:text-rose-400">Delete</button>
+										</form>
+									</div>
+								</td>
+							</tr>
+						}
+					</tbody>
+				</table>
+			</div>
+		}
+	}
+}
+
+templ WebhookDeliveries(lc LayoutCtx, endpoint webhooks.Endpoint, deliveries []webhooks.Delivery) {
+	@LayoutWith("Webhook deliveries", lc) {
+		<div class="mb-2 flex items-baseline justify-between">
+			<h1 class="text-2xl font-semibold tracking-tight">Deliveries</h1>
+			<a href="/account/webhooks" class="text-sm underline">All webhooks</a>
+		</div>
+		<p class="mb-6 font-mono text-xs text-zinc-600 dark:text-zinc-400">{ endpoint.URL }</p>
+
+		if len(deliveries) == 0 {
+			<p class="text-sm text-zinc-500">No deliveries yet. Run a drill to trigger one.</p>
+		} else {
+			<div class="card overflow-x-auto p-0">
+				<table class="min-w-full divide-y divide-zinc-200 text-sm dark:divide-zinc-800">
+					<thead class="bg-zinc-50 dark:bg-zinc-900/50">
+						<tr>
+							<th class="px-4 py-2 text-left font-medium">Event</th>
+							<th class="px-4 py-2 text-left font-medium">Status</th>
+							<th class="px-4 py-2 text-left font-medium">Attempts</th>
+							<th class="px-4 py-2 text-left font-medium">Last code</th>
+							<th class="px-4 py-2 text-left font-medium">Created</th>
+							<th class="px-4 py-2 text-right font-medium">Replay</th>
+						</tr>
+					</thead>
+					<tbody class="divide-y divide-zinc-200 dark:divide-zinc-800">
+						for _, d := range deliveries {
+							<tr>
+								<td class="px-4 py-2 font-mono text-xs">{ d.Event }</td>
+								<td class="px-4 py-2">@deliveryBadge(d.Status)</td>
+								<td class="px-4 py-2 text-xs">{ strconv.Itoa(d.AttemptCount) }</td>
+								<td class="px-4 py-2 text-xs">{ statusCode(d.LastStatusCode) }</td>
+								<td class="px-4 py-2 text-xs text-zinc-600 dark:text-zinc-400">
+									{ d.CreatedAt.UTC().Format("2006-01-02 15:04:05 UTC") }
+								</td>
+								<td class="px-4 py-2 text-right">
+									<form method="POST" action={ templ.SafeURL("/account/webhooks/" + endpoint.ID.String() + "/deliveries/" + d.ID.String() + "/replay") } class="inline">
+										@CSRFField()
+										<button type="submit" class="btn-ghost text-xs">Replay</button>
+									</form>
+								</td>
+							</tr>
+						}
+					</tbody>
+				</table>
+			</div>
+		}
+	}
+}
+
+templ deliveryBadge(s webhooks.DeliveryStatus) {
+	switch s {
+		case webhooks.StatusDelivered:
+			<span class="inline-flex rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300">delivered</span>
+		case webhooks.StatusFailed:
+			<span class="inline-flex rounded-full bg-rose-100 px-2 py-0.5 text-xs font-medium text-rose-800 dark:bg-rose-900/40 dark:text-rose-300">failed</span>
+		default:
+			<span class="inline-flex rounded-full bg-zinc-100 px-2 py-0.5 text-xs font-medium text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300">pending</span>
+	}
+}
+
+func statusCode(code *int) string {
+	if code == nil {
+		return "—"
+	}
+	return strconv.Itoa(*code)
+}

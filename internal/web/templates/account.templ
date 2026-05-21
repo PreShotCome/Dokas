@@ -1,0 +1,200 @@
+package templates
+
+import (
+	"time"
+
+	"github.com/preshotcome/anything/internal/account"
+	"github.com/preshotcome/anything/internal/auth"
+)
+
+templ AccountSettings(lc LayoutCtx, members []account.MembershipWithUser, pending []account.Invitation, stripeEnabled bool) {
+	@LayoutWith("Account", lc) {
+		<h1 class="mb-6 text-2xl font-semibold tracking-tight">Account</h1>
+
+		<section class="mb-8">
+			<h2 class="mb-3 text-lg font-semibold">Settings</h2>
+			<dl class="card grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
+				<dt class="font-medium">Name</dt>
+				<dd>{ lc.Account.Name }</dd>
+				<dt class="font-medium">Slug</dt>
+				<dd class="font-mono text-xs">{ lc.Account.Slug }</dd>
+				<dt class="font-medium">Plan</dt>
+				<dd>
+					<span class="inline-flex rounded-full bg-brand-100 px-2 py-0.5 text-xs font-medium text-brand-800 dark:bg-brand-900/40 dark:text-brand-200">
+						{ string(lc.Account.Plan) }
+					</span>
+				</dd>
+				<dt class="font-medium">Billing</dt>
+				<dd class="text-xs">
+					if !stripeEnabled {
+						<span class="text-zinc-500">Stripe not configured</span>
+					} else if lc.Account.StripeCustomerID != nil {
+						<span class="font-mono">{ *lc.Account.StripeCustomerID }</span>
+					} else {
+						<span class="text-zinc-500">No Stripe customer yet</span>
+					}
+				</dd>
+			</dl>
+		</section>
+
+		<section class="mb-8">
+			<h2 class="mb-3 text-lg font-semibold">Integrations</h2>
+			<div class="card flex items-center justify-between">
+				<div>
+					<p class="text-sm font-medium">Webhooks</p>
+					<p class="text-xs text-zinc-500">Signed event notifications when drills finish.</p>
+				</div>
+				<a href="/account/webhooks" class="btn-ghost text-sm">Manage webhooks</a>
+			</div>
+		</section>
+
+		<section class="mb-8">
+			<h2 class="mb-3 text-lg font-semibold">Members</h2>
+			<div class="card overflow-x-auto p-0">
+				<table class="min-w-full divide-y divide-zinc-200 text-sm dark:divide-zinc-800">
+					<thead class="bg-zinc-50 dark:bg-zinc-900/50">
+						<tr>
+							<th class="px-4 py-2 text-left font-medium">Email</th>
+							<th class="px-4 py-2 text-left font-medium">Role</th>
+							<th class="px-4 py-2 text-right font-medium">Manage</th>
+						</tr>
+					</thead>
+					<tbody class="divide-y divide-zinc-200 dark:divide-zinc-800">
+						for _, mem := range members {
+							<tr>
+								<td class="px-4 py-2">
+									{ mem.Email }
+									if lc.User != nil && mem.UserID == lc.User.ID {
+										<span class="ml-1 text-xs text-zinc-400">(you)</span>
+									}
+								</td>
+								<td class="px-4 py-2">
+									<span class="inline-flex rounded-full bg-zinc-100 px-2 py-0.5 text-xs dark:bg-zinc-800">{ string(mem.Role) }</span>
+								</td>
+								<td class="px-4 py-2 text-right">
+									if lc.Membership != nil && auth.Allowed(lc.Membership.Role, auth.ActionMemberWrite) && mem.Role != account.RoleOwner {
+										@memberRow(mem)
+									} else {
+										<span class="text-xs text-zinc-400">—</span>
+									}
+								</td>
+							</tr>
+						}
+					</tbody>
+				</table>
+			</div>
+		</section>
+
+		if lc.Membership != nil && auth.Allowed(lc.Membership.Role, auth.ActionMemberWrite) {
+			<section class="mb-8">
+				<h2 class="mb-3 text-lg font-semibold">Invite a member</h2>
+				<form method="POST" action="/account/invitations" class="card flex flex-wrap items-end gap-3">
+					@CSRFField()
+					<div class="flex-1 min-w-[14rem]">
+						<label class="mb-1 block text-sm font-medium" for="invite_email">Email</label>
+						<input id="invite_email" name="email" type="email" required class="form-input" placeholder="teammate@example.com"/>
+					</div>
+					<div>
+						<label class="mb-1 block text-sm font-medium" for="invite_role">Role</label>
+						<select id="invite_role" name="role" class="form-input">
+							<option value="member">member</option>
+							<option value="admin">admin</option>
+							<option value="viewer">viewer</option>
+						</select>
+					</div>
+					<button type="submit" class="btn-primary">Send invite</button>
+				</form>
+				if len(pending) > 0 {
+					<div class="mt-4">
+						<h3 class="mb-2 text-sm font-semibold">Pending invitations</h3>
+						<ul class="card divide-y divide-zinc-200 p-0 text-sm dark:divide-zinc-800">
+							for _, inv := range pending {
+								<li class="flex items-center justify-between px-4 py-2">
+									<span>{ inv.Email }</span>
+									<span class="text-xs text-zinc-500">{ string(inv.Role) } · expires { inv.ExpiresAt.UTC().Format("2006-01-02") }</span>
+								</li>
+							}
+						</ul>
+					</div>
+				}
+			</section>
+		}
+
+		if lc.Membership != nil && auth.Allowed(lc.Membership.Role, auth.ActionAccountWrite) {
+			<section class="mb-8">
+				<h2 class="mb-3 text-lg font-semibold">Data &amp; privacy</h2>
+				<div class="card flex items-center justify-between">
+					<div>
+						<p class="text-sm font-medium">Export account data</p>
+						<p class="text-xs text-zinc-500">Download everything we hold for this account as JSON (GDPR/CCPA).</p>
+					</div>
+					<a href="/account/export" class="btn-ghost text-sm">Export JSON</a>
+				</div>
+			</section>
+
+			if lc.Membership.Role == account.RoleOwner {
+				<section class="mb-8">
+					<h2 class="mb-3 text-lg font-semibold text-rose-700 dark:text-rose-400">Danger zone</h2>
+					<div class="card border-rose-200 dark:border-rose-900">
+						<p class="mb-1 text-sm font-medium">Delete this account</p>
+						<p class="mb-3 text-xs text-zinc-500">
+							The account is soft-deleted immediately and permanently
+							erased — including all drills and signed evidence — after a
+							30-day grace period.
+						</p>
+						<form method="POST" action="/account/delete">
+							@CSRFField()
+							<button type="submit" class="btn-ghost text-sm text-rose-600 dark:text-rose-400">
+								Delete account
+							</button>
+						</form>
+					</div>
+				</section>
+			}
+		}
+	}
+}
+
+templ AccountDeleted(purgeAfter time.Time) {
+	@Layout("Account deleted", nil) {
+		<div class="card mx-auto max-w-md space-y-2 text-center">
+			<h1 class="text-xl font-semibold">Account scheduled for deletion</h1>
+			<p class="text-sm text-zinc-600 dark:text-zinc-400">
+				The account is now soft-deleted. All data — drills, evidence,
+				webhooks — will be permanently erased after
+				{ purgeAfter.UTC().Format("2006-01-02 15:04 UTC") }.
+			</p>
+			<p class="text-xs text-zinc-500">
+				Contact support before then if this was a mistake.
+			</p>
+			<a href="/" class="btn-ghost mt-2 inline-block">Go home</a>
+		</div>
+	}
+}
+
+// memberRow renders the role-change select + remove button for one member.
+templ memberRow(mem account.MembershipWithUser) {
+	<div class="flex items-center justify-end gap-2">
+		<form method="POST" action={ templ.SafeURL("/account/members/" + mem.UserID.String()) } class="flex items-center gap-1">
+			@CSRFField()
+			<select name="role" aria-label={ "Role for " + mem.Email } class="form-input py-1 text-xs">
+				@roleOption("admin", mem.Role)
+				@roleOption("member", mem.Role)
+				@roleOption("viewer", mem.Role)
+			</select>
+			<button type="submit" class="btn-ghost text-xs">Save</button>
+		</form>
+		<form method="POST" action={ templ.SafeURL("/account/members/" + mem.UserID.String() + "/remove") }>
+			@CSRFField()
+			<button type="submit" class="btn-ghost text-xs text-rose-600 dark:text-rose-400">Remove</button>
+		</form>
+	</div>
+}
+
+templ roleOption(value string, current account.Role) {
+	if string(current) == value {
+		<option value={ value } selected>{ value }</option>
+	} else {
+		<option value={ value }>{ value }</option>
+	}
+}

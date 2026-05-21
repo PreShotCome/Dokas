@@ -1,0 +1,106 @@
+package templates
+
+templ Login(errMsg string, prefillEmail string) {
+	@LoginWithNext(errMsg, prefillEmail, "")
+}
+
+templ LoginWithNext(errMsg string, prefillEmail string, next string) {
+	@Layout("Sign in", nil) {
+		<div class="mx-auto max-w-sm">
+			<div class="card">
+				<h1 class="mb-1 text-xl font-semibold">Sign in</h1>
+				<p class="mb-4 text-sm text-zinc-600 dark:text-zinc-400">Welcome back.</p>
+				if errMsg != "" {
+					<div class="alert-error mb-4">{ errMsg }</div>
+				}
+				<form method="POST" action="/login" class="space-y-3">
+					@CSRFField()
+					if next != "" {
+						<input type="hidden" name="next" value={ next }/>
+					}
+					<div>
+						<label class="label" for="email">Email</label>
+						<input id="email" name="email" type="email" required autocomplete="username" value={ prefillEmail } class="input"/>
+					</div>
+					<div>
+						<label class="label" for="password">Password</label>
+						<input id="password" name="password" type="password" required autocomplete="current-password" class="input"/>
+					</div>
+					<button type="submit" class="btn-primary w-full">Sign in</button>
+				</form>
+				<p class="mt-4 text-center text-sm text-zinc-600 dark:text-zinc-400">
+					No account? <a href={ signupHref(next) } class="underline">Create one</a>
+				</p>
+			</div>
+		</div>
+	}
+}
+
+templ Signup(errMsg string, prefillEmail string) {
+	@SignupWithNext(errMsg, prefillEmail, "")
+}
+
+templ SignupWithNext(errMsg string, prefillEmail string, next string) {
+	@Layout("Create account", nil) {
+		<div class="mx-auto max-w-sm">
+			<div class="card">
+				<h1 class="mb-1 text-xl font-semibold">Create account</h1>
+				<p class="mb-4 text-sm text-zinc-600 dark:text-zinc-400">Run your first drill in under three minutes.</p>
+				if errMsg != "" {
+					<div class="alert-error mb-4">{ errMsg }</div>
+				}
+				<form method="POST" action="/signup" class="space-y-3">
+					@CSRFField()
+					if next != "" {
+						<input type="hidden" name="next" value={ next }/>
+					}
+					<div>
+						<label class="label" for="email">Email</label>
+						<input id="email" name="email" type="email" required autocomplete="username" value={ prefillEmail } class="input"/>
+					</div>
+					<div>
+						<label class="label" for="password">Password</label>
+						<input id="password" name="password" type="password" required minlength="12" autocomplete="new-password" class="input"/>
+						<p class="mt-1 text-xs text-zinc-500">12 characters minimum.</p>
+					</div>
+					<button type="submit" class="btn-primary w-full">Create account</button>
+				</form>
+				<p class="mt-4 text-center text-sm text-zinc-600 dark:text-zinc-400">
+					Already have an account? <a href={ loginHref(next) } class="underline">Sign in</a>
+				</p>
+			</div>
+		</div>
+	}
+}
+
+// SignupClosed is shown when the self_serve_signup flag is off — the
+// sales-led GA posture from the plan.
+templ SignupClosed() {
+	@Layout("Request access", nil) {
+		<div class="mx-auto max-w-sm">
+			<div class="card text-center">
+				<h1 class="mb-1 text-xl font-semibold">Restore Drill is sales-led</h1>
+				<p class="mb-4 text-sm text-zinc-600 dark:text-zinc-400">
+					We're onboarding customers directly right now. Email
+					<a class="underline" href="mailto:sales@restoredrill.io">sales@restoredrill.io</a>
+					and we'll get you set up.
+				</p>
+				<a href="/login" class="btn-ghost">Already have an account? Sign in</a>
+			</div>
+		</div>
+	}
+}
+
+func signupHref(next string) templ.SafeURL {
+	if next == "" {
+		return templ.SafeURL("/signup")
+	}
+	return templ.SafeURL("/signup?next=" + next)
+}
+
+func loginHref(next string) templ.SafeURL {
+	if next == "" {
+		return templ.SafeURL("/login")
+	}
+	return templ.SafeURL("/login?next=" + next)
+}

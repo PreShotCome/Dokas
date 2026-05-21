@@ -1,0 +1,68 @@
+package templates
+
+import (
+	"github.com/preshotcome/anything/internal/account"
+	"github.com/preshotcome/anything/internal/auth"
+	"github.com/preshotcome/anything/internal/drill"
+)
+
+// DashboardView is the dashboard's input bundle.
+type DashboardView struct {
+	Ctx     LayoutCtx
+	Targets []drill.Target
+	Drills  []drill.Drill
+}
+
+templ Dashboard(v DashboardView) {
+	@LayoutWith("Dashboard", v.Ctx) {
+		<div class="mb-6 flex items-baseline justify-between">
+			<h1 class="text-2xl font-semibold tracking-tight">Dashboard</h1>
+			if v.Ctx.Membership != nil && auth.Allowed(v.Ctx.Membership.Role, auth.ActionTargetWrite) {
+				<a href="/databases/new" class="btn-primary">Connect a database</a>
+			}
+		</div>
+		if len(v.Targets) == 0 && len(v.Drills) == 0 {
+			@DrillsEmpty(v.Ctx.Membership)
+		} else {
+			<section class="mb-8">
+				<h2 class="mb-3 text-lg font-semibold">Your databases</h2>
+				if len(v.Targets) == 0 {
+					<p class="text-sm text-zinc-500">No databases yet.</p>
+				} else {
+					@TargetsTable(v.Targets, v.Ctx.Membership)
+				}
+			</section>
+			<section>
+				<div class="mb-3 flex items-baseline justify-between">
+					<h2 class="text-lg font-semibold">Recent drills</h2>
+					<a href="/drills" class="text-sm underline">All drills</a>
+				</div>
+				if len(v.Drills) == 0 {
+					<p class="text-sm text-zinc-500">No drills yet.</p>
+				} else {
+					@DrillsTable(v.Drills)
+				}
+			</section>
+		}
+	}
+}
+
+templ DrillsEmpty(m *account.Membership) {
+	<div class="card flex flex-col items-center justify-center gap-3 py-16 text-center">
+		<div class="rounded-full bg-zinc-100 p-3 dark:bg-zinc-800">
+			<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="h-8 w-8 text-zinc-500" aria-hidden="true" focusable="false">
+				<path stroke-linecap="round" stroke-linejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z"/>
+			</svg>
+		</div>
+		<h2 class="text-lg font-semibold">Your first drill runs in 3 minutes.</h2>
+		<p class="max-w-md text-sm text-zinc-600 dark:text-zinc-400">
+			Connect a Postgres backup source and we'll restore the latest dump in
+			an isolated sandbox, run your assertions, and email you a signed PDF.
+		</p>
+		if m != nil && auth.Allowed(m.Role, auth.ActionTargetWrite) {
+			<a href="/databases/new" class="btn-primary mt-2">Connect a database</a>
+		} else {
+			<p class="text-xs text-zinc-500">Ask an admin or member of this account to connect a database.</p>
+		}
+	</div>
+}

@@ -1,0 +1,159 @@
+package templates
+
+import (
+	"github.com/preshotcome/anything/internal/account"
+	"github.com/preshotcome/anything/internal/auth"
+)
+
+// LayoutCtx bundles the always-rendered nav state. Templates that want to
+// render account-aware chrome embed this; pages that don't need it pass a
+// zero value.
+type LayoutCtx struct {
+	User       *auth.User
+	Account    *account.Account
+	Membership *account.Membership
+	// Accounts is every account the user belongs to, for the nav switcher.
+	// When it has 0 or 1 entries the switcher renders as a static label.
+	Accounts []AccountChoice
+	// Impersonation, when set, drives the "you are impersonating" banner.
+	Impersonation *auth.Impersonation
+}
+
+// AccountChoice is one option in the nav account switcher.
+type AccountChoice struct {
+	ID   string
+	Name string
+}
+
+templ Layout(title string, user *auth.User) {
+	@LayoutWith(title, LayoutCtx{User: user}) {
+		{ children... }
+	}
+}
+
+// Logo is the brand mark — a navy verification seal (rounded square + check).
+// Decorative: the adjacent "Restore Drill" wordmark carries the name.
+templ Logo() {
+	<svg viewBox="0 0 32 32" class="h-7 w-7 shrink-0" aria-hidden="true" focusable="false">
+		<rect width="32" height="32" rx="8" class="fill-brand-700"></rect>
+		<path
+			d="M9 16.5l4.5 4.5L23 11"
+			fill="none"
+			stroke="#ffffff"
+			stroke-width="3"
+			stroke-linecap="round"
+			stroke-linejoin="round"
+		></path>
+	</svg>
+}
+
+templ LayoutWith(title string, lc LayoutCtx) {
+	<!DOCTYPE html>
+	<html lang="en">
+		<head>
+			<meta charset="UTF-8"/>
+			<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+			<meta name="referrer" content="strict-origin-when-cross-origin"/>
+			<title>{ title } · Restore Drill</title>
+			<link rel="stylesheet" href="/static/app.css"/>
+			<script src="/static/htmx.min.js" defer></script>
+			<script src="/static/account-switch.js" defer></script>
+		</head>
+		<body class="min-h-screen flex flex-col">
+			<a href="#main-content" class="skip-link">Skip to main content</a>
+			if lc.Impersonation != nil {
+				<div class="bg-amber-500 px-4 py-2 text-center text-sm font-medium text-amber-950">
+					<span>
+						Staff impersonation — { lc.Impersonation.StaffEmail } acting as
+						if lc.User != nil {
+							{ lc.User.Email }
+						}
+					</span>
+					<form method="POST" action="/impersonate/stop" class="ml-2 inline">
+						@CSRFField()
+						<button type="submit" class="underline">Stop impersonating</button>
+					</form>
+				</div>
+			}
+			<header class="border-b border-zinc-200 dark:border-zinc-800">
+				<div class="mx-auto flex max-w-5xl items-center justify-between px-4 py-3">
+					<div class="flex items-center gap-3">
+						<a href="/" class="flex items-center gap-2 font-semibold tracking-tight">
+							@Logo()
+							<span>Restore Drill</span>
+						</a>
+						if lc.Account != nil {
+							<span class="hidden text-zinc-300 sm:inline dark:text-zinc-700">/</span>
+							if len(lc.Accounts) > 1 {
+								<form method="POST" action="/account/switch" class="hidden items-center gap-1 sm:flex">
+									@CSRFField()
+									<select
+										name="account_id"
+										data-account-switcher
+										aria-label="Switch account"
+										class="rounded border border-zinc-300 bg-transparent px-2 py-1 text-sm dark:border-zinc-700"
+									>
+										for _, a := range lc.Accounts {
+											if lc.Account != nil && a.ID == lc.Account.ID.String() {
+												<option value={ a.ID } selected>{ a.Name }</option>
+											} else {
+												<option value={ a.ID }>{ a.Name }</option>
+											}
+										}
+									</select>
+									<button type="submit" class="btn-ghost text-xs">Switch</button>
+								</form>
+							} else {
+								<a href="/account" class="hidden text-sm text-zinc-600 hover:underline sm:inline dark:text-zinc-400">
+									{ lc.Account.Name }
+								</a>
+							}
+							if lc.Membership != nil {
+								<span class="hidden rounded-full bg-zinc-100 px-2 py-0.5 text-xs text-zinc-600 sm:inline dark:bg-zinc-800 dark:text-zinc-400">
+									{ string(lc.Membership.Role) }
+								</span>
+							}
+						}
+					</div>
+					<nav class="flex items-center gap-3 text-sm">
+						if lc.User != nil {
+							<span class="text-zinc-500 dark:text-zinc-400">{ lc.User.Email }</span>
+							<form method="POST" action="/logout" class="inline">
+								@CSRFField()
+								<button type="submit" class="btn-ghost">Sign out</button>
+							</form>
+						} else {
+							<a href="/login" class="btn-ghost">Sign in</a>
+							<a href="/signup" class="btn-primary">Sign up</a>
+						}
+					</nav>
+				</div>
+				if lc.User != nil && lc.Account != nil {
+					<nav aria-label="Primary" class="mx-auto flex max-w-5xl items-center gap-4 px-4 pb-2 text-sm">
+						<a href="/dashboard" class="hover:underline">Dashboard</a>
+						<a href="/databases" class="hover:underline">Databases</a>
+						<a href="/drills" class="hover:underline">Drills</a>
+						<a href="/account" class="hover:underline">Account</a>
+						<a href="/help" class="hover:underline">Help</a>
+						if lc.User.IsStaff {
+							<a href="/admin" class="ml-auto font-medium text-amber-700 hover:underline dark:text-amber-500">Admin</a>
+						}
+					</nav>
+				}
+			</header>
+			<main id="main-content" class="mx-auto w-full max-w-5xl flex-1 px-4 py-8">
+				{ children... }
+			</main>
+			<footer class="border-t border-zinc-200 px-4 py-4 text-center text-xs text-zinc-500 dark:border-zinc-800 dark:text-zinc-400">
+				<p>Restore Drill — backup verification as a service.</p>
+				<nav aria-label="Legal" class="mt-1 flex justify-center gap-3">
+					<a href="/legal/terms" class="hover:underline">Terms</a>
+					<a href="/legal/privacy" class="hover:underline">Privacy</a>
+					<a href="/legal/dpa" class="hover:underline">DPA</a>
+					<a href="/legal/subprocessors" class="hover:underline">Sub-processors</a>
+					<a href="/legal/cookies" class="hover:underline">Cookies</a>
+				</nav>
+			</footer>
+		</body>
+	</html>
+}

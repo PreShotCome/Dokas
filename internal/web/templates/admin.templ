@@ -1,0 +1,220 @@
+package templates
+
+import (
+	"time"
+
+	"github.com/google/uuid"
+
+	"github.com/preshotcome/anything/internal/drill"
+	"github.com/preshotcome/anything/internal/evidence"
+)
+
+// AdminUser is the staff-panel view of a user row.
+type AdminUser struct {
+	ID        uuid.UUID
+	Email     string
+	IsStaff   bool
+	CreatedAt time.Time
+	Deleted   bool
+}
+
+// AdminAccount is one of a user's account memberships.
+type AdminAccount struct {
+	ID   uuid.UUID
+	Name string
+	Role string
+}
+
+// AdminUserDetailView bundles the user-detail page input.
+type AdminUserDetailView struct {
+	Ctx      LayoutCtx
+	User     AdminUser
+	Accounts []AdminAccount
+	Drills   []drill.Drill
+}
+
+templ AdminHome(lc LayoutCtx) {
+	@LayoutWith("Admin", lc) {
+		<h1 class="mb-2 text-2xl font-semibold tracking-tight">Staff admin</h1>
+		<p class="mb-6 text-sm text-zinc-600 dark:text-zinc-400">
+			Internal support tools. Every impersonation and replay is recorded
+			in the audit log.
+		</p>
+		<form method="GET" action="/admin/users" class="card flex flex-wrap items-end gap-3">
+			<div class="flex-1 min-w-[16rem]">
+				<label class="mb-1 block text-sm font-medium" for="q">Find a user by email</label>
+				<input id="q" name="q" type="search" required class="form-input" placeholder="customer@example.com"/>
+			</div>
+			<button type="submit" class="btn-primary">Search</button>
+		</form>
+	}
+}
+
+templ AdminUsers(lc LayoutCtx, query string, users []AdminUser) {
+	@LayoutWith("Admin — users", lc) {
+		<div class="mb-4 flex items-baseline justify-between">
+			<h1 class="text-2xl font-semibold tracking-tight">Users</h1>
+			<a href="/admin" class="text-sm underline">New search</a>
+		</div>
+		<form method="GET" action="/admin/users" class="card mb-6 flex flex-wrap items-end gap-3">
+			<div class="flex-1 min-w-[16rem]">
+				<label class="mb-1 block text-sm font-medium" for="q">Email contains</label>
+				<input id="q" name="q" type="search" required value={ query } class="form-input"/>
+			</div>
+			<button type="submit" class="btn-primary">Search</button>
+		</form>
+		if len(users) == 0 {
+			<p class="text-sm text-zinc-500">No users match "{ query }".</p>
+		} else {
+			<div class="card overflow-x-auto p-0">
+				<table class="min-w-full divide-y divide-zinc-200 text-sm dark:divide-zinc-800">
+					<thead class="bg-zinc-50 dark:bg-zinc-900/50">
+						<tr>
+							<th class="px-4 py-2 text-left font-medium">Email</th>
+							<th class="px-4 py-2 text-left font-medium">Flags</th>
+							<th class="px-4 py-2 text-left font-medium">Joined</th>
+							<th class="px-4 py-2 text-right font-medium">Detail</th>
+						</tr>
+					</thead>
+					<tbody class="divide-y divide-zinc-200 dark:divide-zinc-800">
+						for _, u := range users {
+							<tr>
+								<td class="px-4 py-2">{ u.Email }</td>
+								<td class="px-4 py-2 text-xs">
+									if u.IsStaff {
+										<span class="rounded-full bg-amber-100 px-2 py-0.5 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300">staff</span>
+									}
+									if u.Deleted {
+										<span class="rounded-full bg-rose-100 px-2 py-0.5 text-rose-800 dark:bg-rose-900/40 dark:text-rose-300">deleted</span>
+									}
+								</td>
+								<td class="px-4 py-2 text-xs text-zinc-500">{ u.CreatedAt.UTC().Format("2006-01-02") }</td>
+								<td class="px-4 py-2 text-right">
+									<a href={ templ.SafeURL("/admin/users/" + u.ID.String()) } class="text-sm underline">Open</a>
+								</td>
+							</tr>
+						}
+					</tbody>
+				</table>
+			</div>
+		}
+	}
+}
+
+templ AdminUserDetail(v AdminUserDetailView) {
+	@LayoutWith("Admin — user", v.Ctx) {
+		<div class="mb-4 flex items-baseline justify-between">
+			<h1 class="text-2xl font-semibold tracking-tight">{ v.User.Email }</h1>
+			<a href="/admin" class="text-sm underline">Admin home</a>
+		</div>
+
+		<dl class="card mb-6 grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
+			<dt class="font-medium">User ID</dt>
+			<dd class="font-mono text-xs">{ v.User.ID.String() }</dd>
+			<dt class="font-medium">Staff</dt>
+			<dd>{ yesNo(v.User.IsStaff) }</dd>
+			<dt class="font-medium">Joined</dt>
+			<dd class="text-xs">{ v.User.CreatedAt.UTC().Format(time.RFC3339) }</dd>
+		</dl>
+
+		<section class="mb-6">
+			<h2 class="mb-2 text-lg font-semibold">Impersonate</h2>
+			<form method="POST" action={ templ.SafeURL("/admin/users/" + v.User.ID.String() + "/impersonate") } class="card flex flex-wrap items-end gap-3">
+				@CSRFField()
+				<div class="flex-1 min-w-[18rem]">
+					<label class="mb-1 block text-sm font-medium" for="reason">Reason (recorded in the audit log)</label>
+					<input id="reason" name="reason" type="text" required minlength="3" class="form-input" placeholder="Investigating support ticket #123"/>
+				</div>
+				<button type="submit" class="btn-primary">Impersonate</button>
+			</form>
+		</section>
+
+		<section class="mb-6">
+			<h2 class="mb-2 text-lg font-semibold">Accounts</h2>
+			if len(v.Accounts) == 0 {
+				<p class="text-sm text-zinc-500">No account memberships.</p>
+			} else {
+				<ul class="card divide-y divide-zinc-200 p-0 text-sm dark:divide-zinc-800">
+					for _, a := range v.Accounts {
+						<li class="flex items-center justify-between px-4 py-2">
+							<span>{ a.Name }</span>
+							<span class="rounded-full bg-zinc-100 px-2 py-0.5 text-xs dark:bg-zinc-800">{ a.Role }</span>
+						</li>
+					}
+				</ul>
+			}
+		</section>
+
+		<section>
+			<h2 class="mb-2 text-lg font-semibold">Drills started by this user</h2>
+			if len(v.Drills) == 0 {
+				<p class="text-sm text-zinc-500">No drills.</p>
+			} else {
+				<div class="card overflow-x-auto p-0">
+					<table class="min-w-full divide-y divide-zinc-200 text-sm dark:divide-zinc-800">
+						<thead class="bg-zinc-50 dark:bg-zinc-900/50">
+							<tr>
+								<th class="px-4 py-2 text-left font-medium">Status</th>
+								<th class="px-4 py-2 text-left font-medium">Created</th>
+								<th class="px-4 py-2 text-right font-medium">Detail</th>
+							</tr>
+						</thead>
+						<tbody class="divide-y divide-zinc-200 dark:divide-zinc-800">
+							for _, d := range v.Drills {
+								<tr>
+									<td class="px-4 py-2">@StatusBadge(d.Status)</td>
+									<td class="px-4 py-2 text-xs text-zinc-500">{ d.CreatedAt.UTC().Format("2006-01-02 15:04 UTC") }</td>
+									<td class="px-4 py-2 text-right">
+										<a href={ templ.SafeURL("/admin/drills/" + d.ID.String()) } class="text-sm underline">Open</a>
+									</td>
+								</tr>
+							}
+						</tbody>
+					</table>
+				</div>
+			}
+		</section>
+	}
+}
+
+templ AdminDrillDetail(lc LayoutCtx, d drill.Drill, t drill.Target, steps []drill.Step, ars []drill.AssertionResult, verify evidence.VerifyResult) {
+	@LayoutWith("Admin — drill", lc) {
+		<div class="mb-4 flex items-baseline justify-between">
+			<h1 class="text-2xl font-semibold tracking-tight">Drill (staff view)</h1>
+			<a href="/admin" class="text-sm underline">Admin home</a>
+		</div>
+		<dl class="card mb-6 grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
+			<dt class="font-medium">Drill ID</dt>
+			<dd class="font-mono text-xs">{ d.ID.String() }</dd>
+			<dt class="font-medium">Account ID</dt>
+			<dd class="font-mono text-xs">{ d.AccountID.String() }</dd>
+			<dt class="font-medium">Target</dt>
+			<dd>{ t.Name }</dd>
+			<dt class="font-medium">Status</dt>
+			<dd>@StatusBadge(d.Status)</dd>
+		</dl>
+
+		<div class="mb-6 flex flex-wrap gap-2">
+			<form method="POST" action={ templ.SafeURL("/admin/drills/" + d.ID.String() + "/replay") }>
+				@CSRFField()
+				<button type="submit" class="btn-primary">Replay drill</button>
+			</form>
+			<form method="POST" action={ templ.SafeURL("/admin/drills/" + d.ID.String() + "/regen-evidence") }>
+				@CSRFField()
+				<button type="submit" class="btn-ghost">Regenerate evidence</button>
+			</form>
+		</div>
+
+		if verify.Signed {
+			@SignaturePanel(verify)
+		}
+		@DrillStepsPartial(d, steps, ars)
+	}
+}
+
+func yesNo(b bool) string {
+	if b {
+		return "yes"
+	}
+	return "no"
+}
