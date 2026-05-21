@@ -1,0 +1,96 @@
+package templates
+
+import (
+	"time"
+
+	"github.com/preshotcome/anything/internal/apikey"
+)
+
+// APIKeysPage lists an account's API keys. revealedSecret is non-empty only
+// immediately after creation — the one time the raw key is shown.
+templ APIKeysPage(lc LayoutCtx, keys []apikey.Key, revealedSecret string) {
+	@LayoutWith("API keys", lc) {
+		<div class="mb-2 flex items-baseline justify-between">
+			<h1 class="text-2xl font-semibold tracking-tight">API keys</h1>
+			<a href="/account" class="text-sm underline">Back to account</a>
+		</div>
+		<p class="mb-6 text-sm text-zinc-600 dark:text-zinc-400">
+			Keys authenticate the <a href="/docs" class="underline">REST API</a>
+			(<code>Authorization: Bearer rd_…</code>). Treat a key like a
+			password — it has full access to this account's databases and drills.
+		</p>
+
+		if revealedSecret != "" {
+			<div class="card mb-6 border-emerald-300 dark:border-emerald-800">
+				<p class="mb-1 text-sm font-medium text-emerald-800 dark:text-emerald-300">
+					Key created — copy it now
+				</p>
+				<p class="mb-2 text-xs text-zinc-500">
+					This is the only time the full key is shown. Store it somewhere safe.
+				</p>
+				<code class="block break-all rounded bg-zinc-100 p-2 font-mono text-xs dark:bg-zinc-800">{ revealedSecret }</code>
+			</div>
+		}
+
+		<form method="POST" action="/account/api-keys" class="card mb-6 flex flex-wrap items-end gap-3">
+			@CSRFField()
+			<div class="flex-1 min-w-[14rem]">
+				<label class="mb-1 block text-sm font-medium" for="name">Key name</label>
+				<input id="name" name="name" type="text" required maxlength="80" class="form-input" placeholder="ci-pipeline"/>
+				<p class="form-hint">A label so you can tell keys apart.</p>
+			</div>
+			<button type="submit" class="btn-primary">Create key</button>
+		</form>
+
+		if len(keys) == 0 {
+			<p class="text-sm text-zinc-500">No API keys yet.</p>
+		} else {
+			<div class="card overflow-x-auto p-0">
+				<table class="min-w-full divide-y divide-zinc-200 text-sm dark:divide-zinc-800">
+					<thead class="bg-zinc-50 dark:bg-zinc-900/50">
+						<tr>
+							<th class="px-4 py-2 text-left font-medium">Name</th>
+							<th class="px-4 py-2 text-left font-medium">Prefix</th>
+							<th class="px-4 py-2 text-left font-medium">Last used</th>
+							<th class="px-4 py-2 text-left font-medium">Status</th>
+							<th class="px-4 py-2 text-right font-medium">Actions</th>
+						</tr>
+					</thead>
+					<tbody class="divide-y divide-zinc-200 dark:divide-zinc-800">
+						for _, k := range keys {
+							<tr>
+								<td class="px-4 py-2 font-medium">{ k.Name }</td>
+								<td class="px-4 py-2 font-mono text-xs">{ k.Prefix }…</td>
+								<td class="px-4 py-2 text-xs text-zinc-500">{ lastUsed(k.LastUsedAt) }</td>
+								<td class="px-4 py-2">
+									if k.RevokedAt != nil {
+										<span class="inline-flex rounded-full bg-rose-100 px-2 py-0.5 text-xs text-rose-800 dark:bg-rose-900/40 dark:text-rose-300">revoked</span>
+									} else {
+										<span class="inline-flex rounded-full bg-emerald-100 px-2 py-0.5 text-xs text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300">active</span>
+									}
+								</td>
+								<td class="px-4 py-2 text-right">
+									if k.RevokedAt == nil {
+										<form method="POST" action={ templ.SafeURL("/account/api-keys/" + k.ID.String() + "/revoke") } class="inline">
+											@CSRFField()
+											<button type="submit" class="btn-ghost text-xs text-rose-600 dark:text-rose-400">Revoke</button>
+										</form>
+									} else {
+										<span class="text-xs text-zinc-400">—</span>
+									}
+								</td>
+							</tr>
+						}
+					</tbody>
+				</table>
+			</div>
+		}
+	}
+}
+
+func lastUsed(t *time.Time) string {
+	if t == nil {
+		return "never"
+	}
+	return t.UTC().Format("2006-01-02 15:04 UTC")
+}

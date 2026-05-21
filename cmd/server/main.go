@@ -18,6 +18,7 @@ import (
 
 	"github.com/preshotcome/anything/internal/account"
 	"github.com/preshotcome/anything/internal/analytics"
+	"github.com/preshotcome/anything/internal/apikey"
 	"github.com/preshotcome/anything/internal/audit"
 	"github.com/preshotcome/anything/internal/auth"
 	"github.com/preshotcome/anything/internal/billing"
@@ -158,8 +159,10 @@ func main() {
 	// Perimeter: per-IP / per-account rate limiters.
 	authLimiter := ratelimit.New(20, 10)  // 20/min, burst 10 — login/signup
 	appLimiter := ratelimit.New(300, 100) // 300/min, burst 100 — authed traffic
+	v1Limiter := ratelimit.New(60, 60)    // 60/min — /v1 API, per account
 	authLimiter.StartSweeper(rootCtx.Done(), 5*time.Minute, 15*time.Minute)
 	appLimiter.StartSweeper(rootCtx.Done(), 5*time.Minute, 15*time.Minute)
+	v1Limiter.StartSweeper(rootCtx.Done(), 5*time.Minute, 15*time.Minute)
 
 	h := handlers.New(handlers.Deps{
 		Pool:            pool,
@@ -172,7 +175,7 @@ func main() {
 		Throttle:        loginThrottle,
 		Webhooks:        webhookStore,
 		WebhookDispatch: webhookDispatch,
-		CSRF:            csrf.New(cfg.IsProduction(), "/webhooks/"),
+		CSRF:            csrf.New(cfg.IsProduction(), "/webhooks/", "/v1/"),
 		AuthLimiter:     authLimiter,
 		AppLimiter:      appLimiter,
 		Evidence:        evidenceService,
@@ -187,6 +190,8 @@ func main() {
 		PostmarkWebhookToken: cfg.PostmarkWebhookToken,
 		StaffEmails:          cfg.StaffEmails,
 		MetricsToken:         cfg.MetricsToken,
+		APIKeys:              apikey.NewStore(pool),
+		V1Limiter:            v1Limiter,
 	})
 
 	// Sample River queue depth into the metrics gauge every 15s.

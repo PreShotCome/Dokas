@@ -1,0 +1,104 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Restore Drill API",
+    "version": "1.0.0",
+    "description": "Backup verification as a service. All endpoints are account-scoped and authenticated with an API key (Authorization: Bearer rd_...). Responses use a {data, meta, errors} envelope. State-changing requests require an Idempotency-Key header."
+  },
+  "servers": [{ "url": "/v1" }],
+  "security": [{ "bearerAuth": [] }],
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": { "type": "http", "scheme": "bearer", "description": "An API key created from the Account page." }
+    }
+  },
+  "paths": {
+    "/databases": {
+      "get": {
+        "summary": "List database targets",
+        "parameters": [
+          { "name": "limit", "in": "query", "schema": { "type": "integer", "default": 25, "maximum": 100 } },
+          { "name": "cursor", "in": "query", "schema": { "type": "string" }, "description": "Opaque pagination cursor from meta.next_cursor." }
+        ],
+        "responses": { "200": { "description": "A page of database targets." } }
+      },
+      "post": {
+        "summary": "Register a database target",
+        "parameters": [
+          { "name": "Idempotency-Key", "in": "header", "required": true, "schema": { "type": "string" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["name", "source_uri", "assertion_table"],
+                "properties": {
+                  "name": { "type": "string" },
+                  "source_uri": { "type": "string", "description": "Local-disk path to a pg_dump or .sql file." },
+                  "assertion_table": { "type": "string" },
+                  "assertion_min_rows": { "type": "integer", "default": 1 }
+                }
+              }
+            }
+          }
+        },
+        "responses": { "201": { "description": "The created database target." } }
+      }
+    },
+    "/databases/{id}": {
+      "get": {
+        "summary": "Get a database target",
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string", "format": "uuid" } }],
+        "responses": { "200": { "description": "The database target." }, "404": { "description": "Not found." } }
+      }
+    },
+    "/drills": {
+      "get": {
+        "summary": "List drills",
+        "parameters": [
+          { "name": "limit", "in": "query", "schema": { "type": "integer", "default": 25, "maximum": 100 } },
+          { "name": "cursor", "in": "query", "schema": { "type": "string" } }
+        ],
+        "responses": { "200": { "description": "A page of drills." } }
+      },
+      "post": {
+        "summary": "Start a drill",
+        "parameters": [
+          { "name": "Idempotency-Key", "in": "header", "required": true, "schema": { "type": "string" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["database_id"],
+                "properties": { "database_id": { "type": "string", "format": "uuid" } }
+              }
+            }
+          }
+        },
+        "responses": { "201": { "description": "The created drill." } }
+      }
+    },
+    "/drills/{id}": {
+      "get": {
+        "summary": "Get a drill, with steps and assertion results",
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string", "format": "uuid" } }],
+        "responses": { "200": { "description": "The drill detail." }, "404": { "description": "Not found." } }
+      }
+    },
+    "/drills/{id}/evidence": {
+      "get": {
+        "summary": "Download the signed evidence PDF",
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string", "format": "uuid" } }],
+        "responses": {
+          "200": { "description": "The PDF.", "content": { "application/pdf": {} } },
+          "404": { "description": "Drill not found, or evidence not yet generated." }
+        }
+      }
+    }
+  }
+}

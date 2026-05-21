@@ -612,3 +612,36 @@ refunds (billing is a skeleton); real staff SSO.
 
 ### When you're done
 Commit on `claude/restore-drill-phase-2-vHjzy`. Push and stop — no PR.
+
+---
+
+## /v1 JSON API (layer-4 surface)
+
+### Goal
+Ship the versioned REST API the plan's layer 4 calls for — the surface
+machine clients integrate against. Webhooks (Phase 4) were outbound only;
+this is the inbound API.
+
+### Locked decisions
+- **Auth:** API keys (`Authorization: Bearer rd_…`), not sessions. Only the
+  SHA-256 hash + a display prefix is stored; the raw key is shown once.
+- **Endpoints:** `GET/POST /v1/databases`, `GET /v1/databases/{id}`,
+  `GET/POST /v1/drills`, `GET /v1/drills/{id}`, `GET /v1/drills/{id}/evidence`.
+- **Envelope:** every response is `{data, meta, errors}`.
+- **Idempotency:** `POST` requires an `Idempotency-Key` header; the
+  (account, key) → response is stored 24h and replayed; a key reused with a
+  different request body is a `409`.
+- **Pagination:** opaque base64 keyset cursors; `meta.next_cursor`.
+- **Rate limit:** 60/min per account; `429` + `Retry-After`.
+- **Docs:** hand-authored OpenAPI 3.1 at `/openapi.json`; a `/docs` page.
+- **Key management:** an Account → API keys page (create / list / revoke).
+
+### Data model
+`api_keys`, `api_idempotency` (pruned at 24h by the retention sweeper).
+
+### Out of scope
+Per-key scopes (keys get full account access — backlog); OpenAPI generated
+from struct tags (hand-authored); a JS API explorer (CSP).
+
+### When you're done
+Commit on `claude/restore-drill-phase-2-vHjzy`. Push and stop — no PR.

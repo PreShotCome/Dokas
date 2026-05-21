@@ -13,10 +13,12 @@ import (
 )
 
 // Retention windows. Evidence and audit logs are auditor-grade and kept for
-// seven years; login attempts are a short-lived security signal.
+// seven years; login attempts are a short-lived security signal; API
+// idempotency records only need to outlive a client's retry window.
 const (
-	AuditRetention         = 7 * 365 * 24 * time.Hour
-	LoginAttemptsRetention = 30 * 24 * time.Hour
+	AuditRetention          = 7 * 365 * 24 * time.Hour
+	LoginAttemptsRetention  = 30 * 24 * time.Hour
+	APIIdempotencyRetention = 24 * time.Hour
 )
 
 // Sweeper enforces retention: it purges evidence past retain_until, old
@@ -33,9 +35,10 @@ func NewSweeper(pool *pgxpool.Pool, ev *evidence.Service, throttle *auth.LoginTh
 
 // SweepResult reports what a sweep removed.
 type SweepResult struct {
-	EvidencePurged int
-	AuditPruned    int64
-	LoginsPruned   int64
+	EvidencePurged    int
+	AuditPruned       int64
+	LoginsPruned      int64
+	IdempotencyPruned int64
 }
 
 // Sweep runs one retention pass. Each step is independent; a failure in one
@@ -57,13 +60,18 @@ func (s *Sweeper) Sweep(ctx context.Context) (SweepResult, error) {
 	}
 	res.AuditPruned = tag.RowsAffected()
 
-	before := time.Now().UTC()
 	if err := s.throttle.Prune(ctx, LoginAttemptsRetention); err != nil {
 		return res, err
 	}
-	// Prune doesn't report a count; record that it ran.
-	_ = before
 	res.LoginsPruned = -1 // -1 = "ran, count not tracked"
+
+	idemTag, err := s.pool.Exec(ctx, `
+		DELETE FROM api_idempotency WHERE created_at < $1
+	`, time.Now().UTC().Add(-APIIdempotencyRetention))
+	if err != nil {
+		return res, err
+	}
+	res.IdempotencyPruned = idemTag.RowsAffected()
 
 	return res, nil
 }

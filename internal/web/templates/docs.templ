@@ -1,0 +1,61 @@
+package templates
+
+templ DocsPage(lc LayoutCtx) {
+	@LayoutWith("API reference", lc) {
+		<article class="prose-sm mx-auto max-w-2xl space-y-4">
+			<h1 class="text-2xl font-semibold tracking-tight">API reference</h1>
+			<p class="text-sm text-zinc-600 dark:text-zinc-400">
+				The Restore Drill REST API is versioned under <code>/v1</code>.
+				The machine-readable OpenAPI 3.1 document is at
+				<a href="/openapi.json" class="underline">/openapi.json</a>.
+			</p>
+
+			<h2 class="text-base font-semibold">Authentication</h2>
+			<p class="text-sm text-zinc-600 dark:text-zinc-400">
+				Create an API key on the
+				<a href="/account/api-keys" class="underline">API keys</a> page,
+				then send it as a bearer token:
+			</p>
+			<pre class="overflow-x-auto rounded bg-zinc-100 p-3 text-xs dark:bg-zinc-800"><code>curl https://app.restoredrill.io/v1/drills \
+  -H "Authorization: Bearer rd_your_key_here"</code></pre>
+
+			<h2 class="text-base font-semibold">Conventions</h2>
+			<ul class="list-disc space-y-1 pl-5 text-sm text-zinc-600 dark:text-zinc-400">
+				<li>Every response is a <code>{ "{ data, meta, errors }" }</code> envelope.</li>
+				<li>List endpoints paginate with an opaque <code>cursor</code>; follow <code>meta.next_cursor</code>.</li>
+				<li><code>POST</code> requests require an <code>Idempotency-Key</code> header; a repeated key replays the original response.</li>
+				<li>Rate limit: 60 requests per minute per account; over the limit returns <code>429</code> with <code>Retry-After</code>.</li>
+			</ul>
+
+			<h2 class="text-base font-semibold">Endpoints</h2>
+			<div class="card overflow-x-auto p-0">
+				<table class="min-w-full divide-y divide-zinc-200 text-sm dark:divide-zinc-800">
+					<thead class="bg-zinc-50 dark:bg-zinc-900/50">
+						<tr>
+							<th class="px-4 py-2 text-left font-medium">Method</th>
+							<th class="px-4 py-2 text-left font-medium">Path</th>
+							<th class="px-4 py-2 text-left font-medium">Description</th>
+						</tr>
+					</thead>
+					<tbody class="divide-y divide-zinc-200 font-mono text-xs dark:divide-zinc-800">
+						@docRow("GET", "/v1/databases", "List database targets")
+						@docRow("POST", "/v1/databases", "Register a database target")
+						@docRow("GET", "/v1/databases/{id}", "Get a database target")
+						@docRow("GET", "/v1/drills", "List drills")
+						@docRow("POST", "/v1/drills", "Start a drill")
+						@docRow("GET", "/v1/drills/{id}", "Get a drill with steps + assertions")
+						@docRow("GET", "/v1/drills/{id}/evidence", "Download the signed evidence PDF")
+					</tbody>
+				</table>
+			</div>
+		</article>
+	}
+}
+
+templ docRow(method, path, desc string) {
+	<tr>
+		<td class="px-4 py-2 font-semibold">{ method }</td>
+		<td class="px-4 py-2">{ path }</td>
+		<td class="px-4 py-2 font-sans text-zinc-600 dark:text-zinc-400">{ desc }</td>
+	</tr>
+}

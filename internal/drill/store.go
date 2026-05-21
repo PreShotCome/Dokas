@@ -146,6 +146,61 @@ func (s *Store) ListTargets(ctx context.Context, accountID uuid.UUID) ([]Target,
 	return out, rows.Err()
 }
 
+// ListTargetsPage is the keyset-paginated target list for the /v1 API.
+// Pass a nil cursor for the first page; rows order (created_at, id) DESC.
+func (s *Store) ListTargetsPage(ctx context.Context, accountID uuid.UUID, afterAt *time.Time, afterID *uuid.UUID, limit int) ([]Target, error) {
+	rows, err := s.pool.Query(ctx, `
+		SELECT id, account_id, created_by_user_id, name, source_kind, source_uri,
+		       assertion_table, assertion_min_rows, created_at
+		  FROM database_targets
+		 WHERE account_id = $1 AND deleted_at IS NULL
+		   AND ($2::timestamptz IS NULL OR (created_at, id) < ($2, $3))
+		 ORDER BY created_at DESC, id DESC
+		 LIMIT $4
+	`, accountID, afterAt, afterID, limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var out []Target
+	for rows.Next() {
+		var t Target
+		if err := rows.Scan(&t.ID, &t.AccountID, &t.CreatedByUserID, &t.Name, &t.SourceKind, &t.SourceURI,
+			&t.AssertionTable, &t.AssertionMinRows, &t.CreatedAt); err != nil {
+			return nil, err
+		}
+		out = append(out, t)
+	}
+	return out, rows.Err()
+}
+
+// ListDrillsPage is the keyset-paginated drill list for the /v1 API.
+func (s *Store) ListDrillsPage(ctx context.Context, accountID uuid.UUID, afterAt *time.Time, afterID *uuid.UUID, limit int) ([]Drill, error) {
+	rows, err := s.pool.Query(ctx, `
+		SELECT id, target_id, account_id, created_by_user_id, status, started_at, completed_at,
+		       error, evidence_path, sandbox_db, created_at
+		  FROM drills
+		 WHERE account_id = $1
+		   AND ($2::timestamptz IS NULL OR (created_at, id) < ($2, $3))
+		 ORDER BY created_at DESC, id DESC
+		 LIMIT $4
+	`, accountID, afterAt, afterID, limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var out []Drill
+	for rows.Next() {
+		var d Drill
+		if err := rows.Scan(&d.ID, &d.TargetID, &d.AccountID, &d.CreatedByUserID, &d.Status,
+			&d.StartedAt, &d.CompletedAt, &d.Error, &d.EvidencePath, &d.SandboxDB, &d.CreatedAt); err != nil {
+			return nil, err
+		}
+		out = append(out, d)
+	}
+	return out, rows.Err()
+}
+
 func (s *Store) GetTarget(ctx context.Context, accountID, targetID uuid.UUID) (Target, error) {
 	var t Target
 	err := s.pool.QueryRow(ctx, `

@@ -9,10 +9,9 @@ The marketing site lives in a separate repo.
 
 ## Status
 
-Layer 11 — support. A staff-gated admin panel (user lookup, safe
-impersonation, drill replay, evidence regeneration), an in-app help page,
-and the on-call runbook. That completes layers 1–11 of the rubric in this
-repo; the Astro marketing/docs site is Phase 7 (separate repo).
+All 11 rubric layers are built. Latest: the versioned `/v1` JSON API —
+API-key auth, the `{data, meta, errors}` envelope, `Idempotency-Key` on
+writes, cursor pagination, per-account rate limits, and an OpenAPI doc.
 
 Implemented:
 - Chi + Templ + HTMX + Tailwind monolith
@@ -52,6 +51,9 @@ Implemented:
 - Staff admin panel — user lookup, safe (reason-logged) impersonation,
   drill replay, evidence regeneration
 - In-app `/help` FAQ page; incident + on-call + secret-rotation runbooks
+- Versioned `/v1` JSON API — API keys, `{data,meta,errors}` envelope,
+  `Idempotency-Key` writes, cursor pagination, per-account rate limit,
+  OpenAPI doc at `/openapi.json` + a `/docs` reference
 
 ## Local development
 
@@ -90,6 +92,7 @@ skips.
 cmd/server               HTTP + River worker entrypoint
 cmd/migrate              goose + River migration CLI
 internal/auth            sessions, password hashing, RBAC, login throttle
+internal/apikey          /v1 API-key issuance + verification
 internal/account         accounts, memberships, invitations
 internal/billing         Stripe customer wrapper (+ noop fallback)
 internal/ratelimit       token-bucket limiter + middleware

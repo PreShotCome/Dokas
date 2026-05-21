@@ -39,12 +39,21 @@ templ AccountSettings(lc LayoutCtx, members []account.MembershipWithUser, pendin
 
 		<section class="mb-8">
 			<h2 class="mb-3 text-lg font-semibold">Integrations</h2>
-			<div class="card flex items-center justify-between">
-				<div>
-					<p class="text-sm font-medium">Webhooks</p>
-					<p class="text-xs text-zinc-500">Signed event notifications when drills finish.</p>
+			<div class="space-y-3">
+				<div class="card flex items-center justify-between">
+					<div>
+						<p class="text-sm font-medium">Webhooks</p>
+						<p class="text-xs text-zinc-500">Signed event notifications when drills finish.</p>
+					</div>
+					<a href="/account/webhooks" class="btn-ghost text-sm">Manage webhooks</a>
 				</div>
-				<a href="/account/webhooks" class="btn-ghost text-sm">Manage webhooks</a>
+				<div class="card flex items-center justify-between">
+					<div>
+						<p class="text-sm font-medium">API keys</p>
+						<p class="text-xs text-zinc-500">Authenticate the REST API. See the <a href="/docs" class="underline">API reference</a>.</p>
+					</div>
+					<a href="/account/api-keys" class="btn-ghost text-sm">Manage API keys</a>
+				</div>
 			</div>
 		</section>
 

@@ -12,6 +12,7 @@ import (
 
 	"github.com/preshotcome/anything/internal/account"
 	"github.com/preshotcome/anything/internal/analytics"
+	"github.com/preshotcome/anything/internal/apikey"
 	"github.com/preshotcome/anything/internal/audit"
 	"github.com/preshotcome/anything/internal/auth"
 	"github.com/preshotcome/anything/internal/billing"
@@ -53,6 +54,8 @@ type Handlers struct {
 	postmarkWebhookToken string
 	staffEmails          map[string]bool
 	metricsToken         string
+	apiKeys              *apikey.Store
+	v1Limiter            *ratelimit.Limiter
 }
 
 type Deps struct {
@@ -81,6 +84,8 @@ type Deps struct {
 	PostmarkWebhookToken string
 	StaffEmails          []string
 	MetricsToken         string
+	APIKeys              *apikey.Store
+	V1Limiter            *ratelimit.Limiter
 }
 
 func New(d Deps) *Handlers {
@@ -114,6 +119,8 @@ func New(d Deps) *Handlers {
 		postmarkWebhookToken: d.PostmarkWebhookToken,
 		staffEmails:          staff,
 		metricsToken:         d.MetricsToken,
+		apiKeys:              d.APIKeys,
+		v1Limiter:            d.V1Limiter,
 	}
 }
 
@@ -170,6 +177,14 @@ func (h *Handlers) Router(staticFS http.FileSystem) http.Handler {
 	// Inbound Postmark bounce/complaint webhook — authenticated by the
 	// token path segment, CSRF-exempt (see csrf.New in main).
 	r.Post("/webhooks/postmark/{token}", h.postmarkBounce)
+
+	// The versioned JSON API: API-key auth, no session/CSRF (csrf.New
+	// exempts the /v1/ prefix). Mounted at the top level so it's outside
+	// the session-gated group.
+	r.Mount("/v1", h.v1Router())
+	// API docs are public.
+	r.Get("/openapi.json", h.openAPISpec)
+	r.Get("/docs", h.docsPage)
 
 	r.Handle("/static/*", http.StripPrefix("/static/", http.FileServer(staticFS)))
 
@@ -250,6 +265,7 @@ func (h *Handlers) Router(staticFS http.FileSystem) http.Handler {
 			r.Get("/account", h.accountSettings)
 			r.Get("/account/webhooks", h.webhooksList)
 			r.Get("/account/webhooks/{id}/deliveries", h.webhookDeliveries)
+			r.Get("/account/api-keys", h.apiKeysList)
 		})
 
 		// Writes (RBAC-gated)
@@ -276,6 +292,8 @@ func (h *Handlers) Router(staticFS http.FileSystem) http.Handler {
 			r.Post("/account/webhooks", h.webhookCreate)
 			r.Post("/account/webhooks/{id}/delete", h.webhookDelete)
 			r.Post("/account/webhooks/{id}/deliveries/{delivery_id}/replay", h.webhookReplay)
+			r.Post("/account/api-keys", h.apiKeyCreate)
+			r.Post("/account/api-keys/{id}/revoke", h.apiKeyRevoke)
 			r.Get("/account/export", h.accountExport)
 			r.Post("/account/delete", h.accountDelete)
 		})

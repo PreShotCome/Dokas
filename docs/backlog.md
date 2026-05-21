@@ -26,9 +26,9 @@ not started, planned · `debt` = works but should be revisited.
   nothing reads them.
 ## Layer 4 — Perimeter & webhooks
 
-- **No JSON API** — `deferred`. Webhooks are outbound only; there is no
-  versioned `/v1/` REST API (plan layer 4). Idempotency is a form field,
-  not the `Idempotency-Key` header.
+- **API key scopes** — `deferred`. `/v1` API keys carry full account access
+  (read + write on databases and drills). Per-key scopes / read-only keys
+  are not implemented.
 - **MFA / magic links / social login** — `deferred`. Plan layer 5 identity
   work; not built. Password auth only.
 
@@ -105,3 +105,10 @@ Tech-debt burndown pass:
   1.25.10 to clear the stdlib findings.
 - **CI migration check** — CI verifies every migration declares both a
   `+goose Up` and `+goose Down` section.
+
+Layer-4 API:
+
+- **`/v1` JSON API** — versioned REST API: API-key auth, the
+  `{data,meta,errors}` envelope, `Idempotency-Key`-gated writes, opaque
+  cursor pagination, a per-account 60/min rate limit, and an OpenAPI 3.1
+  document at `/openapi.json` with a `/docs` reference page.
