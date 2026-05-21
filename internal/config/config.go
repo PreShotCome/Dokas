@@ -25,7 +25,10 @@ type Config struct {
 	// EvidenceVerificationKeys holds zero or more concatenated PEM public-key
 	// blocks — keys retired by rotation, kept so old evidence still verifies.
 	EvidenceVerificationKeys string
-	SentryDSN                string
+	// EvidenceEncryptionKey is the base64 32-byte master key that wraps each
+	// account's evidence data-encryption key (at-rest encryption / crypto-shred).
+	EvidenceEncryptionKey string
+	SentryDSN             string
 
 	PostmarkToken        string
 	PostmarkWebhookToken string
@@ -49,6 +52,7 @@ func Load() (Config, error) {
 		StripeSecretKey:          os.Getenv("STRIPE_SECRET_KEY"),
 		EvidenceSigningKey:       os.Getenv("EVIDENCE_SIGNING_KEY"),
 		EvidenceVerificationKeys: os.Getenv("EVIDENCE_VERIFICATION_KEYS"),
+		EvidenceEncryptionKey:    os.Getenv("EVIDENCE_ENCRYPTION_KEY"),
 		SentryDSN:                os.Getenv("SENTRY_DSN"),
 
 		PostmarkToken:        os.Getenv("POSTMARK_TOKEN"),

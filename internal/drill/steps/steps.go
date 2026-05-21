@@ -459,7 +459,7 @@ func (w *ReportWorker) Work(ctx context.Context, job *river.Job[drill.ReportArgs
 	}); err != nil {
 		return w.D.failAndCleanup(ctx, drillID, drill.StepReport, err.Error())
 	}
-	path, err := w.D.Evidence.Finalize(ctx, drillID, buf.Bytes())
+	path, err := w.D.Evidence.Finalize(ctx, drillID, dr.AccountID, buf.Bytes())
 	if err != nil {
 		return w.D.failAndCleanup(ctx, drillID, drill.StepReport, err.Error())
 	}

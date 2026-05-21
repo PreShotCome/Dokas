@@ -11,8 +11,9 @@ import (
 )
 
 // seedDrill inserts the minimal user/account/target/drill chain so an
-// evidence_signatures row (FK → drills) can be created.
-func seedDrill(t *testing.T, ctx context.Context, pool *pgxpool.Pool) uuid.UUID {
+// evidence_signatures row (FK → drills) can be created. Returns the drill
+// and account IDs.
+func seedDrill(t *testing.T, ctx context.Context, pool *pgxpool.Pool) (uuid.UUID, uuid.UUID) {
 	t.Helper()
 	userID := uuid.New()
 	accountID := uuid.New()
@@ -43,7 +44,18 @@ func seedDrill(t *testing.T, ctx context.Context, pool *pgxpool.Pool) uuid.UUID 
 		_, _ = pool.Exec(context.Background(), `DELETE FROM accounts WHERE id=$1`, accountID)
 		_, _ = pool.Exec(context.Background(), `DELETE FROM users WHERE id=$1`, userID)
 	})
-	return drillID
+	return drillID, accountID
+}
+
+// newSvc builds an evidence Service with ephemeral signing + encryption keys.
+func newSvc(t *testing.T, pool *pgxpool.Pool) *Service {
+	t.Helper()
+	signer, _ := NewSigner("")
+	c, err := NewCipher("", pool)
+	if err != nil {
+		t.Fatalf("cipher: %v", err)
+	}
+	return NewService(NewLocalStore(t.TempDir()), signer, c, pool)
 }
 
 func TestServiceFinalizeAndVerify(t *testing.T) {
@@ -58,23 +70,20 @@ func TestServiceFinalizeAndVerify(t *testing.T) {
 	}
 	defer pool.Close()
 
-	drillID := seedDrill(t, ctx, pool)
-	dir := t.TempDir()
-	signer, _ := NewSigner("")
-	svc := NewService(NewLocalStore(dir), signer, pool)
+	drillID, accountID := seedDrill(t, ctx, pool)
+	svc := newSvc(t, pool)
 
 	pdf := []byte("%PDF-1.3 evidence body")
-	key, err := svc.Finalize(ctx, drillID, pdf)
+	key, err := svc.Finalize(ctx, drillID, accountID, pdf)
 	if err != nil {
 		t.Fatalf("Finalize: %v", err)
 	}
-	// Finalize records evidence_path nowhere — the drill row update is the
-	// caller's job — so set it here for Verify's join-free path.
-	if _, err := pool.Exec(ctx, `UPDATE drills SET evidence_path=$2 WHERE id=$1`, drillID, key); err != nil {
-		t.Fatalf("set evidence_path: %v", err)
+	// The on-disk file is ciphertext, not the plaintext PDF.
+	if raw, _ := os.ReadFile(key); len(raw) == 0 || string(raw) == string(pdf) {
+		t.Fatal("evidence file should be stored encrypted, not as plaintext")
 	}
 
-	res, err := svc.Verify(ctx, drillID, key)
+	res, err := svc.Verify(ctx, drillID, accountID, key)
 	if err != nil {
 		t.Fatalf("Verify: %v", err)
 	}
@@ -86,7 +95,7 @@ func TestServiceFinalizeAndVerify(t *testing.T) {
 	if err := os.WriteFile(key, []byte("tampered"), 0o644); err != nil {
 		t.Fatalf("tamper write: %v", err)
 	}
-	res, err = svc.Verify(ctx, drillID, key)
+	res, err = svc.Verify(ctx, drillID, accountID, key)
 	if err != nil {
 		t.Fatalf("Verify after tamper: %v", err)
 	}
@@ -95,6 +104,51 @@ func TestServiceFinalizeAndVerify(t *testing.T) {
 	}
 	if res.Reason == "" {
 		t.Fatal("invalid result should carry a Reason")
+	}
+}
+
+func TestCryptoShred(t *testing.T) {
+	dsn := os.Getenv("DATABASE_URL")
+	if dsn == "" {
+		t.Skip("DATABASE_URL not set")
+	}
+	ctx := context.Background()
+	pool, err := pgxpool.New(ctx, dsn)
+	if err != nil {
+		t.Fatalf("pool: %v", err)
+	}
+	defer pool.Close()
+
+	drillID, accountID := seedDrill(t, ctx, pool)
+	svc := newSvc(t, pool)
+
+	key, err := svc.Finalize(ctx, drillID, accountID, []byte("%PDF evidence"))
+	if err != nil {
+		t.Fatalf("Finalize: %v", err)
+	}
+	// Readable before the shred.
+	if _, err := svc.Read(ctx, accountID, key); err != nil {
+		t.Fatalf("Read before shred: %v", err)
+	}
+
+	// Destroy the account's key — the crypto-shred.
+	if err := svc.ShredAccountEvidence(ctx, accountID); err != nil {
+		t.Fatalf("ShredAccountEvidence: %v", err)
+	}
+
+	// The ciphertext file still exists, but is now permanently unreadable.
+	if _, err := os.Stat(key); err != nil {
+		t.Fatalf("evidence file should still exist on disk: %v", err)
+	}
+	if _, err := svc.Read(ctx, accountID, key); err != ErrShredded {
+		t.Fatalf("Read after shred = %v, want ErrShredded", err)
+	}
+	res, err := svc.Verify(ctx, drillID, accountID, key)
+	if err != nil {
+		t.Fatalf("Verify after shred: %v", err)
+	}
+	if res.Valid {
+		t.Fatal("crypto-shredded evidence must not verify as valid")
 	}
 }
 
@@ -110,12 +164,10 @@ func TestPurgeExpiredRespectsRetention(t *testing.T) {
 	}
 	defer pool.Close()
 
-	drillID := seedDrill(t, ctx, pool)
-	dir := t.TempDir()
-	signer, _ := NewSigner("")
-	svc := NewService(NewLocalStore(dir), signer, pool)
+	drillID, accountID := seedDrill(t, ctx, pool)
+	svc := newSvc(t, pool)
 
-	key, err := svc.Finalize(ctx, drillID, []byte("evidence"))
+	key, err := svc.Finalize(ctx, drillID, accountID, []byte("evidence"))
 	if err != nil {
 		t.Fatalf("Finalize: %v", err)
 	}

@@ -95,7 +95,11 @@ func TestDrillEndToEnd(t *testing.T) {
 	if err != nil {
 		t.Fatalf("signer: %v", err)
 	}
-	evidenceService := evidence.NewService(evidence.NewLocalStore(evidenceDir), signer, pool)
+	evCipher, err := evidence.NewCipher("", pool)
+	if err != nil {
+		t.Fatalf("cipher: %v", err)
+	}
+	evidenceService := evidence.NewService(evidence.NewLocalStore(evidenceDir), signer, evCipher, pool)
 
 	rc, err := river.NewClient(riverpgxv5.New(pool), &river.Config{
 		Queues:  map[string]river.QueueConfig{river.QueueDefault: {MaxWorkers: 4}},

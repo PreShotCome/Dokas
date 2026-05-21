@@ -61,13 +61,17 @@ func v1TestServer(t *testing.T, pool *pgxpool.Pool) (*httptest.Server, string, u
 	}
 
 	signer, _ := evidence.NewSigner("")
+	evCipher, err := evidence.NewCipher("", pool)
+	if err != nil {
+		t.Fatalf("cipher: %v", err)
+	}
 	h := &Handlers{
 		pool:      pool,
 		drills:    drill.NewStore(pool),
 		accounts:  account.NewStore(pool),
 		apiKeys:   apiKeys,
 		orch:      drill.NewOrchestrator(drill.NewStore(pool), v1FakeInserter{}, audit.New(pool)),
-		evidence:  evidence.NewService(evidence.NewLocalStore(t.TempDir()), signer, pool),
+		evidence:  evidence.NewService(evidence.NewLocalStore(t.TempDir()), signer, evCipher, pool),
 		v1Limiter: ratelimit.New(10000, 10000), // effectively unlimited for tests
 		// Confine source paths to the testdata fixtures directory.
 		sourceDir: filepath.Dir(mustAbsTestdata(t)),

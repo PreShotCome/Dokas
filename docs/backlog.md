@@ -39,9 +39,6 @@ not started, planned · `debt` = works but should be revisited.
 - **S3 Object Lock** — `seam`. `evidence.S3Store` is a stub; evidence lives
   on local disk. Retention is enforced in the app layer, not by Object
   Lock.
-- **Crypto-shred** — `debt`. Evidence is not encrypted at rest, so
-  "crypto-shred" on account deletion is plain file deletion. True
-  crypto-shred needs at-rest encryption with a per-account key.
 - **Legal copy** — `deferred`. ToS/Privacy/DPA pages are DRAFT placeholders
   pending counsel.
 
@@ -82,6 +79,15 @@ not started, planned · `debt` = works but should be revisited.
   wants expand-then-contract verified on a prod-sized clone.
 
 ## Resolved
+
+Layer-5 compliance:
+
+- **Crypto-shred** — evidence PDFs are now encrypted at rest with per-account
+  envelope encryption: a server master key (`EVIDENCE_ENCRYPTION_KEY`) wraps
+  each account's data-encryption key, stored in `account_evidence_keys`; the
+  DEK encrypts the PDF (AES-256-GCM). A GDPR hard delete destroys the wrapped
+  DEK, so every evidence file for the account becomes permanently
+  undecryptable — a true crypto-shred — even if a file copy survives.
 
 Bug-report remediation pass (correctness + security audit):
 

@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
-	"io"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -305,7 +304,7 @@ func (h *Handlers) drillDetail(w http.ResponseWriter, r *http.Request) {
 	// shows a live tamper-check, not a cached claim.
 	var verify evidence.VerifyResult
 	if dr.EvidencePath != nil && *dr.EvidencePath != "" {
-		verify, _ = h.evidence.Verify(r.Context(), dr.ID, *dr.EvidencePath)
+		verify, _ = h.evidence.Verify(r.Context(), dr.ID, dr.AccountID, *dr.EvidencePath)
 	}
 	render(w, r, templates.DrillDetail(lc, dr, target, steps, ars, verify))
 }
@@ -348,12 +347,15 @@ func (h *Handlers) drillEvidence(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "evidence not yet generated", http.StatusNotFound)
 		return
 	}
-	f, err := h.evidence.Open(r.Context(), *dr.EvidencePath)
+	body, err := h.evidence.Read(r.Context(), acct.ID, *dr.EvidencePath)
 	if err != nil {
-		http.Error(w, "open evidence: "+err.Error(), http.StatusInternalServerError)
+		if errors.Is(err, evidence.ErrShredded) {
+			http.Error(w, "evidence is no longer available", http.StatusGone)
+			return
+		}
+		http.Error(w, "read evidence: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
-	defer f.Close()
 
 	_ = h.audit.Record(r.Context(), audit.Event{
 		AccountID: &acct.ID, ActorID: &u.ID, Action: "evidence.downloaded",
@@ -363,13 +365,6 @@ func (h *Handlers) drillEvidence(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/pdf")
 	w.Header().Set("Content-Disposition", `attachment; filename="restore-drill-`+dr.ID.String()+`.pdf"`)
-	// Read into memory so we can ServeContent with a seekable reader; drill
-	// PDFs are small (single page).
-	body, err := io.ReadAll(f)
-	if err != nil {
-		http.Error(w, "read evidence: "+err.Error(), http.StatusInternalServerError)
-		return
-	}
 	http.ServeContent(w, r, "", time.Time{}, bytes.NewReader(body))
 }
 
