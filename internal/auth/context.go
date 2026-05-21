@@ -75,7 +75,9 @@ func WithMembership(ctx context.Context, m *account.Membership) context.Context 
 func (s *Store) LoadUser(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		u, sess, err := s.Lookup(r.Context(), r)
-		if err == nil {
+		// An mfa_pending session has a correct password but no MFA code yet;
+		// it must not authenticate app requests, so leave the user unset.
+		if err == nil && !sess.MFAPending {
 			ctx := WithUser(r.Context(), u)
 			if sess.ImpersonatorID != nil {
 				if staff, err := s.loadUser(ctx, *sess.ImpersonatorID); err == nil {

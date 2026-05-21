@@ -38,6 +38,27 @@ templ AccountSettings(lc LayoutCtx, members []account.MembershipWithUser, pendin
 		</section>
 
 		<section class="mb-8">
+			<h2 class="mb-3 text-lg font-semibold">Security</h2>
+			<div class="card flex items-center justify-between">
+				<div>
+					<p class="text-sm font-medium">Two-factor authentication</p>
+					<p class="text-xs text-zinc-500">
+						if lc.User != nil && lc.User.MFAEnabled {
+							On — sign-in requires a code from your authenticator app.
+						} else {
+							Off — add an authenticator-app code to every sign-in.
+						}
+					</p>
+				</div>
+				if lc.User != nil && lc.User.MFAEnabled {
+					<a href="/account/mfa" class="btn-ghost text-sm">Manage 2FA</a>
+				} else {
+					<a href="/account/mfa" class="btn-primary text-sm">Set up 2FA</a>
+				}
+			</div>
+		</section>
+
+		<section class="mb-8">
 			<h2 class="mb-3 text-lg font-semibold">Integrations</h2>
 			<div class="space-y-3">
 				<div class="card flex items-center justify-between">

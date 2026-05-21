@@ -30,6 +30,9 @@ type Session struct {
 	ExpiresAt time.Time
 	// ImpersonatorID, when set, is the staff user impersonating UserID.
 	ImpersonatorID *uuid.UUID
+	// MFAPending is true between a correct password and a correct MFA code:
+	// the session exists but must not authenticate app requests.
+	MFAPending bool
 }
 
 type User struct {
@@ -37,6 +40,7 @@ type User struct {
 	Email         string
 	EmailVerified bool
 	IsStaff       bool
+	MFAEnabled    bool
 	CreatedAt     time.Time
 }
 
@@ -58,12 +62,22 @@ func (s *Store) cookieName() string {
 	return cookieNameInsecure
 }
 
-// Create issues a fresh session for a user and writes the cookie.
-// currentAccountID is optional (pass uuid.Nil for legacy callers); when
-// non-zero it's persisted on the session row so subsequent requests resolve
-// the same account context without a per-user lookup.
-// Returns the raw token (only sent to the client; only its hash is stored).
+// Create issues a fully authenticated session for a user and writes the
+// cookie. currentAccountID is optional (pass uuid.Nil for legacy callers);
+// when non-zero it's persisted on the session row so subsequent requests
+// resolve the same account context without a per-user lookup.
 func (s *Store) Create(ctx context.Context, w http.ResponseWriter, userID, currentAccountID uuid.UUID) error {
+	return s.create(ctx, w, userID, currentAccountID, false)
+}
+
+// CreatePending issues a session that has passed the password check but still
+// owes an MFA code. It does not authenticate app requests until CompleteMFA
+// promotes it.
+func (s *Store) CreatePending(ctx context.Context, w http.ResponseWriter, userID uuid.UUID) error {
+	return s.create(ctx, w, userID, uuid.Nil, true)
+}
+
+func (s *Store) create(ctx context.Context, w http.ResponseWriter, userID, currentAccountID uuid.UUID, mfaPending bool) error {
 	raw, hash, err := generateToken()
 	if err != nil {
 		return err
@@ -78,9 +92,10 @@ func (s *Store) Create(ctx context.Context, w http.ResponseWriter, userID, curre
 	}
 
 	_, err = s.pool.Exec(ctx, `
-		INSERT INTO sessions (id, user_id, token_hash, created_at, last_seen_at, expires_at, current_account_id)
-		VALUES ($1, $2, $3, $4, $4, $5, $6)
-	`, id, userID, hash, now, expires, accountArg)
+		INSERT INTO sessions
+		    (id, user_id, token_hash, created_at, last_seen_at, expires_at, current_account_id, mfa_pending)
+		VALUES ($1, $2, $3, $4, $4, $5, $6, $7)
+	`, id, userID, hash, now, expires, accountArg, mfaPending)
 	if err != nil {
 		return err
 	}
@@ -155,11 +170,12 @@ func (s *Store) Lookup(ctx context.Context, r *http.Request) (*User, *Session, e
 		 WHERE token_hash   = $2
 		   AND expires_at   > $1
 		   AND last_seen_at > $3
-	  RETURNING id, user_id, created_at, expires_at, impersonator_user_id
+	  RETURNING id, user_id, created_at, expires_at, impersonator_user_id, mfa_pending
 	`, now, hash, idleCutoff)
 
 	var sess Session
-	if err := row.Scan(&sess.ID, &sess.UserID, &sess.CreatedAt, &sess.ExpiresAt, &sess.ImpersonatorID); err != nil {
+	if err := row.Scan(&sess.ID, &sess.UserID, &sess.CreatedAt, &sess.ExpiresAt,
+		&sess.ImpersonatorID, &sess.MFAPending); err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, nil, ErrNoSession
 		}
@@ -178,10 +194,10 @@ func (s *Store) Lookup(ctx context.Context, r *http.Request) (*User, *Session, e
 func (s *Store) loadUser(ctx context.Context, id uuid.UUID) (*User, error) {
 	var u User
 	err := s.pool.QueryRow(ctx, `
-		SELECT id, email, email_verified, is_staff, created_at
+		SELECT id, email, email_verified, is_staff, mfa_enabled, created_at
 		  FROM users
 		 WHERE id = $1 AND deleted_at IS NULL
-	`, id).Scan(&u.ID, &u.Email, &u.EmailVerified, &u.IsStaff, &u.CreatedAt)
+	`, id).Scan(&u.ID, &u.Email, &u.EmailVerified, &u.IsStaff, &u.MFAEnabled, &u.CreatedAt)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, ErrNoSession

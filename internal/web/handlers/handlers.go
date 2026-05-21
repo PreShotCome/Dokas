@@ -199,6 +199,10 @@ func (h *Handlers) Router(staticFS http.FileSystem) http.Handler {
 		r.Post("/login", h.loginSubmit)
 		r.Get("/signup", h.signupPage)
 		r.Post("/signup", h.signupSubmit)
+		// Second login step — driven by the mfa_pending session cookie, so
+		// it sits with the other pre-auth routes under the per-IP limiter.
+		r.Get("/login/mfa", h.mfaChallengePage)
+		r.Post("/login/mfa", h.mfaChallengeSubmit)
 	})
 	r.Post("/logout", h.logout)
 
@@ -249,6 +253,11 @@ func (h *Handlers) Router(staticFS http.FileSystem) http.Handler {
 		r.Get("/dashboard", h.dashboard)
 		r.Post("/account/switch", h.accountSwitch)
 		r.Post("/verify-email/resend", h.verifyEmailResend)
+
+		// Two-factor auth — a per-user security setting, not RBAC-gated.
+		r.Get("/account/mfa", h.mfaSetupPage)
+		r.Post("/account/mfa/enable", h.mfaEnable)
+		r.Post("/account/mfa/disable", h.mfaDisable)
 
 		// Reads
 		r.Group(func(r chi.Router) {

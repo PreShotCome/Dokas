@@ -24,8 +24,9 @@ not started, planned · `debt` = works but should be revisited.
   nothing reads them.
 ## Layer 4 — Perimeter & webhooks
 
-- **MFA / magic links / social login** — `deferred`. Plan layer 5 identity
-  work; not built. Password auth only.
+- **Magic links / social login** — `deferred`. Plan layer 5 identity work.
+  Password + TOTP MFA are built; passwordless magic-link login and
+  Google/GitHub social login are not.
 
 ## Layer 5 — Compliance / evidence
 
@@ -81,6 +82,15 @@ not started, planned · `debt` = works but should be revisited.
   wants expand-then-contract verified on a prod-sized clone.
 
 ## Resolved
+
+Layer-5 identity:
+
+- **TOTP MFA** — RFC 6238 two-factor auth, implemented in-repo (no external
+  dependency). Users enrol from `/account/mfa` (authenticator-app secret +
+  confirmation code) and get ten single-use recovery codes. Login is a two
+  step flow: a correct password creates an `mfa_pending` session that does
+  not authenticate app requests until `/login/mfa` verifies a TOTP or
+  recovery code.
 
 Layer-5 evidence:
 

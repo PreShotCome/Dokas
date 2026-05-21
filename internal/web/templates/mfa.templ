@@ -1,0 +1,130 @@
+package templates
+
+// MFASetup is the enrollment screen: scan or type the secret into an
+// authenticator app, then confirm with a generated code.
+templ MFASetup(lc LayoutCtx, secret, otpauthURI, errMsg string) {
+	@LayoutWith("Two-factor authentication", lc) {
+		<div class="mx-auto max-w-lg">
+			<h1 class="mb-1 text-2xl font-semibold tracking-tight">Set up two-factor auth</h1>
+			<p class="mb-6 text-sm text-zinc-600 dark:text-zinc-400">
+				Add an extra step to every sign-in with an authenticator app
+				(1Password, Google Authenticator, Authy, …).
+			</p>
+			<div class="card space-y-4">
+				if errMsg != "" {
+					<div class="alert-error">{ errMsg }</div>
+				}
+				<div>
+					<p class="mb-1 text-sm font-medium">1. Add this key to your app</p>
+					<p class="mb-2 text-xs text-zinc-500">
+						Enter it as a setup key, or
+						<a class="underline" href={ templ.SafeURL(otpauthURI) }>open it in your app</a>.
+					</p>
+					<code class="block break-all rounded bg-zinc-100 p-2 text-center font-mono text-sm tracking-widest dark:bg-zinc-800">
+						{ groupSecret(secret) }
+					</code>
+				</div>
+				<form method="POST" action="/account/mfa/enable" class="space-y-2">
+					@CSRFField()
+					<input type="hidden" name="secret" value={ secret }/>
+					<label class="block text-sm font-medium" for="code">2. Enter the 6-digit code</label>
+					<input id="code" name="code" inputmode="numeric" autocomplete="one-time-code"
+						pattern="[0-9]*" maxlength="6" required
+						class="form-input font-mono tracking-widest" placeholder="123456"/>
+					<div class="flex items-center justify-end gap-2 pt-2">
+						<a href="/account" class="btn-ghost">Cancel</a>
+						<button type="submit" class="btn-primary">Turn on 2FA</button>
+					</div>
+				</form>
+			</div>
+		</div>
+	}
+}
+
+// MFAManage is shown on /account/mfa when MFA is already enabled.
+templ MFAManage(lc LayoutCtx) {
+	@LayoutWith("Two-factor authentication", lc) {
+		<div class="mx-auto max-w-lg">
+			<h1 class="mb-4 text-2xl font-semibold tracking-tight">Two-factor authentication</h1>
+			<div class="card space-y-4">
+				<div class="alert-success">Two-factor authentication is on for your account.</div>
+				<p class="text-sm text-zinc-600 dark:text-zinc-400">
+					Turning it off removes your authenticator key and recovery codes.
+					You can set it up again at any time.
+				</p>
+				<form method="POST" action="/account/mfa/disable" class="flex justify-end gap-2">
+					@CSRFField()
+					<a href="/account" class="btn-ghost">Back to account</a>
+					<button type="submit" class="btn-ghost text-rose-600 dark:text-rose-400">Turn off 2FA</button>
+				</form>
+			</div>
+		</div>
+	}
+}
+
+// MFARecoveryCodes shows the one-time recovery codes immediately after
+// enrollment — the only time they are displayed.
+templ MFARecoveryCodes(lc LayoutCtx, codes []string) {
+	@LayoutWith("Recovery codes", lc) {
+		<div class="mx-auto max-w-lg">
+			<h1 class="mb-1 text-2xl font-semibold tracking-tight">Save your recovery codes</h1>
+			<p class="mb-4 text-sm text-zinc-600 dark:text-zinc-400">
+				Two-factor authentication is on. Store these codes somewhere safe —
+				each one signs you in once if you lose your authenticator. This is
+				the only time they are shown.
+			</p>
+			<div class="card mb-4 grid grid-cols-2 gap-2 font-mono text-sm">
+				for _, c := range codes {
+					<span class="rounded bg-zinc-100 px-2 py-1 text-center dark:bg-zinc-800">{ c }</span>
+				}
+			</div>
+			<a href="/account" class="btn-primary">I've saved them — done</a>
+		</div>
+	}
+}
+
+// MFAChallenge is the second login step for a password-verified session.
+templ MFAChallenge(errMsg, next string) {
+	@Layout("Two-factor authentication", nil) {
+		<div class="mx-auto max-w-sm">
+			<div class="card">
+				<h1 class="mb-1 text-xl font-semibold">Two-factor authentication</h1>
+				<p class="mb-4 text-sm text-zinc-600 dark:text-zinc-400">
+					Enter the 6-digit code from your authenticator app, or a recovery code.
+				</p>
+				if errMsg != "" {
+					<div class="alert-error mb-4">{ errMsg }</div>
+				}
+				<form method="POST" action="/login/mfa" class="space-y-3">
+					@CSRFField()
+					if next != "" {
+						<input type="hidden" name="next" value={ next }/>
+					}
+					<div>
+						<label class="label" for="code">Authentication code</label>
+						<input id="code" name="code" inputmode="text" autocomplete="one-time-code"
+							required autofocus class="input font-mono tracking-widest" placeholder="123456"/>
+					</div>
+					<button type="submit" class="btn-primary w-full">Verify</button>
+				</form>
+				<form method="POST" action="/logout" class="mt-4 text-center">
+					@CSRFField()
+					<button type="submit" class="text-sm underline text-zinc-600 dark:text-zinc-400">Cancel and sign out</button>
+				</form>
+			</div>
+		</div>
+	}
+}
+
+// groupSecret formats a base32 TOTP secret into space-separated 4-char groups
+// so it is easier to read and type.
+func groupSecret(s string) string {
+	var b []byte
+	for i, r := range s {
+		if i > 0 && i%4 == 0 {
+			b = append(b, ' ')
+		}
+		b = append(b, byte(r))
+	}
+	return string(b)
+}

@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"net/http"
+	"net/url"
 	"strconv"
 	"strings"
 
@@ -29,6 +30,12 @@ func (h *Handlers) index(w http.ResponseWriter, r *http.Request) {
 func (h *Handlers) loginPage(w http.ResponseWriter, r *http.Request) {
 	if _, ok := auth.FromContext(r.Context()); ok {
 		http.Redirect(w, r, "/dashboard", http.StatusSeeOther)
+		return
+	}
+	// A session that passed the password but still owes an MFA code lands
+	// here on a refresh — send it on to the challenge.
+	if _, err := h.sessions.PendingMFAUser(r.Context(), r); err == nil {
+		http.Redirect(w, r, "/login/mfa", http.StatusSeeOther)
 		return
 	}
 	render(w, r, templates.LoginWithNext("", "", safeNext(r.URL.Query().Get("next"))))
@@ -65,10 +72,11 @@ func (h *Handlers) loginSubmit(w http.ResponseWriter, r *http.Request) {
 
 	var id uuid.UUID
 	var hash string
+	var mfaEnabled bool
 	err := h.pool.QueryRow(r.Context(), `
-		SELECT id, password_hash FROM users
+		SELECT id, password_hash, mfa_enabled FROM users
 		 WHERE email = $1 AND deleted_at IS NULL
-	`, email).Scan(&id, &hash)
+	`, email).Scan(&id, &hash, &mfaEnabled)
 	if err != nil {
 		// Constant-ish time: always run a verify against a dummy hash.
 		_ = auth.VerifyPassword(password, dummyHash)
@@ -92,6 +100,21 @@ func (h *Handlers) loginSubmit(w http.ResponseWriter, r *http.Request) {
 	}
 
 	_ = h.throttle.Record(r.Context(), email, clientIP, true)
+
+	// MFA gate: the password was correct, but a session is not authenticated
+	// until the TOTP step also passes. Hold it pending and divert to /login/mfa.
+	if mfaEnabled {
+		if err := h.sessions.CreatePending(r.Context(), w, id); err != nil {
+			http.Error(w, "session error", http.StatusInternalServerError)
+			return
+		}
+		dest := "/login/mfa"
+		if next != "" {
+			dest += "?next=" + url.QueryEscape(next)
+		}
+		http.Redirect(w, r, dest, http.StatusSeeOther)
+		return
+	}
 
 	// Pick an account to land them on: prefer their personal account if it
 	// still exists; otherwise any account they're a member of.
