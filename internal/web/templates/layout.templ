@@ -75,6 +75,15 @@ templ LayoutWith(title string, lc LayoutCtx) {
 					</form>
 				</div>
 			}
+			if lc.User != nil && !lc.User.EmailVerified {
+				<div class="bg-amber-100 px-4 py-2 text-center text-sm text-amber-900 dark:bg-amber-900/40 dark:text-amber-200">
+					<span>Verify your email address to secure your account.</span>
+					<form method="POST" action="/verify-email/resend" class="ml-1 inline">
+						@CSRFField()
+						<button type="submit" class="font-medium underline">Resend link</button>
+					</form>
+				</div>
+			}
 			<header class="border-b border-zinc-200 dark:border-zinc-800">
 				<div class="mx-auto flex max-w-5xl items-center justify-between px-4 py-3">
 					<div class="flex items-center gap-3">

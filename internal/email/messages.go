@@ -19,6 +19,26 @@ This link expires in 7 days. If you weren't expecting this, you can ignore it.
 	}
 }
 
+// VerifyEmailMessage builds the email-verification message sent at signup and
+// on request from the verify-your-email banner.
+func VerifyEmailMessage(to, verifyLink string) Message {
+	return Message{
+		To:      to,
+		Subject: "Verify your email for Restore Drill",
+		TextBody: fmt.Sprintf(`Confirm your email address to finish setting up your
+Restore Drill account.
+
+Verify your email:
+%s
+
+This link expires in 24 hours. If you didn't create a Restore Drill
+account, you can ignore this email.
+
+— Restore Drill
+`, verifyLink),
+	}
+}
+
 // WelcomeMessage builds the email sent to a new account owner at signup.
 func WelcomeMessage(to, accountName string) Message {
 	return Message{

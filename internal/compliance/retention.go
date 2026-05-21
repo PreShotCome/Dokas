@@ -35,10 +35,11 @@ func NewSweeper(pool *pgxpool.Pool, ev *evidence.Service, throttle *auth.LoginTh
 
 // SweepResult reports what a sweep removed.
 type SweepResult struct {
-	EvidencePurged    int
-	AuditPruned       int64
-	LoginsPruned      int64
-	IdempotencyPruned int64
+	EvidencePurged     int
+	AuditPruned        int64
+	LoginsPruned       int64
+	IdempotencyPruned  int64
+	VerifyTokensPruned int64
 }
 
 // Sweep runs one retention pass. Each step is independent; a failure in one
@@ -73,6 +74,16 @@ func (s *Sweeper) Sweep(ctx context.Context) (SweepResult, error) {
 	}
 	res.IdempotencyPruned = idemTag.RowsAffected()
 
+	// Email-verification tokens carry their own expiry; once past it they are
+	// dead weight.
+	verifyTag, err := s.pool.Exec(ctx, `
+		DELETE FROM email_verification_tokens WHERE expires_at < now()
+	`)
+	if err != nil {
+		return res, err
+	}
+	res.VerifyTokensPruned = verifyTag.RowsAffected()
+
 	return res, nil
 }
 
@@ -99,6 +110,8 @@ func (w *RetentionWorker) Work(ctx context.Context, _ *river.Job[RetentionSweepA
 		w.Logger.Info("retention sweep complete",
 			"evidence_purged", res.EvidencePurged,
 			"audit_pruned", res.AuditPruned,
+			"idempotency_pruned", res.IdempotencyPruned,
+			"verify_tokens_pruned", res.VerifyTokensPruned,
 		)
 	}
 	return nil

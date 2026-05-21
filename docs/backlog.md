@@ -59,8 +59,6 @@ not started, planned · `debt` = works but should be revisited.
 - **PostHog flag backend** — `deferred`. `flags.Flags` only has the
   env-driven `StaticFlags`; no PostHog flag-evaluation impl.
 - **A/B experiments, deliverability report** — `deferred`.
-- **Email verification flow** — `deferred`. `users.email_verified` exists
-  but is never set; no verification email/endpoint (layer 5 work).
 - **Marketing site** — `deferred`. The Astro site + its SEO (OG cards,
   JSON-LD, sitemap, MDX content) is Phase 7 in a separate repo.
 
@@ -85,6 +83,15 @@ not started, planned · `debt` = works but should be revisited.
   wants expand-then-contract verified on a prod-sized clone.
 
 ## Resolved
+
+Layer-9 growth:
+
+- **Email verification flow** — signup issues a one-time verification token
+  (`email_verification_tokens`, hashed at rest, 24h TTL) and emails the
+  link. `GET /verify-email/{token}` consumes it and sets
+  `users.email_verified`; unverified users see a dismissable-by-verifying
+  banner with a resend action. Expired tokens are pruned by the retention
+  sweeper. Verification is a soft nudge — it does not gate app access.
 
 Layer-2 assertions:
 

@@ -91,6 +91,28 @@ templ SignupClosed() {
 	}
 }
 
+// VerifyEmailResult is the landing page after clicking a verification link
+// or requesting a resend. ok drives success vs error styling.
+templ VerifyEmailResult(lc LayoutCtx, ok bool, msg string) {
+	@LayoutWith("Email verification", lc) {
+		<div class="mx-auto max-w-sm">
+			<div class="card text-center">
+				<h1 class="mb-3 text-xl font-semibold">Email verification</h1>
+				if ok {
+					<div class="alert-success mb-4">{ msg }</div>
+				} else {
+					<div class="alert-error mb-4">{ msg }</div>
+				}
+				if lc.User != nil {
+					<a href="/dashboard" class="btn-primary">Go to dashboard</a>
+				} else {
+					<a href="/login" class="btn-primary">Sign in</a>
+				}
+			</div>
+		</div>
+	}
+}
+
 func signupHref(next string) templ.SafeURL {
 	if next == "" {
 		return templ.SafeURL("/signup")

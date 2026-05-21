@@ -207,6 +207,10 @@ func (h *Handlers) Router(staticFS http.FileSystem) http.Handler {
 	r.Get("/invitations/{token}", h.invitationPage)
 	r.Post("/invitations/{token}/accept", h.invitationAccept)
 
+	// Email verification: the link from the signup email is public so it
+	// works before the recipient signs in.
+	r.Get("/verify-email/{token}", h.verifyEmail)
+
 	// Legal + help pages are public.
 	r.Get("/legal/terms", h.legalTerms)
 	r.Get("/legal/privacy", h.legalPrivacy)
@@ -244,6 +248,7 @@ func (h *Handlers) Router(staticFS http.FileSystem) http.Handler {
 
 		r.Get("/dashboard", h.dashboard)
 		r.Post("/account/switch", h.accountSwitch)
+		r.Post("/verify-email/resend", h.verifyEmailResend)
 
 		// Reads
 		r.Group(func(r chi.Router) {
