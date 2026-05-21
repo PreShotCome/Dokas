@@ -33,5 +33,5 @@ migrations          goose SQL migrations
 assets              Tailwind input, static files
 ```
 
-See `/root/.claude/plans/i-want-an-app-ticklish-beaver.md` for the full
-plan against the 11-layer rubric.
+See [`docs/plan.md`](docs/plan.md) for the full plan against the
+11-layer rubric, including the active phase brief.
