@@ -5,7 +5,9 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"net"
 	"net/http"
+	"syscall"
 	"time"
 
 	"github.com/google/uuid"
@@ -38,11 +40,49 @@ type DeliverWorker struct {
 }
 
 // NewDeliverWorker wires a worker with a sane default HTTP client.
-func NewDeliverWorker(store *Store) *DeliverWorker {
+// blockPrivate enables the SSRF guard: when true the client refuses to
+// connect to private, loopback, or link-local addresses. Production passes
+// true; local dev passes false so webhook receivers on localhost work.
+func NewDeliverWorker(store *Store, blockPrivate bool) *DeliverWorker {
 	return &DeliverWorker{
 		Store: store,
-		HTTP:  &http.Client{Timeout: 10 * time.Second},
+		HTTP:  &http.Client{Timeout: 10 * time.Second, Transport: deliveryTransport(blockPrivate)},
 	}
+}
+
+// deliveryTransport builds an HTTP transport. With blockPrivate set, the
+// dialer's Control hook inspects the *resolved* destination IP and rejects
+// non-public targets — this defeats SSRF even via DNS rebinding, because the
+// check runs on the address actually being dialed.
+func deliveryTransport(blockPrivate bool) *http.Transport {
+	dialer := &net.Dialer{Timeout: 10 * time.Second}
+	if blockPrivate {
+		dialer.Control = func(_, address string, _ syscall.RawConn) error {
+			host, _, err := net.SplitHostPort(address)
+			if err != nil {
+				return err
+			}
+			ip := net.ParseIP(host)
+			if ip == nil {
+				return fmt.Errorf("webhooks: unresolvable target %q", host)
+			}
+			if !isPublicIP(ip) {
+				return fmt.Errorf("webhooks: refusing to connect to non-public address %s", ip)
+			}
+			return nil
+		}
+	}
+	return &http.Transport{DialContext: dialer.DialContext}
+}
+
+// isPublicIP reports whether ip is a routable public address — i.e. not
+// loopback, private (RFC 1918 / ULA), link-local, multicast, or unspecified.
+func isPublicIP(ip net.IP) bool {
+	if ip.IsLoopback() || ip.IsPrivate() || ip.IsUnspecified() ||
+		ip.IsLinkLocalUnicast() || ip.IsLinkLocalMulticast() || ip.IsMulticast() {
+		return false
+	}
+	return true
 }
 
 func (w *DeliverWorker) recordOutcome(outcome string) {

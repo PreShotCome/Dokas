@@ -73,7 +73,7 @@ templ AccountSettings(lc LayoutCtx, members []account.MembershipWithUser, pendin
 								</td>
 								<td class="px-4 py-2 text-right">
 									if lc.Membership != nil && auth.Allowed(lc.Membership.Role, auth.ActionMemberWrite) && mem.Role != account.RoleOwner {
-										@memberRow(mem)
+										@memberRow(mem, lc.Membership.Role == account.RoleOwner)
 									} else {
 										<span class="text-xs text-zinc-400">—</span>
 									}
@@ -172,8 +172,9 @@ templ AccountDeleted(purgeAfter time.Time) {
 	}
 }
 
-// memberRow renders the role-change select + remove button for one member.
-templ memberRow(mem account.MembershipWithUser) {
+// memberRow renders the role-change select, remove button, and (for an
+// owner viewing the page) the transfer-ownership control for one member.
+templ memberRow(mem account.MembershipWithUser, viewerIsOwner bool) {
 	<div class="flex items-center justify-end gap-2">
 		<form method="POST" action={ templ.SafeURL("/account/members/" + mem.UserID.String()) } class="flex items-center gap-1">
 			@CSRFField()
@@ -184,6 +185,12 @@ templ memberRow(mem account.MembershipWithUser) {
 			</select>
 			<button type="submit" class="btn-ghost text-xs">Save</button>
 		</form>
+		if viewerIsOwner {
+			<form method="POST" action={ templ.SafeURL("/account/members/" + mem.UserID.String() + "/transfer-ownership") }>
+				@CSRFField()
+				<button type="submit" class="btn-ghost text-xs">Make owner</button>
+			</form>
+		}
 		<form method="POST" action={ templ.SafeURL("/account/members/" + mem.UserID.String() + "/remove") }>
 			@CSRFField()
 			<button type="submit" class="btn-ghost text-xs text-rose-600 dark:text-rose-400">Remove</button>

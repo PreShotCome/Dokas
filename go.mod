@@ -1,6 +1,6 @@
 module github.com/preshotcome/anything
 
-go 1.25.7
+go 1.25.10
 
 require (
 	github.com/a-h/templ v0.3.1020
@@ -20,6 +20,7 @@ require (
 	go.opentelemetry.io/otel/sdk v1.43.0
 	go.opentelemetry.io/otel/trace v1.43.0
 	golang.org/x/crypto v0.51.0
+	golang.org/x/net v0.53.0
 )
 
 require (
@@ -54,7 +55,6 @@ require (
 	go.uber.org/goleak v1.3.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	go.yaml.in/yaml/v2 v2.4.2 // indirect
-	golang.org/x/net v0.53.0 // indirect
 	golang.org/x/sync v0.20.0 // indirect
 	golang.org/x/sys v0.44.0 // indirect
 	golang.org/x/text v0.37.0 // indirect

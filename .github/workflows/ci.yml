@@ -59,11 +59,26 @@ jobs:
       - name: Vet
         run: go vet ./...
 
+      # Blocking: a called vulnerability fails the build. The fix is usually
+      # a dependency bump or, for stdlib findings, a Go-toolchain bump in
+      # go.mod (see go.mod's `go` directive).
       - name: govulncheck
         run: |
           go install golang.org/x/vuln/cmd/govulncheck@latest
           $(go env GOPATH)/bin/govulncheck ./...
-        continue-on-error: true
+
+      # Every goose migration must declare both an Up and a Down section, so
+      # a release is always reversible.
+      - name: Check migrations are reversible
+        run: |
+          fail=0
+          for f in migrations/*.sql; do
+            if ! grep -q -- '-- +goose Up' "$f" || ! grep -q -- '-- +goose Down' "$f"; then
+              echo "::error file=$f::migration missing a +goose Up or +goose Down section"
+              fail=1
+            fi
+          done
+          exit $fail
 
       - name: Migrate
         run: go run ./cmd/migrate up

@@ -24,14 +24,8 @@ not started, planned · `debt` = works but should be revisited.
   Stripe customer only. No Checkout, subscriptions, metered usage, or plan
   enforcement. Plan tiers (`trial/starter/pro`) exist as a column but
   nothing reads them.
-- **No ownership transfer** — `deferred`. Exactly one owner per account;
-  the owner can't hand off. Invites can't grant `owner`.
-
 ## Layer 4 — Perimeter & webhooks
 
-- **Webhook SSRF** — `debt`. The delivery worker does not block
-  private/loopback target IPs. Noted in `runbooks/secret-rotation.md`.
-  Needs an egress allowlist or IP filtering before untrusted customers.
 - **No JSON API** — `deferred`. Webhooks are outbound only; there is no
   versioned `/v1/` REST API (plan layer 4). Idempotency is a form field,
   not the `Idempotency-Key` header.
@@ -62,11 +56,6 @@ not started, planned · `debt` = works but should be revisited.
 - **No real backends** — `seam`. OTLP collector, Grafana, and Sentry are
   config-gated; locally tracing uses the stdout exporter and errors use the
   noop reporter. Dashboards/alerts are committed as IaC, not deployed.
-- **Connected drill traces** — `debt`. Each drill step opens its own span;
-  they are not stitched into one trace across River jobs (would need trace
-  context propagated through job args).
-- **`/metrics` is unauthenticated** — `debt`. Fine behind a network policy;
-  should be locked down or moved to an internal port for public deploys.
 
 ## Layer 9 — Growth
 
@@ -96,10 +85,23 @@ not started, planned · `debt` = works but should be revisited.
 
 ## Cross-cutting
 
-- **CI `govulncheck`** — `debt`. Runs with `continue-on-error: true`;
-  should block once the baseline is clean.
-- **`goose validate` not in CI** — `deferred`. CI runs `migrate up` but
-  doesn't validate migration pairing.
 - **Down-migration prod safety** — `debt`. Down migrations are tested
-  locally; the plan wants expand-then-contract verified on a prod-sized
-  clone.
+  locally and CI checks every migration declares an Up + Down; the plan
+  wants expand-then-contract verified on a prod-sized clone.
+
+## Resolved
+
+Tech-debt burndown pass:
+
+- **Webhook SSRF** — the delivery worker's HTTP client now refuses to
+  connect to private / loopback / link-local addresses (production only;
+  dev keeps localhost webhooks working).
+- **`/metrics` auth** — gated behind `METRICS_TOKEN` (bearer) when set.
+- **Connected drill traces** — trace context is propagated through River
+  job metadata; a drill's six step spans now form one trace tree.
+- **Ownership transfer** — an owner can hand off the owner role to a
+  member; the old owner becomes admin, atomically.
+- **CI `govulncheck`** — now blocking; the Go toolchain was bumped to
+  1.25.10 to clear the stdlib findings.
+- **CI migration check** — CI verifies every migration declares both a
+  `+goose Up` and `+goose Down` section.
