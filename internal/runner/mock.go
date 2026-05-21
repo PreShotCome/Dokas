@@ -55,8 +55,9 @@ func (r *LocalRunner) Provision(ctx context.Context, drillID uuid.UUID) (*Sandbo
 	return &Sandbox{DrillID: drillID, DSN: dsn, Name: dbName}, nil
 }
 
-// Fetch for postgres_dump_local just validates the file exists and returns
-// its absolute path. Later runners will copy from object storage.
+// Fetch for postgres_dump_local validates the dump source and returns its
+// absolute path. A plain file or a pg_dump -Fd directory (identified by its
+// toc.dat) is accepted; later runners will copy from object storage.
 func (r *LocalRunner) Fetch(ctx context.Context, _ *Sandbox, sourceURI string) (string, error) {
 	abs, err := filepath.Abs(sourceURI)
 	if err != nil {
@@ -67,46 +68,74 @@ func (r *LocalRunner) Fetch(ctx context.Context, _ *Sandbox, sourceURI string) (
 		return "", fmt.Errorf("stat dump: %w", err)
 	}
 	if st.IsDir() {
-		return "", fmt.Errorf("source is a directory, expected a file: %s", abs)
+		if _, err := os.Stat(filepath.Join(abs, "toc.dat")); err != nil {
+			return "", fmt.Errorf("source directory is not a pg_dump -Fd archive (no toc.dat): %s", abs)
+		}
 	}
 	return abs, nil
 }
 
-// Restore applies the dump at localPath to the sandbox. The format is decided
-// by sniffing the file's magic header, not its extension: a pg_dump
-// custom-format archive ("PGDMP" magic) is applied with pg_restore, anything
-// else with psql. Sniffing means a misnamed file is restored with the right
-// tool instead of failing — or worse, restoring partially while looking fine.
+// dumpFormat is how a fetched dump should be restored.
+type dumpFormat int
+
+const (
+	dumpPlainSQL  dumpFormat = iota // plain-text SQL script — psql -f
+	dumpArchive                     // custom (-Fc) or tar (-Ft) archive — pg_restore
+	dumpDirectory                   // directory (-Fd) archive — pg_restore
+)
+
+// Restore applies the dump at localPath to the sandbox. The format is
+// detected from the file's content (or, for a directory, its structure), not
+// its extension, so a misnamed dump is still restored with the right tool —
+// rather than failing, or worse, restoring partially while looking fine:
+//   - plain SQL    — applied with psql
+//   - custom / tar — applied with pg_restore (it auto-detects either)
+//   - directory    — applied with pg_restore reading the directory
 func (r *LocalRunner) Restore(ctx context.Context, sb *Sandbox, localPath string) error {
-	custom, err := isCustomFormatDump(localPath)
+	format, err := detectDumpFormat(localPath)
 	if err != nil {
 		return err
 	}
-	if custom {
-		cmd := exec.CommandContext(ctx, "pg_restore",
-			"--no-owner", "--no-privileges", "--exit-on-error",
-			"-d", sb.DSN, localPath)
-		return runDumpCmd(cmd, "pg_restore")
+	if format == dumpPlainSQL {
+		cmd := exec.CommandContext(ctx, "psql", "--quiet", "--no-psqlrc",
+			"--set=ON_ERROR_STOP=1", "-d", sb.DSN, "-f", localPath)
+		return runDumpCmd(cmd, "psql")
 	}
-	cmd := exec.CommandContext(ctx, "psql", "--quiet", "--no-psqlrc",
-		"--set=ON_ERROR_STOP=1", "-d", sb.DSN, "-f", localPath)
-	return runDumpCmd(cmd, "psql")
+	cmd := exec.CommandContext(ctx, "pg_restore",
+		"--no-owner", "--no-privileges", "--exit-on-error",
+		"-d", sb.DSN, localPath)
+	return runDumpCmd(cmd, "pg_restore")
 }
 
-// isCustomFormatDump reports whether the file at path is a pg_dump custom-
-// or directory-format archive, identified by the 5-byte "PGDMP" magic header.
-func isCustomFormatDump(path string) (bool, error) {
+// detectDumpFormat classifies a fetched dump by its content or structure.
+func detectDumpFormat(path string) (dumpFormat, error) {
+	info, err := os.Stat(path)
+	if err != nil {
+		return 0, fmt.Errorf("stat dump: %w", err)
+	}
+	if info.IsDir() {
+		return dumpDirectory, nil
+	}
 	f, err := os.Open(path)
 	if err != nil {
-		return false, fmt.Errorf("open dump: %w", err)
+		return 0, fmt.Errorf("open dump: %w", err)
 	}
 	defer f.Close()
-	magic := make([]byte, 5)
-	n, err := io.ReadFull(f, magic)
+	head := make([]byte, 512)
+	n, err := io.ReadFull(f, head)
 	if err != nil && !errors.Is(err, io.ErrUnexpectedEOF) && !errors.Is(err, io.EOF) {
-		return false, fmt.Errorf("read dump header: %w", err)
+		return 0, fmt.Errorf("read dump header: %w", err)
 	}
-	return n == 5 && string(magic) == "PGDMP", nil
+	head = head[:n]
+	// Custom-format archive: 5-byte "PGDMP" magic at the start.
+	if len(head) >= 5 && string(head[:5]) == "PGDMP" {
+		return dumpArchive, nil
+	}
+	// Tar-format archive: POSIX "ustar" magic at offset 257.
+	if len(head) >= 262 && string(head[257:262]) == "ustar" {
+		return dumpArchive, nil
+	}
+	return dumpPlainSQL, nil
 }
 
 // Rehydrate reconstructs a Sandbox handle from a drill ID + bare DB name.

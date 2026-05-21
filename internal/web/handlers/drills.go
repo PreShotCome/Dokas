@@ -65,7 +65,10 @@ func (h *Handlers) resolveSourcePath(p string) (string, error) {
 		return "", errors.New("no readable file was found at that path")
 	}
 	if info.IsDir() {
-		return "", errors.New("the source path is a directory, not a file")
+		// A directory is valid only as a pg_dump -Fd archive (has a toc.dat).
+		if _, err := os.Stat(filepath.Join(abs, "toc.dat")); err != nil {
+			return "", errors.New("the source directory is not a pg_dump -Fd archive")
+		}
 	}
 	return abs, nil
 }

@@ -12,9 +12,9 @@ not started, planned · `debt` = works but should be revisited.
 - **Fly Machines sandbox runner** — `seam`. `runner.FlyMachineRunner`
   returns `ErrNotImplemented`; drills run on `LocalRunner` (temp Postgres DB
   on the host). Real per-drill cloud sandboxes are a later phase.
-- **Dump format coverage** — `deferred`. Only plain `.sql` and `-Fc`
-  `.dump` are exercised; the plan's fixture corpus (`-Fd`, base backups,
-  pgBackRest, WAL-G) is not built.
+- **Physical-backup formats** — `deferred`. All four pg_dump *logical*
+  formats are supported (see Resolved); physical backups — base backups,
+  pgBackRest, WAL-G — need whole-cluster restore and are not built.
 
 ## Layer 3 — Multi-tenant
 
@@ -79,6 +79,15 @@ not started, planned · `debt` = works but should be revisited.
   wants expand-then-contract verified on a prod-sized clone.
 
 ## Resolved
+
+Layer-2 drills:
+
+- **pg_dump format coverage** — the runner restores all four pg_dump
+  logical formats: plain SQL (`-Fp` → psql), custom (`-Fc`), tar (`-Ft`),
+  and directory (`-Fd`) archives (→ pg_restore). The format is detected
+  from file content (PGDMP / ustar magic) or directory structure, not the
+  extension. A fixture corpus (`tiny.sql/.dump/.tar/-dir`) exercises each
+  via an integration test.
 
 Layer-5 compliance:
 
