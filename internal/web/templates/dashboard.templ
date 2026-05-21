@@ -1,13 +1,39 @@
 package templates
 
-import "github.com/preshotcome/anything/internal/auth"
+import (
+	"github.com/preshotcome/anything/internal/auth"
+	"github.com/preshotcome/anything/internal/drill"
+)
 
-templ Dashboard(user *auth.User) {
+templ Dashboard(user *auth.User, targets []drill.Target, drills []drill.Drill) {
 	@Layout("Dashboard", user) {
 		<div class="mb-6 flex items-baseline justify-between">
-			<h1 class="text-2xl font-semibold tracking-tight">Drills</h1>
+			<h1 class="text-2xl font-semibold tracking-tight">Dashboard</h1>
+			<a href="/databases/new" class="btn-primary">Connect a database</a>
 		</div>
-		@DrillsEmpty()
+		if len(targets) == 0 && len(drills) == 0 {
+			@DrillsEmpty()
+		} else {
+			<section class="mb-8">
+				<h2 class="mb-3 text-lg font-semibold">Your databases</h2>
+				if len(targets) == 0 {
+					<p class="text-sm text-zinc-500">No databases yet. <a href="/databases/new" class="underline">Connect one</a> to run your first drill.</p>
+				} else {
+					@TargetsTable(targets)
+				}
+			</section>
+			<section>
+				<div class="mb-3 flex items-baseline justify-between">
+					<h2 class="text-lg font-semibold">Recent drills</h2>
+					<a href="/drills" class="text-sm underline">All drills</a>
+				</div>
+				if len(drills) == 0 {
+					<p class="text-sm text-zinc-500">No drills yet. Go to <a class="underline" href="/drills">Drills</a> to run one.</p>
+				} else {
+					@DrillsTable(drills)
+				}
+			</section>
+		}
 	}
 }
 

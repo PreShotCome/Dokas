@@ -15,6 +15,7 @@ type Config struct {
 	Environment    string
 	IdleTimeout    time.Duration
 	AbsoluteMaxAge time.Duration
+	EvidenceDir    string
 }
 
 func Load() (Config, error) {
@@ -24,6 +25,7 @@ func Load() (Config, error) {
 		Environment:    getenv("ENV", "dev"),
 		IdleTimeout:    14 * 24 * time.Hour,
 		AbsoluteMaxAge: 30 * 24 * time.Hour,
+		EvidenceDir:    getenv("EVIDENCE_DIR", "tmp/evidence"),
 	}
 
 	if c.DatabaseURL == "" {

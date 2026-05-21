@@ -9,16 +9,33 @@ import (
 
 	"github.com/preshotcome/anything/internal/audit"
 	"github.com/preshotcome/anything/internal/auth"
+	"github.com/preshotcome/anything/internal/drill"
 )
 
 type Handlers struct {
 	pool     *pgxpool.Pool
 	sessions *auth.Store
 	audit    *audit.Logger
+	drills   *drill.Store
+	orch     *drill.Orchestrator
 }
 
-func New(pool *pgxpool.Pool, sessions *auth.Store, audit *audit.Logger) *Handlers {
-	return &Handlers{pool: pool, sessions: sessions, audit: audit}
+type Deps struct {
+	Pool         *pgxpool.Pool
+	Sessions     *auth.Store
+	Audit        *audit.Logger
+	Drills       *drill.Store
+	Orchestrator *drill.Orchestrator
+}
+
+func New(d Deps) *Handlers {
+	return &Handlers{
+		pool:     d.Pool,
+		sessions: d.Sessions,
+		audit:    d.Audit,
+		drills:   d.Drills,
+		orch:     d.Orchestrator,
+	}
 }
 
 func (h *Handlers) Router(staticFS http.FileSystem) http.Handler {
@@ -46,6 +63,16 @@ func (h *Handlers) Router(staticFS http.FileSystem) http.Handler {
 	r.Group(func(r chi.Router) {
 		r.Use(auth.RequireUser)
 		r.Get("/dashboard", h.dashboard)
+
+		r.Get("/databases", h.targetsList)
+		r.Get("/databases/new", h.targetNewPage)
+		r.Post("/databases", h.targetCreate)
+
+		r.Get("/drills", h.drillsList)
+		r.Post("/drills", h.drillCreate)
+		r.Get("/drills/{id}", h.drillDetail)
+		r.Get("/drills/{id}/steps", h.drillStepsPartial)
+		r.Get("/drills/{id}/evidence", h.drillEvidence)
 	})
 
 	return r

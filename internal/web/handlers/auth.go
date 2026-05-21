@@ -154,7 +154,9 @@ func (h *Handlers) logout(w http.ResponseWriter, r *http.Request) {
 
 func (h *Handlers) dashboard(w http.ResponseWriter, r *http.Request) {
 	u, _ := auth.FromContext(r.Context())
-	render(w, r, templates.Dashboard(u))
+	targets, _ := h.drills.ListTargets(r.Context(), u.ID)
+	recent, _ := h.drills.ListDrills(r.Context(), u.ID, 10)
+	render(w, r, templates.Dashboard(u, targets, recent))
 }
 
 var errEmailTaken = errors.New("email already registered")

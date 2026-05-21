@@ -1,10 +1,13 @@
-.PHONY: dev build run test lint tidy templ css migrate db-up db-down clean
+.PHONY: dev build run test lint tidy templ css migrate db-up db-down clean htmx evidence-dir
 
 GOBIN := $(shell go env GOPATH)/bin
 DATABASE_URL ?= postgres://restoredrill:restoredrill@localhost:5432/restoredrill?sslmode=disable
 
-dev: db-up htmx templ css migrate
+dev: db-up htmx templ css migrate evidence-dir
 	DATABASE_URL=$(DATABASE_URL) go run ./cmd/server
+
+evidence-dir:
+	mkdir -p tmp/evidence
 
 build: templ css
 	mkdir -p bin

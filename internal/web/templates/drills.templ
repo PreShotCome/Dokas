@@ -1,0 +1,222 @@
+package templates
+
+import (
+	"time"
+
+	"github.com/preshotcome/anything/internal/auth"
+	"github.com/preshotcome/anything/internal/drill"
+)
+
+templ DrillsPage(user *auth.User, drills []drill.Drill, targets []drill.Target, idemKey string) {
+	@Layout("Drills", user) {
+		<div class="mb-6 flex items-baseline justify-between">
+			<h1 class="text-2xl font-semibold tracking-tight">Drills</h1>
+			<a href="/databases/new" class="btn-ghost">Connect database</a>
+		</div>
+		if len(targets) > 0 {
+			<form method="POST" action="/drills" class="card mb-6 flex flex-wrap items-end gap-3">
+				<input type="hidden" name="idempotency_key" value={ idemKey }/>
+				<div class="flex-1 min-w-[14rem]">
+					<label class="mb-1 block text-sm font-medium" for="target_id">Run drill against</label>
+					<select id="target_id" name="target_id" class="form-input" required>
+						for _, t := range targets {
+							<option value={ t.ID.String() }>{ t.Name }</option>
+						}
+					</select>
+				</div>
+				<button type="submit" class="btn-primary">Run drill</button>
+			</form>
+		} else {
+			<div class="card mb-6 flex flex-col items-center gap-2 py-8 text-center">
+				<p class="text-sm text-zinc-600 dark:text-zinc-400">
+					Connect a database before running a drill.
+				</p>
+				<a href="/databases/new" class="btn-primary">Connect a database</a>
+			</div>
+		}
+		if len(drills) == 0 {
+			<p class="text-sm text-zinc-500">No drills yet.</p>
+		} else {
+			@DrillsTable(drills)
+		}
+	}
+}
+
+templ DrillsTable(drills []drill.Drill) {
+	<div class="card overflow-x-auto p-0">
+		<table class="min-w-full divide-y divide-zinc-200 text-sm dark:divide-zinc-800">
+			<thead class="bg-zinc-50 dark:bg-zinc-900/50">
+				<tr>
+					<th class="px-4 py-2 text-left font-medium">Status</th>
+					<th class="px-4 py-2 text-left font-medium">Created</th>
+					<th class="px-4 py-2 text-left font-medium">Duration</th>
+					<th class="px-4 py-2 text-right font-medium">Detail</th>
+				</tr>
+			</thead>
+			<tbody class="divide-y divide-zinc-200 dark:divide-zinc-800">
+				for _, d := range drills {
+					<tr>
+						<td class="px-4 py-2">@StatusBadge(d.Status)</td>
+						<td class="px-4 py-2 text-xs text-zinc-600 dark:text-zinc-400">
+							{ d.CreatedAt.UTC().Format("2006-01-02 15:04 UTC") }
+						</td>
+						<td class="px-4 py-2 text-xs">{ duration(d.StartedAt, d.CompletedAt) }</td>
+						<td class="px-4 py-2 text-right">
+							<a href={ templ.SafeURL("/drills/" + d.ID.String()) } class="text-sm underline">View</a>
+						</td>
+					</tr>
+				}
+			</tbody>
+		</table>
+	</div>
+}
+
+templ DrillsErrorPage(user *auth.User, msg string) {
+	@Layout("Drills", user) {
+		<div class="alert-error">{ msg }</div>
+	}
+}
+
+templ DrillDetail(user *auth.User, d drill.Drill, t drill.Target, steps []drill.Step, ars []drill.AssertionResult) {
+	@Layout("Drill", user) {
+		<div class="mb-4 flex items-baseline justify-between">
+			<h1 class="text-2xl font-semibold tracking-tight">Drill</h1>
+			<a href="/drills" class="text-sm underline">All drills</a>
+		</div>
+		<dl class="card mb-6 grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
+			<dt class="font-medium">Target</dt>
+			<dd>{ t.Name } <span class="text-xs text-zinc-500">({ t.SourceURI })</span></dd>
+			<dt class="font-medium">Drill ID</dt>
+			<dd class="font-mono text-xs">{ d.ID.String() }</dd>
+			<dt class="font-medium">Status</dt>
+			<dd>@StatusBadge(d.Status)</dd>
+			<dt class="font-medium">Created</dt>
+			<dd class="text-xs">{ d.CreatedAt.UTC().Format(time.RFC3339) }</dd>
+			<dt class="font-medium">Duration</dt>
+			<dd class="text-xs">{ duration(d.StartedAt, d.CompletedAt) }</dd>
+			if d.EvidencePath != nil && *d.EvidencePath != "" {
+				<dt class="font-medium">Evidence</dt>
+				<dd>
+					<a href={ templ.SafeURL("/drills/" + d.ID.String() + "/evidence") }
+					   class="btn-primary inline-block px-3 py-1 text-xs">Download PDF</a>
+				</dd>
+			}
+		</dl>
+
+		<section
+			id="steps-pane"
+			hx-get={ "/drills/" + d.ID.String() + "/steps" }
+			hx-trigger="load, every 2s"
+			hx-swap="innerHTML"
+		>
+			@DrillStepsPartial(d, steps, ars)
+		</section>
+
+		<script src="/static/drill-poll.js" defer></script>
+	}
+}
+
+templ DrillStepsPartial(d drill.Drill, steps []drill.Step, ars []drill.AssertionResult) {
+	if d.Status == drill.StatusSucceeded || d.Status == drill.StatusFailed {
+		<div hx-swap-oob="true" id="poll-marker" data-terminal="true"></div>
+	} else {
+		<div hx-swap-oob="true" id="poll-marker" data-terminal="false"></div>
+	}
+	<h2 class="mb-3 text-lg font-semibold">Steps</h2>
+	<div class="card overflow-x-auto p-0">
+		<table class="min-w-full divide-y divide-zinc-200 text-sm dark:divide-zinc-800">
+			<thead class="bg-zinc-50 dark:bg-zinc-900/50">
+				<tr>
+					<th class="px-4 py-2 text-left font-medium">Step</th>
+					<th class="px-4 py-2 text-left font-medium">Status</th>
+					<th class="px-4 py-2 text-left font-medium">Started</th>
+					<th class="px-4 py-2 text-left font-medium">Completed</th>
+					<th class="px-4 py-2 text-left font-medium">Error</th>
+				</tr>
+			</thead>
+			<tbody class="divide-y divide-zinc-200 dark:divide-zinc-800">
+				for _, s := range steps {
+					<tr>
+						<td class="px-4 py-2 font-medium">{ string(s.Name) }</td>
+						<td class="px-4 py-2">@StatusBadge(s.Status)</td>
+						<td class="px-4 py-2 text-xs">{ timeOrDash(s.StartedAt) }</td>
+						<td class="px-4 py-2 text-xs">{ timeOrDash(s.CompletedAt) }</td>
+						<td class="px-4 py-2 text-xs text-rose-600 dark:text-rose-400">{ errOrDash(s.Error) }</td>
+					</tr>
+				}
+			</tbody>
+		</table>
+	</div>
+	if len(ars) > 0 {
+		<h2 class="mb-3 mt-6 text-lg font-semibold">Assertions</h2>
+		<div class="card overflow-x-auto p-0">
+			<table class="min-w-full divide-y divide-zinc-200 text-sm dark:divide-zinc-800">
+				<thead class="bg-zinc-50 dark:bg-zinc-900/50">
+					<tr>
+						<th class="px-4 py-2 text-left font-medium">Kind</th>
+						<th class="px-4 py-2 text-left font-medium">Expected</th>
+						<th class="px-4 py-2 text-left font-medium">Actual</th>
+						<th class="px-4 py-2 text-left font-medium">Result</th>
+					</tr>
+				</thead>
+				<tbody class="divide-y divide-zinc-200 dark:divide-zinc-800">
+					for _, a := range ars {
+						<tr>
+							<td class="px-4 py-2">{ a.Kind }</td>
+							<td class="px-4 py-2 font-mono text-xs">{ string(a.Expected) }</td>
+							<td class="px-4 py-2 font-mono text-xs">{ string(a.Actual) }</td>
+							<td class="px-4 py-2">@PassFailBadge(a.Passed)</td>
+						</tr>
+					}
+				</tbody>
+			</table>
+		</div>
+	}
+}
+
+templ StatusBadge(s drill.Status) {
+	switch s {
+		case drill.StatusSucceeded:
+			<span class="inline-flex rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300">{ string(s) }</span>
+		case drill.StatusFailed:
+			<span class="inline-flex rounded-full bg-rose-100 px-2 py-0.5 text-xs font-medium text-rose-800 dark:bg-rose-900/40 dark:text-rose-300">{ string(s) }</span>
+		case drill.StatusRunning:
+			<span class="inline-flex rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-800 dark:bg-blue-900/40 dark:text-blue-300">{ string(s) }</span>
+		case drill.StatusSkipped:
+			<span class="inline-flex rounded-full bg-zinc-100 px-2 py-0.5 text-xs font-medium text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300">{ string(s) }</span>
+		default:
+			<span class="inline-flex rounded-full bg-zinc-100 px-2 py-0.5 text-xs font-medium text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300">{ string(s) }</span>
+	}
+}
+
+templ PassFailBadge(passed bool) {
+	if passed {
+		<span class="inline-flex rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300">PASS</span>
+	} else {
+		<span class="inline-flex rounded-full bg-rose-100 px-2 py-0.5 text-xs font-medium text-rose-800 dark:bg-rose-900/40 dark:text-rose-300">FAIL</span>
+	}
+}
+
+func timeOrDash(t *time.Time) string {
+	if t == nil {
+		return "—"
+	}
+	return t.UTC().Format("15:04:05.000")
+}
+
+func errOrDash(e *string) string {
+	if e == nil || *e == "" {
+		return "—"
+	}
+	return *e
+}
+
+func duration(start, end *time.Time) string {
+	if start == nil {
+		return "—"
+	}
+	if end == nil {
+		return "running…"
+	}
+	return end.Sub(*start).Round(time.Millisecond).String()
+}

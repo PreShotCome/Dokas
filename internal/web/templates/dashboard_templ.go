@@ -8,9 +8,12 @@ package templates
 import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
-import "github.com/preshotcome/anything/internal/auth"
+import (
+	"github.com/preshotcome/anything/internal/auth"
+	"github.com/preshotcome/anything/internal/drill"
+)
 
-func Dashboard(user *auth.User) templ.Component {
+func Dashboard(user *auth.User, targets []drill.Target, drills []drill.Drill) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -43,13 +46,50 @@ func Dashboard(user *auth.User) templ.Component {
 				}()
 			}
 			ctx = templ.InitializeContext(ctx)
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"mb-6 flex items-baseline justify-between\"><h1 class=\"text-2xl font-semibold tracking-tight\">Drills</h1></div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"mb-6 flex items-baseline justify-between\"><h1 class=\"text-2xl font-semibold tracking-tight\">Dashboard</h1><a href=\"/databases/new\" class=\"btn-primary\">Connect a database</a></div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = DrillsEmpty().Render(ctx, templ_7745c5c3_Buffer)
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
+			if len(targets) == 0 && len(drills) == 0 {
+				templ_7745c5c3_Err = DrillsEmpty().Render(ctx, templ_7745c5c3_Buffer)
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+			} else {
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<section class=\"mb-8\"><h2 class=\"mb-3 text-lg font-semibold\">Your databases</h2>")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				if len(targets) == 0 {
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "<p class=\"text-sm text-zinc-500\">No databases yet. <a href=\"/databases/new\" class=\"underline\">Connect one</a> to run your first drill.</p>")
+					if templ_7745c5c3_Err != nil {
+						return templ_7745c5c3_Err
+					}
+				} else {
+					templ_7745c5c3_Err = TargetsTable(targets).Render(ctx, templ_7745c5c3_Buffer)
+					if templ_7745c5c3_Err != nil {
+						return templ_7745c5c3_Err
+					}
+				}
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "</section><section><div class=\"mb-3 flex items-baseline justify-between\"><h2 class=\"text-lg font-semibold\">Recent drills</h2><a href=\"/drills\" class=\"text-sm underline\">All drills</a></div>")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				if len(drills) == 0 {
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "<p class=\"text-sm text-zinc-500\">No drills yet. Go to <a class=\"underline\" href=\"/drills\">Drills</a> to run one.</p>")
+					if templ_7745c5c3_Err != nil {
+						return templ_7745c5c3_Err
+					}
+				} else {
+					templ_7745c5c3_Err = DrillsTable(drills).Render(ctx, templ_7745c5c3_Buffer)
+					if templ_7745c5c3_Err != nil {
+						return templ_7745c5c3_Err
+					}
+				}
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "</section>")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
 			}
 			return nil
 		})
@@ -84,7 +124,7 @@ func DrillsEmpty() templ.Component {
 			templ_7745c5c3_Var3 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<div class=\"card flex flex-col items-center justify-center gap-3 py-16 text-center\"><div class=\"rounded-full bg-zinc-100 p-3 dark:bg-zinc-800\"><svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" class=\"h-8 w-8 text-zinc-500\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" d=\"M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z\"></path></svg></div><h2 class=\"text-lg font-semibold\">Your first drill runs in 3 minutes.</h2><p class=\"max-w-md text-sm text-zinc-600 dark:text-zinc-400\">Connect a Postgres backup source and we'll restore the latest dump in an isolated sandbox, run your assertions, and email you a signed PDF.</p><a href=\"/databases/new\" class=\"btn-primary mt-2\">Connect a database</a><p class=\"text-xs text-zinc-500\">No drill yet. No data. That's the point — let's fix it.</p></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "<div class=\"card flex flex-col items-center justify-center gap-3 py-16 text-center\"><div class=\"rounded-full bg-zinc-100 p-3 dark:bg-zinc-800\"><svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" class=\"h-8 w-8 text-zinc-500\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" d=\"M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z\"></path></svg></div><h2 class=\"text-lg font-semibold\">Your first drill runs in 3 minutes.</h2><p class=\"max-w-md text-sm text-zinc-600 dark:text-zinc-400\">Connect a Postgres backup source and we'll restore the latest dump in an isolated sandbox, run your assertions, and email you a signed PDF.</p><a href=\"/databases/new\" class=\"btn-primary mt-2\">Connect a database</a><p class=\"text-xs text-zinc-500\">No drill yet. No data. That's the point — let's fix it.</p></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -114,7 +154,7 @@ func DrillsLoading() templ.Component {
 			templ_7745c5c3_Var4 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "<div class=\"card flex items-center justify-center py-16 text-sm text-zinc-500\"><span class=\"animate-pulse\">Loading drills…</span></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "<div class=\"card flex items-center justify-center py-16 text-sm text-zinc-500\"><span class=\"animate-pulse\">Loading drills…</span></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -144,20 +184,20 @@ func DrillsError(msg string) templ.Component {
 			templ_7745c5c3_Var5 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "<div class=\"alert-error\"><p>Couldn't load drills: ")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "<div class=\"alert-error\"><p>Couldn't load drills: ")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var6 string
 		templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(msg)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/templates/dashboard.templ`, Line: 43, Col: 32}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/templates/dashboard.templ`, Line: 69, Col: 32}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "</p><button hx-get=\"/drills\" hx-target=\"#drills-pane\" class=\"btn-ghost mt-2 text-xs\">Retry</button></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "</p><button hx-get=\"/drills\" hx-target=\"#drills-pane\" class=\"btn-ghost mt-2 text-xs\">Retry</button></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
