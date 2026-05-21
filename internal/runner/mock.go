@@ -86,34 +86,6 @@ func (r *LocalRunner) Restore(ctx context.Context, sb *Sandbox, localPath string
 	}
 }
 
-// AssertRowCount opens a fresh connection to the sandbox and runs the count.
-// Use parameterized identifiers? Postgres can't bind table names — so we
-// validate the table name with a strict allowlist regex instead of trusting
-// the caller. Caller (handler) is also expected to validate at the boundary.
-func (r *LocalRunner) AssertRowCount(ctx context.Context, sb *Sandbox, in RowCountInput) (AssertionResult, error) {
-	if !validIdent(in.Table) {
-		return AssertionResult{}, fmt.Errorf("invalid table identifier: %q", in.Table)
-	}
-	conn, err := pgx.Connect(ctx, sb.DSN)
-	if err != nil {
-		return AssertionResult{}, fmt.Errorf("connect sandbox: %w", err)
-	}
-	defer conn.Close(ctx)
-
-	var n int64
-	q := fmt.Sprintf(`SELECT count(*) FROM %q`, in.Table)
-	if err := conn.QueryRow(ctx, q).Scan(&n); err != nil {
-		return AssertionResult{}, fmt.Errorf("count query: %w", err)
-	}
-
-	return AssertionResult{
-		Kind:     "row_count",
-		Expected: map[string]any{"table": in.Table, "min_rows": in.MinRows},
-		Actual:   map[string]any{"table": in.Table, "rows": n},
-		Passed:   n >= int64(in.MinRows),
-	}, nil
-}
-
 // Rehydrate reconstructs a Sandbox handle from a drill ID + bare DB name.
 // Used by step workers when the in-process Sandbox struct from Provision is
 // not available (e.g. the worker resumed after a crash and only knows the
@@ -170,27 +142,4 @@ func swapDatabase(dsn, dbName string) (string, error) {
 	}
 	u.Path = "/" + dbName
 	return u.String(), nil
-}
-
-// validIdent enforces a conservative table-name allowlist: letters, digits,
-// and underscore; no leading digit. Schema-qualified names are rejected for
-// Phase 2 — the assertion runs in the default search_path of the sandbox.
-func validIdent(s string) bool {
-	if s == "" || len(s) > 63 {
-		return false
-	}
-	for i, r := range s {
-		switch {
-		case r >= 'a' && r <= 'z':
-		case r >= 'A' && r <= 'Z':
-		case r == '_':
-		case r >= '0' && r <= '9':
-			if i == 0 {
-				return false
-			}
-		default:
-			return false
-		}
-	}
-	return true
 }

@@ -144,7 +144,7 @@ func TestV1DatabaseCreateAndIdempotency(t *testing.T) {
 	srv, key, _ := v1TestServer(t, pool)
 
 	fixture := mustAbsTestdata(t)
-	body := `{"name":"prod","source_uri":"` + fixture + `","assertion_table":"events","assertion_min_rows":1}`
+	body := `{"name":"prod","source_uri":"` + fixture + `","assertions":[{"kind":"row_count","config":{"table":"events","min_rows":1}}]}`
 
 	// POST without Idempotency-Key → 400.
 	if resp, _ := v1Do(t, "POST", srv.URL+"/databases", key, "", body); resp.StatusCode != 400 {
@@ -161,6 +161,9 @@ func TestV1DatabaseCreateAndIdempotency(t *testing.T) {
 	if dbID == "" {
 		t.Fatalf("created database has no id: %v", env)
 	}
+	if as, _ := data["assertions"].([]any); len(as) != 1 {
+		t.Fatalf("created database should carry 1 assertion, got %v", data["assertions"])
+	}
 
 	// Replay same key + same body → 200, replayed header.
 	resp2, _ := v1Do(t, "POST", srv.URL+"/databases", key, "idem-1", body)
@@ -173,7 +176,7 @@ func TestV1DatabaseCreateAndIdempotency(t *testing.T) {
 
 	// Same key, different body → 409.
 	if resp3, _ := v1Do(t, "POST", srv.URL+"/databases", key, "idem-1",
-		`{"name":"other","source_uri":"`+fixture+`","assertion_table":"events"}`); resp3.StatusCode != 409 {
+		`{"name":"other","source_uri":"`+fixture+`"}`); resp3.StatusCode != 409 {
 		t.Fatalf("key reuse with different body: got %d, want 409", resp3.StatusCode)
 	}
 
@@ -201,7 +204,7 @@ func TestV1DrillCreateAndList(t *testing.T) {
 
 	fixture := mustAbsTestdata(t)
 	_, env := v1Do(t, "POST", srv.URL+"/databases", key, "db-1",
-		`{"name":"prod","source_uri":"`+fixture+`","assertion_table":"events","assertion_min_rows":1}`)
+		`{"name":"prod","source_uri":"`+fixture+`"}`)
 	dbID := env["data"].(map[string]any)["id"].(string)
 
 	// Start a drill.
@@ -240,7 +243,7 @@ func TestV1Pagination(t *testing.T) {
 
 	fixture := mustAbsTestdata(t)
 	for i := 0; i < 3; i++ {
-		body := `{"name":"db","source_uri":"` + fixture + `","assertion_table":"events"}`
+		body := `{"name":"db","source_uri":"` + fixture + `"}`
 		v1Do(t, "POST", srv.URL+"/databases", key, "page-"+uuid.NewString(), body)
 	}
 

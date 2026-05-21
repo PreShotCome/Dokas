@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"bytes"
+	"encoding/json"
 	"errors"
 	"io"
 	"net/http"
@@ -12,6 +13,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
 
+	"github.com/preshotcome/anything/internal/assertions"
 	"github.com/preshotcome/anything/internal/audit"
 	"github.com/preshotcome/anything/internal/auth"
 	"github.com/preshotcome/anything/internal/drill"
@@ -43,27 +45,14 @@ func (h *Handlers) targetCreate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	values := templates.TargetFormValues{
-		Name:         strings.TrimSpace(r.PostFormValue("name")),
-		SourceURI:    strings.TrimSpace(r.PostFormValue("source_uri")),
-		Table:        strings.TrimSpace(r.PostFormValue("assertion_table")),
-		MinRowsInput: strings.TrimSpace(r.PostFormValue("assertion_min_rows")),
+		Name:      strings.TrimSpace(r.PostFormValue("name")),
+		SourceURI: strings.TrimSpace(r.PostFormValue("source_uri")),
 	}
-	if values.Name == "" || values.SourceURI == "" || values.Table == "" {
+	if values.Name == "" || values.SourceURI == "" {
 		w.WriteHeader(http.StatusBadRequest)
-		render(w, r, templates.TargetNewForm(lc, values, "Name, source path, and assertion table are required."))
+		render(w, r, templates.TargetNewForm(lc, values, "Name and source path are required."))
 		return
 	}
-	min := 1
-	if values.MinRowsInput != "" {
-		if n, err := atoiInRange(values.MinRowsInput, 0, 1_000_000_000); err == nil {
-			min = n
-		} else {
-			w.WriteHeader(http.StatusBadRequest)
-			render(w, r, templates.TargetNewForm(lc, values, "Minimum row count must be a non-negative integer."))
-			return
-		}
-	}
-
 	if _, err := os.Stat(values.SourceURI); err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		render(w, r, templates.TargetNewForm(lc, values, "Source file not found: "+values.SourceURI))
@@ -71,13 +60,11 @@ func (h *Handlers) targetCreate(w http.ResponseWriter, r *http.Request) {
 	}
 
 	t, err := h.drills.CreateTarget(r.Context(), drill.Target{
-		AccountID:        acct.ID,
-		CreatedByUserID:  u.ID,
-		Name:             values.Name,
-		SourceKind:       "postgres_dump_local",
-		SourceURI:        values.SourceURI,
-		AssertionTable:   values.Table,
-		AssertionMinRows: min,
+		AccountID:       acct.ID,
+		CreatedByUserID: u.ID,
+		Name:            values.Name,
+		SourceKind:      "postgres_dump_local",
+		SourceURI:       values.SourceURI,
 	})
 	if err != nil {
 		http.Error(w, "create target: "+err.Error(), http.StatusInternalServerError)
@@ -88,7 +75,119 @@ func (h *Handlers) targetCreate(w http.ResponseWriter, r *http.Request) {
 		TargetKind: "database_target", TargetID: t.ID.String(),
 		IP: audit.ClientIP(r), UserAgent: r.UserAgent(),
 	})
-	http.Redirect(w, r, "/databases", http.StatusSeeOther)
+	// Land on the detail page so the next step — adding assertions — is right
+	// in front of the user.
+	http.Redirect(w, r, "/databases/"+t.ID.String(), http.StatusSeeOther)
+}
+
+func (h *Handlers) targetDetail(w http.ResponseWriter, r *http.Request) {
+	lc := h.layoutCtx(r)
+	id, err := uuid.Parse(chi.URLParam(r, "id"))
+	if err != nil {
+		http.NotFound(w, r)
+		return
+	}
+	t, err := h.drills.GetTarget(r.Context(), lc.Account.ID, id)
+	if err != nil {
+		http.NotFound(w, r)
+		return
+	}
+	asserts, _ := h.drills.ListTargetAssertions(r.Context(), t.ID)
+	render(w, r, templates.TargetDetail(lc, t, asserts, ""))
+}
+
+func (h *Handlers) assertionCreate(w http.ResponseWriter, r *http.Request) {
+	lc := h.layoutCtx(r)
+	u, acct := lc.User, lc.Account
+	id, err := uuid.Parse(chi.URLParam(r, "id"))
+	if err != nil {
+		http.NotFound(w, r)
+		return
+	}
+	t, err := h.drills.GetTarget(r.Context(), acct.ID, id)
+	if err != nil {
+		http.NotFound(w, r)
+		return
+	}
+	if err := r.ParseForm(); err != nil {
+		http.Error(w, "bad form", http.StatusBadRequest)
+		return
+	}
+	kind := strings.TrimSpace(r.PostFormValue("kind"))
+	cfg, errMsg := buildAssertionConfig(kind,
+		strings.TrimSpace(r.PostFormValue("table")),
+		strings.TrimSpace(r.PostFormValue("column")),
+		strings.TrimSpace(r.PostFormValue("min_rows")))
+	if errMsg != "" {
+		asserts, _ := h.drills.ListTargetAssertions(r.Context(), t.ID)
+		w.WriteHeader(http.StatusBadRequest)
+		render(w, r, templates.TargetDetail(lc, t, asserts, errMsg))
+		return
+	}
+	raw, err := json.Marshal(cfg)
+	if err != nil {
+		http.Error(w, "encode config", http.StatusInternalServerError)
+		return
+	}
+	if _, err := h.drills.CreateAssertion(r.Context(), t.ID, kind, raw); err != nil {
+		http.Error(w, "create assertion: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+	_ = h.audit.Record(r.Context(), audit.Event{
+		AccountID: &acct.ID, ActorID: &u.ID, Action: "assertion.created",
+		TargetKind: "database_target", TargetID: t.ID.String(),
+		IP: audit.ClientIP(r), UserAgent: r.UserAgent(),
+	})
+	http.Redirect(w, r, "/databases/"+t.ID.String(), http.StatusSeeOther)
+}
+
+func (h *Handlers) assertionDelete(w http.ResponseWriter, r *http.Request) {
+	lc := h.layoutCtx(r)
+	u, acct := lc.User, lc.Account
+	targetID := chi.URLParam(r, "id")
+	assertionID, err := uuid.Parse(chi.URLParam(r, "assertion_id"))
+	if err != nil {
+		http.NotFound(w, r)
+		return
+	}
+	if err := h.drills.DeleteAssertion(r.Context(), acct.ID, assertionID); err != nil &&
+		!errors.Is(err, drill.ErrNotFound) {
+		http.Error(w, "delete assertion", http.StatusInternalServerError)
+		return
+	}
+	_ = h.audit.Record(r.Context(), audit.Event{
+		AccountID: &acct.ID, ActorID: &u.ID, Action: "assertion.deleted",
+		TargetKind: "database_target", TargetID: targetID,
+		IP: audit.ClientIP(r), UserAgent: r.UserAgent(),
+	})
+	http.Redirect(w, r, "/databases/"+targetID, http.StatusSeeOther)
+}
+
+// buildAssertionConfig turns the assertion form fields into a validated config
+// map for the given kind. Returns a user-facing error string on bad input.
+func buildAssertionConfig(kind, table, column, minRowsInput string) (map[string]any, string) {
+	if !assertions.ValidKind(kind) {
+		return nil, "Pick an assertion kind."
+	}
+	cfg := map[string]any{"table": table}
+	switch kind {
+	case assertions.KindRowCount:
+		minRows := 1
+		if minRowsInput != "" {
+			n, err := atoiInRange(minRowsInput, 0, 1_000_000_000)
+			if err != nil {
+				return nil, "Minimum rows must be a non-negative integer."
+			}
+			minRows = n
+		}
+		cfg["min_rows"] = minRows
+	case assertions.KindColumnExists, assertions.KindNoNulls:
+		cfg["column"] = column
+	}
+	if err := assertions.ValidateConfig(kind, cfg); err != nil {
+		return nil, "Table and column must be valid SQL identifiers."
+	}
+	return cfg, ""
 }
 
 // --- /drills ---

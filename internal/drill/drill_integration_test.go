@@ -2,6 +2,7 @@ package drill_test
 
 import (
 	"context"
+	"encoding/json"
 	"os"
 	"path/filepath"
 	"testing"
@@ -71,16 +72,18 @@ func TestDrillEndToEnd(t *testing.T) {
 
 	drillStore := drill.NewStore(pool)
 	target, err := drillStore.CreateTarget(ctx, drill.Target{
-		AccountID:        accountID,
-		CreatedByUserID:  userID,
-		Name:             "integration-target",
-		SourceKind:       "postgres_dump_local",
-		SourceURI:        fixture,
-		AssertionTable:   "events",
-		AssertionMinRows: 1,
+		AccountID:       accountID,
+		CreatedByUserID: userID,
+		Name:            "integration-target",
+		SourceKind:      "postgres_dump_local",
+		SourceURI:       fixture,
 	})
 	if err != nil {
 		t.Fatalf("create target: %v", err)
+	}
+	rowCountCfg, _ := json.Marshal(map[string]any{"table": "events", "min_rows": 1})
+	if _, err := drillStore.CreateAssertion(ctx, target.ID, "row_count", rowCountCfg); err != nil {
+		t.Fatalf("create assertion: %v", err)
 	}
 
 	evidenceDir := t.TempDir()
@@ -230,7 +233,6 @@ func TestCrossAccountIsolation(t *testing.T) {
 	targetA, err := drillStore.CreateTarget(ctx, drill.Target{
 		AccountID: accountA, CreatedByUserID: userA, Name: "a-target",
 		SourceKind: "postgres_dump_local", SourceURI: fixture,
-		AssertionTable: "events", AssertionMinRows: 1,
 	})
 	if err != nil {
 		t.Fatalf("create target A: %v", err)

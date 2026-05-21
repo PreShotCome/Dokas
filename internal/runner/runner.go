@@ -27,20 +27,6 @@ type Sandbox struct {
 	Name string
 }
 
-// AssertionResult is what an assertion returns from a sandbox query.
-type AssertionResult struct {
-	Kind     string
-	Expected any
-	Actual   any
-	Passed   bool
-}
-
-// RowCountInput is the input shape for the row_count assertion.
-type RowCountInput struct {
-	Table   string
-	MinRows int
-}
-
 // Runner is the sandbox abstraction. Implementations must be safe for
 // concurrent use across drills. Each method takes a drill-scoped context so
 // timeouts and cancellations propagate.
@@ -55,11 +41,11 @@ type Runner interface {
 	Fetch(ctx context.Context, sb *Sandbox, sourceURI string) (localPath string, err error)
 
 	// Restore applies the dump at localPath into the sandbox database.
+	//
+	// Assertions are *not* part of the Runner contract: the assert step dials
+	// Sandbox.DSN directly and runs each configured check via the assertions
+	// package, so the runner stays a pure provision/restore/teardown surface.
 	Restore(ctx context.Context, sb *Sandbox, localPath string) error
-
-	// AssertRowCount runs `SELECT count(*) FROM <table>` inside the sandbox
-	// and compares against input.MinRows.
-	AssertRowCount(ctx context.Context, sb *Sandbox, in RowCountInput) (AssertionResult, error)
 
 	// Teardown destroys the sandbox. Must be safe to call on a partially
 	// provisioned sandbox.

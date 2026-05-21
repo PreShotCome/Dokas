@@ -33,10 +33,6 @@ func (f *FlyMachineRunner) Restore(_ context.Context, _ *Sandbox, _ string) erro
 	return ErrNotImplemented
 }
 
-func (f *FlyMachineRunner) AssertRowCount(_ context.Context, _ *Sandbox, _ RowCountInput) (AssertionResult, error) {
-	return AssertionResult{}, ErrNotImplemented
-}
-
 func (f *FlyMachineRunner) Teardown(_ context.Context, _ *Sandbox) error {
 	return ErrNotImplemented
 }

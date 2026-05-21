@@ -3,6 +3,7 @@ package handlers
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"net/http"
 	"os"
@@ -12,34 +13,46 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
 
+	"github.com/preshotcome/anything/internal/assertions"
 	"github.com/preshotcome/anything/internal/auth"
 	"github.com/preshotcome/anything/internal/drill"
 )
 
 // apiDatabase is the /v1 representation of a database target.
 type apiDatabase struct {
-	ID         string       `json:"id"`
-	Name       string       `json:"name"`
-	SourceKind string       `json:"source_kind"`
-	SourceURI  string       `json:"source_uri"`
-	Assertion  apiAssertion `json:"assertion"`
-	CreatedAt  time.Time    `json:"created_at"`
+	ID         string         `json:"id"`
+	Name       string         `json:"name"`
+	SourceKind string         `json:"source_kind"`
+	SourceURI  string         `json:"source_uri"`
+	Assertions []apiAssertion `json:"assertions"`
+	CreatedAt  time.Time      `json:"created_at"`
 }
 
 type apiAssertion struct {
-	Table   string `json:"table"`
-	MinRows int    `json:"min_rows"`
+	ID     string         `json:"id"`
+	Kind   string         `json:"kind"`
+	Config map[string]any `json:"config"`
 }
 
-func toAPIDatabase(t drill.Target) apiDatabase {
-	return apiDatabase{
+func toAPIAssertion(a drill.Assertion) apiAssertion {
+	var cfg map[string]any
+	_ = json.Unmarshal(a.Config, &cfg)
+	return apiAssertion{ID: a.ID.String(), Kind: a.Kind, Config: cfg}
+}
+
+func toAPIDatabase(t drill.Target, asserts []drill.Assertion) apiDatabase {
+	out := apiDatabase{
 		ID:         t.ID.String(),
 		Name:       t.Name,
 		SourceKind: t.SourceKind,
 		SourceURI:  t.SourceURI,
-		Assertion:  apiAssertion{Table: t.AssertionTable, MinRows: t.AssertionMinRows},
+		Assertions: make([]apiAssertion, 0, len(asserts)),
 		CreatedAt:  t.CreatedAt,
 	}
+	for _, a := range asserts {
+		out.Assertions = append(out.Assertions, toAPIAssertion(a))
+	}
+	return out
 }
 
 func (h *Handlers) v1ListDatabases(w http.ResponseWriter, r *http.Request) {
@@ -68,9 +81,18 @@ func (h *Handlers) v1ListDatabases(w http.ResponseWriter, r *http.Request) {
 		meta.NextCursor = encodeCursor(pageCursor{CreatedAt: last.CreatedAt, ID: last.ID})
 		targets = targets[:limit]
 	}
+	ids := make([]uuid.UUID, len(targets))
+	for i, t := range targets {
+		ids[i] = t.ID
+	}
+	assertsByTarget, err := h.drills.ListAssertionsForTargets(r.Context(), ids)
+	if err != nil {
+		writeAPIError(w, http.StatusInternalServerError, "internal", "could not list databases")
+		return
+	}
 	out := make([]apiDatabase, 0, len(targets))
 	for _, t := range targets {
-		out = append(out, toAPIDatabase(t))
+		out = append(out, toAPIDatabase(t, assertsByTarget[t.ID]))
 	}
 	meta.Count = len(out)
 	writeData(w, http.StatusOK, out, meta)
@@ -88,14 +110,23 @@ func (h *Handlers) v1GetDatabase(w http.ResponseWriter, r *http.Request) {
 		writeAPIError(w, http.StatusNotFound, "not_found", "database not found")
 		return
 	}
-	writeData(w, http.StatusOK, toAPIDatabase(t), nil)
+	asserts, err := h.drills.ListTargetAssertions(r.Context(), t.ID)
+	if err != nil {
+		writeAPIError(w, http.StatusInternalServerError, "internal", "could not load database")
+		return
+	}
+	writeData(w, http.StatusOK, toAPIDatabase(t, asserts), nil)
 }
 
 type createDatabaseReq struct {
-	Name             string `json:"name"`
-	SourceURI        string `json:"source_uri"`
-	AssertionTable   string `json:"assertion_table"`
-	AssertionMinRows *int   `json:"assertion_min_rows"`
+	Name       string               `json:"name"`
+	SourceURI  string               `json:"source_uri"`
+	Assertions []createAssertionReq `json:"assertions"`
+}
+
+type createAssertionReq struct {
+	Kind   string         `json:"kind"`
+	Config map[string]any `json:"config"`
 }
 
 func (h *Handlers) v1CreateDatabase(w http.ResponseWriter, r *http.Request) {
@@ -109,20 +140,19 @@ func (h *Handlers) v1CreateDatabase(w http.ResponseWriter, r *http.Request) {
 	}
 	req.Name = strings.TrimSpace(req.Name)
 	req.SourceURI = strings.TrimSpace(req.SourceURI)
-	req.AssertionTable = strings.TrimSpace(req.AssertionTable)
-	if req.Name == "" || req.SourceURI == "" || req.AssertionTable == "" {
+	if req.Name == "" || req.SourceURI == "" {
 		writeAPIError(w, http.StatusBadRequest, "validation",
-			"name, source_uri, and assertion_table are required")
+			"name and source_uri are required")
 		return
 	}
-	minRows := 1
-	if req.AssertionMinRows != nil {
-		if *req.AssertionMinRows < 0 {
+	// Validate every assertion up front so a bad one doesn't leave a target
+	// with a half-applied assertion set.
+	for i, a := range req.Assertions {
+		if err := assertions.ValidateConfig(a.Kind, a.Config); err != nil {
 			writeAPIError(w, http.StatusBadRequest, "validation",
-				"assertion_min_rows must be non-negative")
+				fmt.Sprintf("assertions[%d]: %s", i, err.Error()))
 			return
 		}
-		minRows = *req.AssertionMinRows
 	}
 	if _, err := os.Stat(req.SourceURI); err != nil {
 		writeAPIError(w, http.StatusBadRequest, "validation",
@@ -131,19 +161,27 @@ func (h *Handlers) v1CreateDatabase(w http.ResponseWriter, r *http.Request) {
 	}
 
 	t, err := h.drills.CreateTarget(r.Context(), drill.Target{
-		AccountID:        acct.ID,
-		CreatedByUserID:  key.CreatedByUserID,
-		Name:             req.Name,
-		SourceKind:       "postgres_dump_local",
-		SourceURI:        req.SourceURI,
-		AssertionTable:   req.AssertionTable,
-		AssertionMinRows: minRows,
+		AccountID:       acct.ID,
+		CreatedByUserID: key.CreatedByUserID,
+		Name:            req.Name,
+		SourceKind:      "postgres_dump_local",
+		SourceURI:       req.SourceURI,
 	})
 	if err != nil {
 		writeAPIError(w, http.StatusInternalServerError, "internal", "could not create database")
 		return
 	}
-	writeData(w, http.StatusCreated, toAPIDatabase(t), nil)
+	stored := make([]drill.Assertion, 0, len(req.Assertions))
+	for _, a := range req.Assertions {
+		raw, _ := json.Marshal(a.Config)
+		created, err := h.drills.CreateAssertion(r.Context(), t.ID, a.Kind, raw)
+		if err != nil {
+			writeAPIError(w, http.StatusInternalServerError, "internal", "could not attach assertion")
+			return
+		}
+		stored = append(stored, created)
+	}
+	writeData(w, http.StatusCreated, toAPIDatabase(t, stored), nil)
 }
 
 // decodeJSONBody strictly decodes a JSON request body.

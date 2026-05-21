@@ -45,15 +45,24 @@ func (s Status) Terminal() bool {
 }
 
 type Target struct {
-	ID               uuid.UUID
-	AccountID        uuid.UUID
-	CreatedByUserID  uuid.UUID
-	Name             string
-	SourceKind       string
-	SourceURI        string
-	AssertionTable   string
-	AssertionMinRows int
-	CreatedAt        time.Time
+	ID              uuid.UUID
+	AccountID       uuid.UUID
+	CreatedByUserID uuid.UUID
+	Name            string
+	SourceKind      string
+	SourceURI       string
+	CreatedAt       time.Time
+}
+
+// Assertion is one configured check on a target. config holds the raw JSONB
+// blob; the assertions package decodes it per kind. A target carries zero or
+// more; the assert step runs every one against the restored sandbox.
+type Assertion struct {
+	ID        uuid.UUID
+	TargetID  uuid.UUID
+	Kind      string
+	Config    []byte
+	CreatedAt time.Time
 }
 
 type Drill struct {
@@ -112,20 +121,17 @@ var ErrNotFound = errors.New("drill: not found")
 func (s *Store) CreateTarget(ctx context.Context, t Target) (Target, error) {
 	err := s.pool.QueryRow(ctx, `
 		INSERT INTO database_targets
-		    (account_id, created_by_user_id, name, source_kind, source_uri,
-		     assertion_table, assertion_min_rows)
-		VALUES ($1, $2, $3, $4, $5, $6, $7)
+		    (account_id, created_by_user_id, name, source_kind, source_uri)
+		VALUES ($1, $2, $3, $4, $5)
 		RETURNING id, created_at
-	`, t.AccountID, t.CreatedByUserID, t.Name, t.SourceKind, t.SourceURI,
-		t.AssertionTable, t.AssertionMinRows).
+	`, t.AccountID, t.CreatedByUserID, t.Name, t.SourceKind, t.SourceURI).
 		Scan(&t.ID, &t.CreatedAt)
 	return t, err
 }
 
 func (s *Store) ListTargets(ctx context.Context, accountID uuid.UUID) ([]Target, error) {
 	rows, err := s.pool.Query(ctx, `
-		SELECT id, account_id, created_by_user_id, name, source_kind, source_uri,
-		       assertion_table, assertion_min_rows, created_at
+		SELECT id, account_id, created_by_user_id, name, source_kind, source_uri, created_at
 		  FROM database_targets
 		 WHERE account_id = $1 AND deleted_at IS NULL
 		 ORDER BY created_at DESC
@@ -138,7 +144,7 @@ func (s *Store) ListTargets(ctx context.Context, accountID uuid.UUID) ([]Target,
 	for rows.Next() {
 		var t Target
 		if err := rows.Scan(&t.ID, &t.AccountID, &t.CreatedByUserID, &t.Name, &t.SourceKind, &t.SourceURI,
-			&t.AssertionTable, &t.AssertionMinRows, &t.CreatedAt); err != nil {
+			&t.CreatedAt); err != nil {
 			return nil, err
 		}
 		out = append(out, t)
@@ -150,8 +156,7 @@ func (s *Store) ListTargets(ctx context.Context, accountID uuid.UUID) ([]Target,
 // Pass a nil cursor for the first page; rows order (created_at, id) DESC.
 func (s *Store) ListTargetsPage(ctx context.Context, accountID uuid.UUID, afterAt *time.Time, afterID *uuid.UUID, limit int) ([]Target, error) {
 	rows, err := s.pool.Query(ctx, `
-		SELECT id, account_id, created_by_user_id, name, source_kind, source_uri,
-		       assertion_table, assertion_min_rows, created_at
+		SELECT id, account_id, created_by_user_id, name, source_kind, source_uri, created_at
 		  FROM database_targets
 		 WHERE account_id = $1 AND deleted_at IS NULL
 		   AND ($2::timestamptz IS NULL OR (created_at, id) < ($2, $3))
@@ -166,7 +171,7 @@ func (s *Store) ListTargetsPage(ctx context.Context, accountID uuid.UUID, afterA
 	for rows.Next() {
 		var t Target
 		if err := rows.Scan(&t.ID, &t.AccountID, &t.CreatedByUserID, &t.Name, &t.SourceKind, &t.SourceURI,
-			&t.AssertionTable, &t.AssertionMinRows, &t.CreatedAt); err != nil {
+			&t.CreatedAt); err != nil {
 			return nil, err
 		}
 		out = append(out, t)
@@ -204,12 +209,10 @@ func (s *Store) ListDrillsPage(ctx context.Context, accountID uuid.UUID, afterAt
 func (s *Store) GetTarget(ctx context.Context, accountID, targetID uuid.UUID) (Target, error) {
 	var t Target
 	err := s.pool.QueryRow(ctx, `
-		SELECT id, account_id, created_by_user_id, name, source_kind, source_uri,
-		       assertion_table, assertion_min_rows, created_at
+		SELECT id, account_id, created_by_user_id, name, source_kind, source_uri, created_at
 		  FROM database_targets
 		 WHERE id = $1 AND account_id = $2 AND deleted_at IS NULL
-	`, targetID, accountID).Scan(&t.ID, &t.AccountID, &t.CreatedByUserID, &t.Name, &t.SourceKind, &t.SourceURI,
-		&t.AssertionTable, &t.AssertionMinRows, &t.CreatedAt)
+	`, targetID, accountID).Scan(&t.ID, &t.AccountID, &t.CreatedByUserID, &t.Name, &t.SourceKind, &t.SourceURI, &t.CreatedAt)
 	if errors.Is(err, pgx.ErrNoRows) {
 		return Target{}, ErrNotFound
 	}
@@ -252,16 +255,93 @@ func (s *Store) GetDrillByID(ctx context.Context, drillID uuid.UUID) (Drill, err
 func (s *Store) GetTargetByID(ctx context.Context, targetID uuid.UUID) (Target, error) {
 	var t Target
 	err := s.pool.QueryRow(ctx, `
-		SELECT id, account_id, created_by_user_id, name, source_kind, source_uri,
-		       assertion_table, assertion_min_rows, created_at
+		SELECT id, account_id, created_by_user_id, name, source_kind, source_uri, created_at
 		  FROM database_targets
 		 WHERE id = $1
-	`, targetID).Scan(&t.ID, &t.AccountID, &t.CreatedByUserID, &t.Name, &t.SourceKind, &t.SourceURI,
-		&t.AssertionTable, &t.AssertionMinRows, &t.CreatedAt)
+	`, targetID).Scan(&t.ID, &t.AccountID, &t.CreatedByUserID, &t.Name, &t.SourceKind, &t.SourceURI, &t.CreatedAt)
 	if errors.Is(err, pgx.ErrNoRows) {
 		return Target{}, ErrNotFound
 	}
 	return t, err
+}
+
+// --- target assertions ---
+
+// ListAssertions returns every assertion configured on a target, oldest
+// first. No account scoping — callers (handlers) authorise the target first;
+// step workers run cross-account by design.
+func (s *Store) ListTargetAssertions(ctx context.Context, targetID uuid.UUID) ([]Assertion, error) {
+	rows, err := s.pool.Query(ctx, `
+		SELECT id, target_id, kind, config, created_at
+		  FROM assertions WHERE target_id = $1 ORDER BY created_at ASC, id ASC
+	`, targetID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var out []Assertion
+	for rows.Next() {
+		var a Assertion
+		if err := rows.Scan(&a.ID, &a.TargetID, &a.Kind, &a.Config, &a.CreatedAt); err != nil {
+			return nil, err
+		}
+		out = append(out, a)
+	}
+	return out, rows.Err()
+}
+
+// ListAssertionsForTargets batch-loads assertions for many targets at once,
+// keyed by target_id — used by the /v1 list endpoint to avoid N+1 queries.
+func (s *Store) ListAssertionsForTargets(ctx context.Context, targetIDs []uuid.UUID) (map[uuid.UUID][]Assertion, error) {
+	out := make(map[uuid.UUID][]Assertion)
+	if len(targetIDs) == 0 {
+		return out, nil
+	}
+	rows, err := s.pool.Query(ctx, `
+		SELECT id, target_id, kind, config, created_at
+		  FROM assertions WHERE target_id = ANY($1) ORDER BY created_at ASC, id ASC
+	`, targetIDs)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var a Assertion
+		if err := rows.Scan(&a.ID, &a.TargetID, &a.Kind, &a.Config, &a.CreatedAt); err != nil {
+			return nil, err
+		}
+		out[a.TargetID] = append(out[a.TargetID], a)
+	}
+	return out, rows.Err()
+}
+
+// CreateAssertion attaches an assertion to a target. config must be valid
+// JSON; the caller is expected to have validated kind + config first.
+func (s *Store) CreateAssertion(ctx context.Context, targetID uuid.UUID, kind string, config []byte) (Assertion, error) {
+	a := Assertion{TargetID: targetID, Kind: kind, Config: config}
+	err := s.pool.QueryRow(ctx, `
+		INSERT INTO assertions (target_id, kind, config)
+		VALUES ($1, $2, $3::jsonb)
+		RETURNING id, created_at
+	`, targetID, kind, string(config)).Scan(&a.ID, &a.CreatedAt)
+	return a, err
+}
+
+// DeleteAssertion removes an assertion, scoped to the account that owns its
+// target so one account cannot delete another's assertions.
+func (s *Store) DeleteAssertion(ctx context.Context, accountID, assertionID uuid.UUID) error {
+	tag, err := s.pool.Exec(ctx, `
+		DELETE FROM assertions a
+		 USING database_targets t
+		 WHERE a.id = $1 AND a.target_id = t.id AND t.account_id = $2
+	`, assertionID, accountID)
+	if err != nil {
+		return err
+	}
+	if tag.RowsAffected() == 0 {
+		return ErrNotFound
+	}
+	return nil
 }
 
 // ListDrillsByCreator returns drills a given user kicked off, newest first.
@@ -449,6 +529,13 @@ func (s *Store) MarkStepSkipped(ctx context.Context, drillID uuid.UUID, name Ste
 }
 
 // --- assertion results ---
+
+// ClearAssertionResults removes every recorded result for a drill. The assert
+// step calls this before re-running so a job retry doesn't double-record.
+func (s *Store) ClearAssertionResults(ctx context.Context, drillID uuid.UUID) error {
+	_, err := s.pool.Exec(ctx, `DELETE FROM assertion_results WHERE drill_id = $1`, drillID)
+	return err
+}
 
 func (s *Store) RecordAssertion(ctx context.Context, ar AssertionResult) error {
 	_, err := s.pool.Exec(ctx, `

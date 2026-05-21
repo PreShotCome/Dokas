@@ -33,18 +33,36 @@
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": ["name", "source_uri", "assertion_table"],
+                "required": ["name", "source_uri"],
                 "properties": {
                   "name": { "type": "string" },
                   "source_uri": { "type": "string", "description": "Local-disk path to a pg_dump or .sql file." },
-                  "assertion_table": { "type": "string" },
-                  "assertion_min_rows": { "type": "integer", "default": 1 }
+                  "assertions": {
+                    "type": "array",
+                    "description": "Optional checks to run against the restored database.",
+                    "items": {
+                      "type": "object",
+                      "required": ["kind", "config"],
+                      "properties": {
+                        "kind": { "type": "string", "enum": ["row_count", "table_exists", "column_exists", "no_nulls"] },
+                        "config": {
+                          "type": "object",
+                          "description": "Kind-specific config. All kinds need 'table'; column_exists/no_nulls also need 'column'; row_count takes 'min_rows'.",
+                          "properties": {
+                            "table": { "type": "string" },
+                            "column": { "type": "string" },
+                            "min_rows": { "type": "integer", "default": 1 }
+                          }
+                        }
+                      }
+                    }
+                  }
                 }
               }
             }
           }
         },
-        "responses": { "201": { "description": "The created database target." } }
+        "responses": { "201": { "description": "The created database target, with its assertions array." } }
       }
     },
     "/databases/{id}": {

@@ -249,6 +249,7 @@ func (h *Handlers) Router(staticFS http.FileSystem) http.Handler {
 		r.Group(func(r chi.Router) {
 			r.Use(auth.RequireAction(auth.ActionTargetRead))
 			r.Get("/databases", h.targetsList)
+			r.Get("/databases/{id}", h.targetDetail)
 		})
 		r.Group(func(r chi.Router) {
 			r.Use(auth.RequireAction(auth.ActionDrillRead))
@@ -273,6 +274,8 @@ func (h *Handlers) Router(staticFS http.FileSystem) http.Handler {
 			r.Use(auth.RequireAction(auth.ActionTargetWrite))
 			r.Get("/databases/new", h.targetNewPage)
 			r.Post("/databases", h.targetCreate)
+			r.Post("/databases/{id}/assertions", h.assertionCreate)
+			r.Post("/databases/{id}/assertions/{assertion_id}/delete", h.assertionDelete)
 		})
 		r.Group(func(r chi.Router) {
 			r.Use(auth.RequireAction(auth.ActionDrillWrite))

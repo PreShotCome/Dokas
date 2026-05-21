@@ -12,11 +12,13 @@ package steps
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
 	"github.com/riverqueue/river"
 	"github.com/riverqueue/river/rivertype"
 
@@ -331,38 +333,69 @@ func (w *AssertWorker) Work(ctx context.Context, job *river.Job[drill.AssertArgs
 	if err != nil {
 		return w.D.failAndCleanup(ctx, drillID, drill.StepAssert, err.Error())
 	}
+	specs, err := w.D.Store.ListTargetAssertions(ctx, target.ID)
+	if err != nil {
+		return w.D.failAndCleanup(ctx, drillID, drill.StepAssert, err.Error())
+	}
 	sb, err := w.D.sandbox(ctx, drillID)
 	if err != nil {
 		return w.D.failAndCleanup(ctx, drillID, drill.StepAssert, err.Error())
 	}
 
-	kind, exp, act, passed, err := assertions.RowCount(ctx, w.D.Runner, sb, assertions.RowCountSpec{
-		Table:   target.AssertionTable,
-		MinRows: target.AssertionMinRows,
-	})
-	if err != nil {
-		return w.D.failAndCleanup(ctx, drillID, drill.StepAssert, err.Error())
-	}
-	if err := w.D.Store.RecordAssertion(ctx, drill.AssertionResult{
-		DrillID: drillID, Kind: kind, Expected: exp, Actual: act, Passed: passed,
-	}); err != nil {
+	if err := w.runAssertions(ctx, drillID, sb, specs); err != nil {
 		return w.D.failAndCleanup(ctx, drillID, drill.StepAssert, err.Error())
 	}
 
-	if !passed {
-		_ = w.D.Store.MarkStepSucceeded(ctx, drillID, drill.StepAssert)
-		// Assertion failure is a drill failure but we still want a PDF that
-		// records it, so chain to report (it will produce a FAILED verdict)
-		// and let report mark the drill failed.
-		_, err := w.D.Inserter.Insert(ctx, drill.ReportArgs{DrillID: drillID}, drill.TraceOpts(ctx))
-		return err
-	}
-
+	// The assert step itself succeeds whenever every assertion *ran*; a failed
+	// assertion is a drill-verdict concern, computed by the report worker from
+	// the recorded assertion_results rows.
 	if err := w.D.Store.MarkStepSucceeded(ctx, drillID, drill.StepAssert); err != nil {
 		return err
 	}
 	_, err = w.D.Inserter.Insert(ctx, drill.ReportArgs{DrillID: drillID}, drill.TraceOpts(ctx))
 	return err
+}
+
+// runAssertions dials the restored sandbox and runs every configured
+// assertion, recording one assertion_results row each. Prior results for the
+// drill are cleared first so a step retry stays idempotent.
+func (w *AssertWorker) runAssertions(ctx context.Context, drillID uuid.UUID, sb *runner.Sandbox, specs []drill.Assertion) error {
+	if err := w.D.Store.ClearAssertionResults(ctx, drillID); err != nil {
+		return err
+	}
+	conn, err := pgx.Connect(ctx, sb.DSN)
+	if err != nil {
+		return fmt.Errorf("connect sandbox: %w", err)
+	}
+	defer conn.Close(ctx)
+	q := pgxQuerier{conn: conn}
+
+	for _, spec := range specs {
+		var cfg map[string]any
+		if err := json.Unmarshal(spec.Config, &cfg); err != nil {
+			return fmt.Errorf("assertion %s: bad config: %w", spec.ID, err)
+		}
+		out, err := assertions.Run(ctx, q, assertions.Spec{Kind: spec.Kind, Config: cfg})
+		if err != nil {
+			return fmt.Errorf("assertion %s (%s): %w", spec.ID, spec.Kind, err)
+		}
+		if err := w.D.Store.RecordAssertion(ctx, drill.AssertionResult{
+			DrillID: drillID, Kind: out.Kind,
+			Expected: out.Expected, Actual: out.Actual, Passed: out.Passed,
+		}); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// pgxQuerier adapts a *pgx.Conn to the assertions.Querier interface.
+type pgxQuerier struct{ conn *pgx.Conn }
+
+func (q pgxQuerier) QueryRow(ctx context.Context, sql string, args ...any) interface {
+	Scan(dest ...any) error
+} {
+	return q.conn.QueryRow(ctx, sql, args...)
 }
 
 func (w *AssertWorker) Timeout(*river.Job[drill.AssertArgs]) time.Duration {

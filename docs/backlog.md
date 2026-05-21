@@ -12,8 +12,6 @@ not started, planned · `debt` = works but should be revisited.
 - **Fly Machines sandbox runner** — `seam`. `runner.FlyMachineRunner`
   returns `ErrNotImplemented`; drills run on `LocalRunner` (temp Postgres DB
   on the host). Real per-drill cloud sandboxes are a later phase.
-- **Single assertion kind** — `deferred`. Only `row_count`. Plan calls for
-  schema checks, FK integrity, table sizes, etc.
 - **Dump format coverage** — `deferred`. Only plain `.sql` and `-Fc`
   `.dump` are exercised; the plan's fixture corpus (`-Fd`, base backups,
   pgBackRest, WAL-G) is not built.
@@ -90,6 +88,16 @@ not started, planned · `debt` = works but should be revisited.
   wants expand-then-contract verified on a prod-sized clone.
 
 ## Resolved
+
+Layer-2 assertions:
+
+- **Multiple assertion kinds** — assertions moved off the two baked-in
+  `database_targets` columns into their own table; a target now carries any
+  number of typed checks (`row_count`, `table_exists`, `column_exists`,
+  `no_nulls`). The assert step dials the restored sandbox directly and runs
+  each, recording one `assertion_results` row per check. Managed from a new
+  `/databases/{id}` detail page and surfaced as an `assertions` array on the
+  `/v1` database endpoints.
 
 Tech-debt burndown pass:
 

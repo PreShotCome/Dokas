@@ -1,18 +1,18 @@
 package templates
 
 import (
-	"strconv"
+	"encoding/json"
+	"fmt"
 
 	"github.com/preshotcome/anything/internal/account"
+	"github.com/preshotcome/anything/internal/assertions"
 	"github.com/preshotcome/anything/internal/auth"
 	"github.com/preshotcome/anything/internal/drill"
 )
 
 type TargetFormValues struct {
-	Name         string
-	SourceURI    string
-	Table        string
-	MinRowsInput string
+	Name      string
+	SourceURI string
 }
 
 templ TargetsPage(lc LayoutCtx, targets []drill.Target) {
@@ -46,24 +46,18 @@ templ TargetsTable(targets []drill.Target, m *account.Membership) {
 				<tr>
 					<th class="px-4 py-2 text-left font-medium">Name</th>
 					<th class="px-4 py-2 text-left font-medium">Source</th>
-					<th class="px-4 py-2 text-left font-medium">Assertion</th>
 					<th class="px-4 py-2 text-right font-medium">Actions</th>
 				</tr>
 			</thead>
 			<tbody class="divide-y divide-zinc-200 dark:divide-zinc-800">
 				for _, t := range targets {
 					<tr>
-						<td class="px-4 py-2 font-medium">{ t.Name }</td>
-						<td class="px-4 py-2 font-mono text-xs text-zinc-600 dark:text-zinc-400">{ t.SourceURI }</td>
-						<td class="px-4 py-2 text-xs">
-							row_count(<span class="font-mono">{ t.AssertionTable }</span>) ≥ { strconv.Itoa(t.AssertionMinRows) }
+						<td class="px-4 py-2 font-medium">
+							<a class="underline" href={ templ.SafeURL("/databases/" + t.ID.String()) }>{ t.Name }</a>
 						</td>
+						<td class="px-4 py-2 font-mono text-xs text-zinc-600 dark:text-zinc-400">{ t.SourceURI }</td>
 						<td class="px-4 py-2 text-right">
-							if m != nil && auth.Allowed(m.Role, auth.ActionDrillWrite) {
-								<a href="/drills" class="text-sm underline">Run drill</a>
-							} else {
-								<span class="text-xs text-zinc-400">view only</span>
-							}
+							<a href={ templ.SafeURL("/databases/" + t.ID.String()) } class="text-sm underline">Manage</a>
 						</td>
 					</tr>
 				}
@@ -83,31 +77,18 @@ templ TargetNewForm(lc LayoutCtx, values TargetFormValues, errMsg string) {
 			<div>
 				<label class="mb-1 block text-sm font-medium" for="name">Name</label>
 				<input id="name" name="name" type="text" required maxlength="80"
-				       value={ values.Name }
-				       class="form-input" placeholder="prod-postgres"/>
+					value={ values.Name }
+					class="form-input" placeholder="prod-postgres"/>
 				<p class="form-hint">A human label — shown on the drill report.</p>
 			</div>
 			<div>
 				<label class="mb-1 block text-sm font-medium" for="source_uri">Dump file path</label>
 				<input id="source_uri" name="source_uri" type="text" required maxlength="500"
-				       value={ values.SourceURI }
-				       class="form-input" placeholder="testdata/fixtures/tiny.dump"/>
+					value={ values.SourceURI }
+					class="form-input" placeholder="testdata/fixtures/tiny.dump"/>
 				<p class="form-hint">Local-disk path to a pg_dump or .sql file. Phase 2 only.</p>
 			</div>
-			<div>
-				<label class="mb-1 block text-sm font-medium" for="assertion_table">Assertion table</label>
-				<input id="assertion_table" name="assertion_table" type="text" required maxlength="63"
-				       value={ values.Table }
-				       class="form-input" placeholder="events"/>
-				<p class="form-hint">We'll run <code>SELECT count(*) FROM &lt;table&gt;</code> after restore.</p>
-			</div>
-			<div>
-				<label class="mb-1 block text-sm font-medium" for="assertion_min_rows">Minimum rows</label>
-				<input id="assertion_min_rows" name="assertion_min_rows" type="number" min="0"
-				       value={ minRowsValue(values.MinRowsInput) }
-				       class="form-input"/>
-				<p class="form-hint">The drill passes if the count is at least this value.</p>
-			</div>
+			<p class="form-hint">You'll add assertions on the next screen.</p>
 			<div class="flex items-center justify-end gap-2">
 				<a href="/databases" class="btn-ghost">Cancel</a>
 				<button type="submit" class="btn-primary">Connect database</button>
@@ -116,15 +97,116 @@ templ TargetNewForm(lc LayoutCtx, values TargetFormValues, errMsg string) {
 	}
 }
 
+templ TargetDetail(lc LayoutCtx, t drill.Target, asserts []drill.Assertion, errMsg string) {
+	@LayoutWith(t.Name, lc) {
+		<div class="mb-6 flex items-baseline justify-between">
+			<div>
+				<h1 class="text-2xl font-semibold tracking-tight">{ t.Name }</h1>
+				<p class="font-mono text-xs text-zinc-500 dark:text-zinc-400">{ t.SourceURI }</p>
+			</div>
+			if lc.Membership != nil && auth.Allowed(lc.Membership.Role, auth.ActionDrillWrite) {
+				<a href="/drills" class="btn-primary">Run drill</a>
+			}
+		</div>
+		if errMsg != "" {
+			<div class="alert-error mb-4">{ errMsg }</div>
+		}
+		<div class="card mb-6 p-0">
+			<h2 class="border-b border-zinc-200 px-4 py-3 text-sm font-semibold dark:border-zinc-800">Assertions</h2>
+			if len(asserts) == 0 {
+				<p class="px-4 py-6 text-sm text-zinc-600 dark:text-zinc-400">
+					No assertions yet. A drill will still verify the restore itself, but
+					add assertions to check the data landed.
+				</p>
+			} else {
+				<table class="min-w-full divide-y divide-zinc-200 text-sm dark:divide-zinc-800">
+					<tbody class="divide-y divide-zinc-200 dark:divide-zinc-800">
+						for _, a := range asserts {
+							<tr>
+								<td class="px-4 py-2 font-mono text-xs">{ assertionSummary(a) }</td>
+								<td class="px-4 py-2 text-right">
+									if lc.Membership != nil && auth.Allowed(lc.Membership.Role, auth.ActionTargetWrite) {
+										<form method="POST"
+											action={ templ.SafeURL("/databases/" + t.ID.String() + "/assertions/" + a.ID.String() + "/delete") }>
+											@CSRFField()
+											<button type="submit" class="text-xs text-red-600 underline dark:text-red-400">Remove</button>
+										</form>
+									}
+								</td>
+							</tr>
+						}
+					</tbody>
+				</table>
+			}
+		</div>
+		if lc.Membership != nil && auth.Allowed(lc.Membership.Role, auth.ActionTargetWrite) {
+			@assertionForm(t)
+		}
+	}
+}
+
+templ assertionForm(t drill.Target) {
+	<form method="POST" action={ templ.SafeURL("/databases/" + t.ID.String() + "/assertions") }
+		class="card max-w-xl space-y-4">
+		@CSRFField()
+		<h2 class="text-sm font-semibold">Add an assertion</h2>
+		<div>
+			<label class="mb-1 block text-sm font-medium" for="kind">Kind</label>
+			<select id="kind" name="kind" class="form-input">
+				<option value={ assertions.KindRowCount }>row_count — at least N rows</option>
+				<option value={ assertions.KindTableExists }>table_exists — the table is present</option>
+				<option value={ assertions.KindColumnExists }>column_exists — the column is present</option>
+				<option value={ assertions.KindNoNulls }>no_nulls — the column has no NULLs</option>
+			</select>
+		</div>
+		<div>
+			<label class="mb-1 block text-sm font-medium" for="table">Table</label>
+			<input id="table" name="table" type="text" maxlength="63" class="form-input" placeholder="events"/>
+			<p class="form-hint">Required for every kind.</p>
+		</div>
+		<div>
+			<label class="mb-1 block text-sm font-medium" for="column">Column</label>
+			<input id="column" name="column" type="text" maxlength="63" class="form-input" placeholder="user_id"/>
+			<p class="form-hint">Used by column_exists and no_nulls.</p>
+		</div>
+		<div>
+			<label class="mb-1 block text-sm font-medium" for="min_rows">Minimum rows</label>
+			<input id="min_rows" name="min_rows" type="number" min="0" value="1" class="form-input"/>
+			<p class="form-hint">Used by row_count.</p>
+		</div>
+		<div class="flex items-center justify-end">
+			<button type="submit" class="btn-primary">Add assertion</button>
+		</div>
+	</form>
+}
+
 templ TargetsError(msg string) {
 	@Layout("Databases", nil) {
 		<div class="alert-error">{ msg }</div>
 	}
 }
 
-func minRowsValue(input string) string {
-	if input == "" {
-		return "1"
+// assertionSummary renders a one-line, human-readable form of an assertion's
+// kind + config for the detail page.
+func assertionSummary(a drill.Assertion) string {
+	var cfg map[string]any
+	_ = json.Unmarshal(a.Config, &cfg)
+	table, _ := cfg["table"].(string)
+	column, _ := cfg["column"].(string)
+	switch a.Kind {
+	case assertions.KindRowCount:
+		minRows := 0
+		if n, ok := cfg["min_rows"].(float64); ok {
+			minRows = int(n)
+		}
+		return fmt.Sprintf("row_count(%s) ≥ %d", table, minRows)
+	case assertions.KindTableExists:
+		return fmt.Sprintf("table_exists(%s)", table)
+	case assertions.KindColumnExists:
+		return fmt.Sprintf("column_exists(%s.%s)", table, column)
+	case assertions.KindNoNulls:
+		return fmt.Sprintf("no_nulls(%s.%s)", table, column)
+	default:
+		return a.Kind
 	}
-	return input
 }
