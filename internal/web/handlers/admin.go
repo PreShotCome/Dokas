@@ -183,7 +183,7 @@ func (h *Handlers) adminDrillDetail(w http.ResponseWriter, r *http.Request) {
 	ars, _ := h.drills.ListAssertions(r.Context(), dr.ID)
 	var verify evidence.VerifyResult
 	if dr.EvidencePath != nil && *dr.EvidencePath != "" {
-		verify, _ = h.evidence.Verify(r.Context(), dr.ID, *dr.EvidencePath)
+		verify, _ = h.evidence.Verify(r.Context(), dr.ID, dr.AccountID, *dr.EvidencePath)
 	}
 	render(w, r, templates.AdminDrillDetail(h.layoutCtx(r), dr, target, steps, ars, verify))
 }
@@ -214,7 +214,7 @@ func (h *Handlers) adminEvidenceRegen(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "render: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
-	path, err := h.evidence.Finalize(r.Context(), dr.ID, buf.Bytes())
+	path, err := h.evidence.Finalize(r.Context(), dr.ID, dr.AccountID, buf.Bytes())
 	if err != nil {
 		http.Error(w, "finalize: "+err.Error(), http.StatusInternalServerError)
 		return

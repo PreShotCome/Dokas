@@ -113,7 +113,16 @@ func main() {
 		logger.Warn("evidence signing key not configured — using an EPHEMERAL key; " +
 			"signatures will not verify across restarts. Set EVIDENCE_SIGNING_KEY in production.")
 	}
-	evidenceService := evidence.NewService(evidence.NewLocalStore(evidenceDir), signer, pool)
+	evidenceCipher, err := evidence.NewCipher(cfg.EvidenceEncryptionKey, pool)
+	if err != nil {
+		logger.Error("evidence cipher", "err", err)
+		os.Exit(1)
+	}
+	if evidenceCipher.Ephemeral() {
+		logger.Warn("evidence encryption key not configured — using an EPHEMERAL master key; " +
+			"evidence will not decrypt across restarts. Set EVIDENCE_ENCRYPTION_KEY in production.")
+	}
+	evidenceService := evidence.NewService(evidence.NewLocalStore(evidenceDir), signer, evidenceCipher, pool)
 
 	loginThrottle := auth.NewLoginThrottle(pool, 5, 15*time.Minute)
 	sweeper := compliance.NewSweeper(pool, evidenceService, loginThrottle)

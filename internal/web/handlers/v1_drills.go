@@ -2,7 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
-	"io"
+	"errors"
 	"net/http"
 	"time"
 
@@ -11,6 +11,7 @@ import (
 
 	"github.com/preshotcome/anything/internal/auth"
 	"github.com/preshotcome/anything/internal/drill"
+	"github.com/preshotcome/anything/internal/evidence"
 )
 
 // apiDrill is the /v1 representation of a drill (list view).
@@ -184,14 +185,12 @@ func (h *Handlers) v1GetEvidence(w http.ResponseWriter, r *http.Request) {
 		writeAPIError(w, http.StatusNotFound, "no_evidence", "evidence not yet generated")
 		return
 	}
-	f, err := h.evidence.Open(r.Context(), *d.EvidencePath)
+	body, err := h.evidence.Read(r.Context(), acct.ID, *d.EvidencePath)
 	if err != nil {
-		writeAPIError(w, http.StatusInternalServerError, "internal", "could not open evidence")
-		return
-	}
-	defer f.Close()
-	body, err := io.ReadAll(f)
-	if err != nil {
+		if errors.Is(err, evidence.ErrShredded) {
+			writeAPIError(w, http.StatusGone, "evidence_unavailable", "evidence is no longer available")
+			return
+		}
 		writeAPIError(w, http.StatusInternalServerError, "internal", "could not read evidence")
 		return
 	}

@@ -14,33 +14,40 @@ import (
 // DefaultRetention is how long evidence must be kept — auditor requirement.
 const DefaultRetention = 7 * 365 * 24 * time.Hour
 
-// Service ties the evidence store, signer, and signature records together.
-// The drill report worker calls Finalize; handlers call Verify.
+// Service ties the evidence store, signer, cipher, and signature records
+// together. The drill report worker calls Finalize; handlers call Verify/Read.
 type Service struct {
 	store     Store
 	signer    *Signer
+	cipher    *Cipher
 	pool      *pgxpool.Pool
 	retention time.Duration
 }
 
-func NewService(store Store, signer *Signer, pool *pgxpool.Pool) *Service {
-	return &Service{store: store, signer: signer, pool: pool, retention: DefaultRetention}
+func NewService(store Store, signer *Signer, cipher *Cipher, pool *pgxpool.Pool) *Service {
+	return &Service{store: store, signer: signer, cipher: cipher, pool: pool, retention: DefaultRetention}
 }
 
-// Finalize stores the rendered PDF, signs it, and records the signature with
-// a retain_until horizon. Returns the storage key for drills.evidence_path.
-func (s *Service) Finalize(ctx context.Context, drillID uuid.UUID, pdf []byte) (string, error) {
-	key, err := s.store.Put(ctx, drillID.String(), pdf)
-	if err != nil {
-		return "", err
-	}
-
+// Finalize signs the rendered PDF, encrypts it under the account's key,
+// stores the ciphertext, and records the signature with a retain_until
+// horizon. The signature covers the plaintext; the file on disk is
+// ciphertext. Returns the storage key for drills.evidence_path.
+func (s *Service) Finalize(ctx context.Context, drillID, accountID uuid.UUID, pdf []byte) (string, error) {
 	// Truncate to microseconds: Postgres TIMESTAMPTZ has microsecond
 	// precision, so the value the signature covers must already be at that
 	// precision or it won't survive the DB round-trip for verification.
 	signedAt := time.Now().UTC().Truncate(time.Microsecond)
 	sig := s.signer.Sign(pdf, signedAt)
 	retainUntil := signedAt.Add(s.retention)
+
+	blob, err := s.cipher.Encrypt(ctx, accountID, pdf)
+	if err != nil {
+		return "", fmt.Errorf("encrypt evidence: %w", err)
+	}
+	key, err := s.store.Put(ctx, drillID.String(), blob)
+	if err != nil {
+		return "", err
+	}
 
 	_, err = s.pool.Exec(ctx, `
 		INSERT INTO evidence_signatures
@@ -92,10 +99,11 @@ type VerifyResult struct {
 	RetainUntil time.Time
 }
 
-// Verify re-reads the stored PDF and checks it against the recorded
-// signature. A mismatch (tampered file, wrong key) yields Valid=false with a
+// Verify re-reads the stored evidence, decrypts it with the account's key,
+// and checks it against the recorded signature. A mismatch (tampered file,
+// wrong key, crypto-shredded account) yields Valid=false with a
 // human-readable Reason rather than an error.
-func (s *Service) Verify(ctx context.Context, drillID uuid.UUID, key string) (VerifyResult, error) {
+func (s *Service) Verify(ctx context.Context, drillID, accountID uuid.UUID, key string) (VerifyResult, error) {
 	rec, err := s.GetSignature(ctx, drillID)
 	if errors.Is(err, ErrNoSignature) {
 		return VerifyResult{Signed: false}, nil
@@ -119,9 +127,18 @@ func (s *Service) Verify(ctx context.Context, drillID uuid.UUID, key string) (Ve
 		res.Reason = "signed with a key this server does not hold (key rotated out of the verification set?)"
 		return res, nil
 	}
-	pdf, err := s.store.ReadAll(ctx, key)
+	blob, err := s.store.ReadAll(ctx, key)
 	if err != nil {
 		res.Reason = "evidence file unreadable: " + err.Error()
+		return res, nil
+	}
+	pdf, err := s.cipher.Decrypt(ctx, accountID, blob)
+	if err != nil {
+		if errors.Is(err, ErrShredded) {
+			res.Reason = "evidence was crypto-shredded (account deleted)"
+		} else {
+			res.Reason = "evidence could not be decrypted (tampered file?)"
+		}
 		return res, nil
 	}
 	if err := Verify(pub, pdf, rec.Signature); err != nil {
@@ -132,9 +149,14 @@ func (s *Service) Verify(ctx context.Context, drillID uuid.UUID, key string) (Ve
 	return res, nil
 }
 
-// Open returns a reader for a stored evidence key.
-func (s *Service) Open(ctx context.Context, key string) (readCloser, error) {
-	return s.store.Open(ctx, key)
+// Read returns the decrypted evidence PDF for a stored key. Returns
+// ErrShredded when the account's evidence has been crypto-shredded.
+func (s *Service) Read(ctx context.Context, accountID uuid.UUID, key string) ([]byte, error) {
+	blob, err := s.store.ReadAll(ctx, key)
+	if err != nil {
+		return nil, err
+	}
+	return s.cipher.Decrypt(ctx, accountID, blob)
 }
 
 // DeleteKey removes an evidence object. Used by the account hard-delete
@@ -142,6 +164,13 @@ func (s *Service) Open(ctx context.Context, key string) (readCloser, error) {
 // account is being erased on the customer's instruction.
 func (s *Service) DeleteKey(ctx context.Context, key string) error {
 	return s.store.Delete(ctx, key)
+}
+
+// ShredAccountEvidence destroys an account's evidence-encryption key. After
+// this, every evidence file for the account is permanently unrecoverable —
+// the crypto-shred half of a GDPR hard delete.
+func (s *Service) ShredAccountEvidence(ctx context.Context, accountID uuid.UUID) error {
+	return s.cipher.ShredAccount(ctx, accountID)
 }
 
 // PurgeExpired deletes evidence whose retain_until has passed: the stored
@@ -185,10 +214,4 @@ func (s *Service) PurgeExpired(ctx context.Context) (int, error) {
 		purged++
 	}
 	return purged, nil
-}
-
-// readCloser is a tiny alias so callers don't need to import io.
-type readCloser = interface {
-	Read([]byte) (int, error)
-	Close() error
 }

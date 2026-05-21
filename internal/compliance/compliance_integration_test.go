@@ -47,7 +47,7 @@ func seedFullAccount(t *testing.T, ctx context.Context, pool *pgxpool.Pool, ev *
 		drillID, targetID, accountID, userID); err != nil {
 		t.Fatalf("drill: %v", err)
 	}
-	key, err := ev.Finalize(ctx, drillID, []byte("%PDF evidence"))
+	key, err := ev.Finalize(ctx, drillID, accountID, []byte("%PDF evidence"))
 	if err != nil {
 		t.Fatalf("finalize evidence: %v", err)
 	}
@@ -67,7 +67,11 @@ func newEvidence(t *testing.T, pool *pgxpool.Pool) *evidence.Service {
 	if err != nil {
 		t.Fatalf("signer: %v", err)
 	}
-	return evidence.NewService(evidence.NewLocalStore(t.TempDir()), signer, pool)
+	cipher, err := evidence.NewCipher("", pool)
+	if err != nil {
+		t.Fatalf("cipher: %v", err)
+	}
+	return evidence.NewService(evidence.NewLocalStore(t.TempDir()), signer, cipher, pool)
 }
 
 func TestExportContainsAllEntities(t *testing.T) {

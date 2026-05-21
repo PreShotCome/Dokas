@@ -110,6 +110,12 @@ func (p *Purger) HardDelete(ctx context.Context, accountID uuid.UUID) error {
 	}
 	rows.Close()
 
+	// Crypto-shred first: destroy the account's evidence-encryption key.
+	// After this every evidence file is permanently undecryptable — even a
+	// copy that survives the file deletion below or lives on in a backup.
+	if err := p.evidence.ShredAccountEvidence(ctx, accountID); err != nil {
+		return fmt.Errorf("crypto-shred evidence keys: %w", err)
+	}
 	for _, path := range paths {
 		if err := p.evidence.DeleteKey(ctx, path); err != nil {
 			return fmt.Errorf("shred evidence %s: %w", path, err)
