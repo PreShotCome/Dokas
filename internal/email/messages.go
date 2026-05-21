@@ -39,6 +39,23 @@ account, you can ignore this email.
 	}
 }
 
+// MagicLinkMessage builds the passwordless sign-in email.
+func MagicLinkMessage(to, link string) Message {
+	return Message{
+		To:      to,
+		Subject: "Your Restore Drill sign-in link",
+		TextBody: fmt.Sprintf(`Use this link to sign in to Restore Drill:
+
+%s
+
+The link expires in 15 minutes and can be used once. If you didn't ask
+to sign in, you can ignore this email.
+
+— Restore Drill
+`, link),
+	}
+}
+
 // WelcomeMessage builds the email sent to a new account owner at signup.
 func WelcomeMessage(to, accountName string) Message {
 	return Message{

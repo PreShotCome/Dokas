@@ -40,6 +40,7 @@ type SweepResult struct {
 	LoginsPruned       int64
 	IdempotencyPruned  int64
 	VerifyTokensPruned int64
+	MagicLinksPruned   int64
 }
 
 // Sweep runs one retention pass. Each step is independent; a failure in one
@@ -84,6 +85,15 @@ func (s *Sweeper) Sweep(ctx context.Context) (SweepResult, error) {
 	}
 	res.VerifyTokensPruned = verifyTag.RowsAffected()
 
+	// Magic-link tokens carry a short expiry; once past it they are dead.
+	magicTag, err := s.pool.Exec(ctx, `
+		DELETE FROM magic_link_tokens WHERE expires_at < now()
+	`)
+	if err != nil {
+		return res, err
+	}
+	res.MagicLinksPruned = magicTag.RowsAffected()
+
 	return res, nil
 }
 
@@ -112,6 +122,7 @@ func (w *RetentionWorker) Work(ctx context.Context, _ *river.Job[RetentionSweepA
 			"audit_pruned", res.AuditPruned,
 			"idempotency_pruned", res.IdempotencyPruned,
 			"verify_tokens_pruned", res.VerifyTokensPruned,
+			"magic_links_pruned", res.MagicLinksPruned,
 		)
 	}
 	return nil

@@ -203,6 +203,10 @@ func (h *Handlers) Router(staticFS http.FileSystem) http.Handler {
 		// it sits with the other pre-auth routes under the per-IP limiter.
 		r.Get("/login/mfa", h.mfaChallengePage)
 		r.Post("/login/mfa", h.mfaChallengeSubmit)
+		// Passwordless ("magic link") sign-in.
+		r.Get("/login/magic", h.magicLinkRequestPage)
+		r.Post("/login/magic", h.magicLinkRequest)
+		r.Get("/login/magic/{token}", h.magicLinkConsume)
 	})
 	r.Post("/logout", h.logout)
 

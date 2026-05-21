@@ -24,9 +24,9 @@ not started, planned · `debt` = works but should be revisited.
   nothing reads them.
 ## Layer 4 — Perimeter & webhooks
 
-- **Magic links / social login** — `deferred`. Plan layer 5 identity work.
-  Password + TOTP MFA are built; passwordless magic-link login and
-  Google/GitHub social login are not.
+- **Social login** — `deferred`. Plan layer 5 identity work. Password,
+  TOTP MFA, and passwordless magic-link login are built; Google/GitHub
+  social login is not (needs external OAuth apps).
 
 ## Layer 5 — Compliance / evidence
 
@@ -85,6 +85,13 @@ not started, planned · `debt` = works but should be revisited.
 
 Layer-5 identity:
 
+- **Magic-link login** — passwordless sign-in: `/login/magic` emails a
+  one-time link (`magic_link_tokens`, hashed at rest, 15-minute TTL) and
+  `GET /login/magic/{token}` consumes it to start a session. The request
+  response is identical for registered and unregistered emails (no account
+  enumeration); MFA, when on, still applies — the link replaces the
+  password, not the second factor. Expired tokens are pruned by the
+  retention sweeper.
 - **TOTP MFA** — RFC 6238 two-factor auth, implemented in-repo (no external
   dependency). Users enrol from `/account/mfa` (authenticator-app secret +
   confirmation code) and get ten single-use recovery codes. Login is a two

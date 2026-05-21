@@ -1,0 +1,47 @@
+package templates
+
+// MagicLinkRequest is the passwordless sign-in form. errMsg also carries the
+// message shown when a link turns out to be expired or invalid.
+templ MagicLinkRequest(errMsg string) {
+	@Layout("Sign in", nil) {
+		<div class="mx-auto max-w-sm">
+			<div class="card">
+				<h1 class="mb-1 text-xl font-semibold">Email me a sign-in link</h1>
+				<p class="mb-4 text-sm text-zinc-600 dark:text-zinc-400">
+					We'll send a one-time link that signs you in — no password needed.
+				</p>
+				if errMsg != "" {
+					<div class="alert-error mb-4">{ errMsg }</div>
+				}
+				<form method="POST" action="/login/magic" class="space-y-3">
+					@CSRFField()
+					<div>
+						<label class="label" for="email">Email</label>
+						<input id="email" name="email" type="email" required autocomplete="email" class="input"/>
+					</div>
+					<button type="submit" class="btn-primary w-full">Send sign-in link</button>
+				</form>
+				<p class="mt-4 text-center text-sm text-zinc-600 dark:text-zinc-400">
+					<a href="/login" class="underline">Back to password sign-in</a>
+				</p>
+			</div>
+		</div>
+	}
+}
+
+// MagicLinkSent confirms a request. The wording is identical for registered
+// and unregistered emails so it can't be used to enumerate accounts.
+templ MagicLinkSent(email string) {
+	@Layout("Check your email", nil) {
+		<div class="mx-auto max-w-sm">
+			<div class="card text-center">
+				<h1 class="mb-2 text-xl font-semibold">Check your email</h1>
+				<p class="mb-4 text-sm text-zinc-600 dark:text-zinc-400">
+					If { email } has an account, a sign-in link is on its way.
+					It expires in 15 minutes.
+				</p>
+				<a href="/login" class="btn-ghost">Back to sign in</a>
+			</div>
+		</div>
+	}
+}
