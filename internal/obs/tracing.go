@@ -101,6 +101,25 @@ func StartSpan(ctx context.Context, name string, attrs map[string]string) (conte
 	return ctx, func() { span.End() }
 }
 
+// TraceParentFromContext serializes the active span context to a W3C
+// `traceparent` string, or "" when no span is recording. Used to carry a
+// trace across a process/job boundary (River jobs).
+func TraceParentFromContext(ctx context.Context) string {
+	c := propagation.MapCarrier{}
+	otel.GetTextMapPropagator().Inject(ctx, c)
+	return c["traceparent"]
+}
+
+// ContextWithTraceParent rebuilds a context from a `traceparent` string so a
+// span started on it joins the originating trace. Empty input is a no-op.
+func ContextWithTraceParent(ctx context.Context, traceparent string) context.Context {
+	if traceparent == "" {
+		return ctx
+	}
+	c := propagation.MapCarrier{"traceparent": traceparent}
+	return otel.GetTextMapPropagator().Extract(ctx, c)
+}
+
 // TraceIDFromContext returns the active trace ID, or "" when no span is
 // recording. The request logger uses it to correlate logs with traces.
 func TraceIDFromContext(ctx context.Context) string {

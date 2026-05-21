@@ -9,6 +9,7 @@ import (
 	"github.com/riverqueue/river/rivertype"
 
 	"github.com/preshotcome/anything/internal/audit"
+	"github.com/preshotcome/anything/internal/obs"
 )
 
 // --- Job args (one per step). Each is its own River job kind so retries,
@@ -96,7 +97,11 @@ func (o *Orchestrator) EnqueueDrill(ctx context.Context, drillID uuid.UUID) erro
 		})
 	}
 
-	if _, err := o.client.Insert(ctx, ProvisionArgs{DrillID: drillID}, nil); err != nil {
+	// Open a root span for the whole drill and carry it into the first job,
+	// so every step's span stitches into one trace.
+	spanCtx, endSpan := obs.StartSpan(ctx, "drill", map[string]string{"drill.id": drillID.String()})
+	defer endSpan()
+	if _, err := o.client.Insert(ctx, ProvisionArgs{DrillID: drillID}, TraceOpts(spanCtx)); err != nil {
 		return fmt.Errorf("enqueue provision: %w", err)
 	}
 	return nil

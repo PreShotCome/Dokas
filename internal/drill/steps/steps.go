@@ -118,7 +118,7 @@ func (d Deps) failAndCleanup(ctx context.Context, drillID uuid.UUID, step drill.
 	_, err := d.Inserter.Insert(ctx, drill.TeardownArgs{
 		DrillID:       drillID,
 		FailureReason: fmt.Sprintf("%s: %s", step, reason),
-	}, nil)
+	}, drill.TraceOpts(ctx))
 	if err != nil {
 		return fmt.Errorf("enqueue teardown after failure: %w", err)
 	}
@@ -159,6 +159,7 @@ type ProvisionWorker struct {
 
 func (w *ProvisionWorker) Work(ctx context.Context, job *river.Job[drill.ProvisionArgs]) error {
 	drillID := job.Args.DrillID
+	ctx = drill.ContextFromJobMeta(ctx, job.Metadata)
 	ctx, endSpan := obs.StartSpan(ctx, "drill.provision", map[string]string{"drill.id": drillID.String()})
 	defer endSpan()
 	if done, err := w.D.alreadyDone(ctx, drillID, drill.StepProvision); err != nil {
@@ -187,7 +188,7 @@ func (w *ProvisionWorker) Work(ctx context.Context, job *river.Job[drill.Provisi
 }
 
 func (w *ProvisionWorker) chain(ctx context.Context, drillID uuid.UUID) error {
-	_, err := w.D.Inserter.Insert(ctx, drill.FetchArgs{DrillID: drillID}, nil)
+	_, err := w.D.Inserter.Insert(ctx, drill.FetchArgs{DrillID: drillID}, drill.TraceOpts(ctx))
 	return err
 }
 
@@ -205,6 +206,7 @@ type FetchWorker struct {
 
 func (w *FetchWorker) Work(ctx context.Context, job *river.Job[drill.FetchArgs]) error {
 	drillID := job.Args.DrillID
+	ctx = drill.ContextFromJobMeta(ctx, job.Metadata)
 	ctx, endSpan := obs.StartSpan(ctx, "drill.fetch", map[string]string{"drill.id": drillID.String()})
 	defer endSpan()
 	if done, err := w.D.alreadyDone(ctx, drillID, drill.StepFetch); err != nil {
@@ -235,7 +237,7 @@ func (w *FetchWorker) Work(ctx context.Context, job *river.Job[drill.FetchArgs])
 		return err
 	}
 	_, _ = dr, target
-	_, err = w.D.Inserter.Insert(ctx, drill.RestoreArgs{DrillID: drillID, FilePath: localPath}, nil)
+	_, err = w.D.Inserter.Insert(ctx, drill.RestoreArgs{DrillID: drillID, FilePath: localPath}, drill.TraceOpts(ctx))
 	return err
 }
 
@@ -254,7 +256,7 @@ func (w *FetchWorker) chainAlreadyFetched(ctx context.Context, drillID uuid.UUID
 	if err != nil {
 		return err
 	}
-	_, err = w.D.Inserter.Insert(ctx, drill.RestoreArgs{DrillID: drillID, FilePath: localPath}, nil)
+	_, err = w.D.Inserter.Insert(ctx, drill.RestoreArgs{DrillID: drillID, FilePath: localPath}, drill.TraceOpts(ctx))
 	return err
 }
 
@@ -271,12 +273,13 @@ type RestoreWorker struct {
 
 func (w *RestoreWorker) Work(ctx context.Context, job *river.Job[drill.RestoreArgs]) error {
 	drillID := job.Args.DrillID
+	ctx = drill.ContextFromJobMeta(ctx, job.Metadata)
 	ctx, endSpan := obs.StartSpan(ctx, "drill.restore", map[string]string{"drill.id": drillID.String()})
 	defer endSpan()
 	if done, err := w.D.alreadyDone(ctx, drillID, drill.StepRestore); err != nil {
 		return err
 	} else if done {
-		_, err := w.D.Inserter.Insert(ctx, drill.AssertArgs{DrillID: drillID}, nil)
+		_, err := w.D.Inserter.Insert(ctx, drill.AssertArgs{DrillID: drillID}, drill.TraceOpts(ctx))
 		return err
 	}
 	if err := w.D.Store.MarkStepRunning(ctx, drillID, drill.StepRestore); err != nil {
@@ -294,7 +297,7 @@ func (w *RestoreWorker) Work(ctx context.Context, job *river.Job[drill.RestoreAr
 	if err := w.D.Store.MarkStepSucceeded(ctx, drillID, drill.StepRestore); err != nil {
 		return err
 	}
-	_, err = w.D.Inserter.Insert(ctx, drill.AssertArgs{DrillID: drillID}, nil)
+	_, err = w.D.Inserter.Insert(ctx, drill.AssertArgs{DrillID: drillID}, drill.TraceOpts(ctx))
 	return err
 }
 
@@ -311,12 +314,13 @@ type AssertWorker struct {
 
 func (w *AssertWorker) Work(ctx context.Context, job *river.Job[drill.AssertArgs]) error {
 	drillID := job.Args.DrillID
+	ctx = drill.ContextFromJobMeta(ctx, job.Metadata)
 	ctx, endSpan := obs.StartSpan(ctx, "drill.assert", map[string]string{"drill.id": drillID.String()})
 	defer endSpan()
 	if done, err := w.D.alreadyDone(ctx, drillID, drill.StepAssert); err != nil {
 		return err
 	} else if done {
-		_, err := w.D.Inserter.Insert(ctx, drill.ReportArgs{DrillID: drillID}, nil)
+		_, err := w.D.Inserter.Insert(ctx, drill.ReportArgs{DrillID: drillID}, drill.TraceOpts(ctx))
 		return err
 	}
 	if err := w.D.Store.MarkStepRunning(ctx, drillID, drill.StepAssert); err != nil {
@@ -350,14 +354,14 @@ func (w *AssertWorker) Work(ctx context.Context, job *river.Job[drill.AssertArgs
 		// Assertion failure is a drill failure but we still want a PDF that
 		// records it, so chain to report (it will produce a FAILED verdict)
 		// and let report mark the drill failed.
-		_, err := w.D.Inserter.Insert(ctx, drill.ReportArgs{DrillID: drillID}, nil)
+		_, err := w.D.Inserter.Insert(ctx, drill.ReportArgs{DrillID: drillID}, drill.TraceOpts(ctx))
 		return err
 	}
 
 	if err := w.D.Store.MarkStepSucceeded(ctx, drillID, drill.StepAssert); err != nil {
 		return err
 	}
-	_, err = w.D.Inserter.Insert(ctx, drill.ReportArgs{DrillID: drillID}, nil)
+	_, err = w.D.Inserter.Insert(ctx, drill.ReportArgs{DrillID: drillID}, drill.TraceOpts(ctx))
 	return err
 }
 
@@ -374,12 +378,13 @@ type ReportWorker struct {
 
 func (w *ReportWorker) Work(ctx context.Context, job *river.Job[drill.ReportArgs]) error {
 	drillID := job.Args.DrillID
+	ctx = drill.ContextFromJobMeta(ctx, job.Metadata)
 	ctx, endSpan := obs.StartSpan(ctx, "drill.report", map[string]string{"drill.id": drillID.String()})
 	defer endSpan()
 	if done, err := w.D.alreadyDone(ctx, drillID, drill.StepReport); err != nil {
 		return err
 	} else if done {
-		_, err := w.D.Inserter.Insert(ctx, drill.TeardownArgs{DrillID: drillID}, nil)
+		_, err := w.D.Inserter.Insert(ctx, drill.TeardownArgs{DrillID: drillID}, drill.TraceOpts(ctx))
 		return err
 	}
 	if err := w.D.Store.MarkStepRunning(ctx, drillID, drill.StepReport); err != nil {
@@ -447,14 +452,14 @@ func (w *ReportWorker) Work(ctx context.Context, job *river.Job[drill.ReportArgs
 		})
 		_, err := w.D.Inserter.Insert(ctx, drill.TeardownArgs{
 			DrillID: drillID, FailureReason: "assertion_failed",
-		}, nil)
+		}, drill.TraceOpts(ctx))
 		return err
 	}
 
 	// Pass path: stash evidence path now so the user can download the moment
 	// the next worker hops.
 	_ = w.D.Store.MarkEvidence(ctx, drillID, path)
-	_, err = w.D.Inserter.Insert(ctx, drill.TeardownArgs{DrillID: drillID}, nil)
+	_, err = w.D.Inserter.Insert(ctx, drill.TeardownArgs{DrillID: drillID}, drill.TraceOpts(ctx))
 	return err
 }
 
@@ -471,6 +476,7 @@ type TeardownWorker struct {
 
 func (w *TeardownWorker) Work(ctx context.Context, job *river.Job[drill.TeardownArgs]) error {
 	drillID := job.Args.DrillID
+	ctx = drill.ContextFromJobMeta(ctx, job.Metadata)
 	ctx, endSpan := obs.StartSpan(ctx, "drill.teardown", map[string]string{"drill.id": drillID.String()})
 	defer endSpan()
 

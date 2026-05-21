@@ -27,7 +27,8 @@ type Config struct {
 	PostHogAPIKey        string
 	PostHogHost          string
 
-	StaffEmails []string
+	StaffEmails  []string
+	MetricsToken string
 }
 
 func Load() (Config, error) {
@@ -48,6 +49,7 @@ func Load() (Config, error) {
 		PostHogAPIKey:        os.Getenv("POSTHOG_API_KEY"),
 		PostHogHost:          os.Getenv("POSTHOG_HOST"),
 		StaffEmails:          parseList(os.Getenv("STAFF_EMAILS")),
+		MetricsToken:         os.Getenv("METRICS_TOKEN"),
 	}
 
 	if c.DatabaseURL == "" {

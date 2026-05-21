@@ -137,7 +137,7 @@ func main() {
 		Metrics:   observ.Metrics,
 		Analytics: analyticsClient,
 	})
-	deliverWorker := webhooks.NewDeliverWorker(webhookStore)
+	deliverWorker := webhooks.NewDeliverWorker(webhookStore, cfg.IsProduction())
 	deliverWorker.Metrics = observ.Metrics
 	river.AddWorker(workers, deliverWorker)
 	river.AddWorker(workers, &compliance.PurgeWorker{Purger: purger})
@@ -186,6 +186,7 @@ func main() {
 		Flags:                featureFlags,
 		PostmarkWebhookToken: cfg.PostmarkWebhookToken,
 		StaffEmails:          cfg.StaffEmails,
+		MetricsToken:         cfg.MetricsToken,
 	})
 
 	// Sample River queue depth into the metrics gauge every 15s.

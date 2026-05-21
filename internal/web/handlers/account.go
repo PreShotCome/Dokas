@@ -171,6 +171,33 @@ func (h *Handlers) memberUpdate(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/account", http.StatusSeeOther)
 }
 
+// memberTransferOwnership hands the owner role to another member. Owner-only
+// — admins manage members but can't pass on ownership.
+func (h *Handlers) memberTransferOwnership(w http.ResponseWriter, r *http.Request) {
+	u, _ := auth.FromContext(r.Context())
+	acct, _ := auth.CurrentAccountFromContext(r.Context())
+	m, _ := auth.MembershipFromContext(r.Context())
+	if m == nil || m.Role != account.RoleOwner {
+		http.Error(w, "only the account owner can transfer ownership", http.StatusForbidden)
+		return
+	}
+	userID, err := uuid.Parse(chi.URLParam(r, "user_id"))
+	if err != nil {
+		http.Error(w, "invalid user_id", http.StatusBadRequest)
+		return
+	}
+	if err := h.accounts.TransferOwnership(r.Context(), acct.ID, u.ID, userID); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	_ = h.audit.Record(r.Context(), audit.Event{
+		AccountID: &acct.ID, ActorID: &u.ID, Action: "account.ownership_transferred",
+		TargetKind: "user", TargetID: userID.String(),
+		IP: audit.ClientIP(r), UserAgent: r.UserAgent(),
+	})
+	http.Redirect(w, r, "/account", http.StatusSeeOther)
+}
+
 func (h *Handlers) memberRemove(w http.ResponseWriter, r *http.Request) {
 	u, _ := auth.FromContext(r.Context())
 	acct, _ := auth.CurrentAccountFromContext(r.Context())

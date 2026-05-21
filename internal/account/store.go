@@ -266,6 +266,56 @@ func (s *Store) UpdateMemberRole(ctx context.Context, accountID, userID uuid.UUI
 	return nil
 }
 
+// TransferOwnership hands the owner role from the current owner to another
+// member, demoting the old owner to admin — atomically, so the account
+// always has exactly one owner. fromUserID must currently be the owner and
+// toUserID must already be a member.
+func (s *Store) TransferOwnership(ctx context.Context, accountID, fromUserID, toUserID uuid.UUID) error {
+	if fromUserID == toUserID {
+		return errors.New("account: cannot transfer ownership to the current owner")
+	}
+	tx, err := s.pool.Begin(ctx)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback(ctx) //nolint:errcheck
+
+	var fromRole Role
+	if err := tx.QueryRow(ctx, `
+		SELECT role FROM memberships WHERE account_id = $1 AND user_id = $2
+	`, accountID, fromUserID).Scan(&fromRole); err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return ErrNotFound
+		}
+		return err
+	}
+	if fromRole != RoleOwner {
+		return errors.New("account: only the current owner can transfer ownership")
+	}
+
+	var toExists bool
+	if err := tx.QueryRow(ctx, `
+		SELECT EXISTS (SELECT 1 FROM memberships WHERE account_id = $1 AND user_id = $2)
+	`, accountID, toUserID).Scan(&toExists); err != nil {
+		return err
+	}
+	if !toExists {
+		return ErrNotFound
+	}
+
+	if _, err := tx.Exec(ctx, `
+		UPDATE memberships SET role = 'admin' WHERE account_id = $1 AND user_id = $2
+	`, accountID, fromUserID); err != nil {
+		return err
+	}
+	if _, err := tx.Exec(ctx, `
+		UPDATE memberships SET role = 'owner' WHERE account_id = $1 AND user_id = $2
+	`, accountID, toUserID); err != nil {
+		return err
+	}
+	return tx.Commit(ctx)
+}
+
 func (s *Store) RemoveMember(ctx context.Context, accountID, userID uuid.UUID) error {
 	// Mirror the owner protection above.
 	var ownerCount int

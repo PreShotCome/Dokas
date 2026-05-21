@@ -3,6 +3,7 @@ package webhooks
 import (
 	"context"
 	"io"
+	"net"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -84,7 +85,7 @@ func TestWebhookDeliverySuccess(t *testing.T) {
 		t.Fatalf("create delivery: %v", err)
 	}
 
-	worker := NewDeliverWorker(store)
+	worker := NewDeliverWorker(store, false)
 	if err := worker.Work(ctx, &river.Job[DeliverArgs]{Args: DeliverArgs{DeliveryID: deliveryID}}); err != nil {
 		t.Fatalf("worker.Work: %v", err)
 	}
@@ -143,7 +144,7 @@ func TestWebhookDeliveryFailureMarksFailed(t *testing.T) {
 		t.Fatalf("create delivery: %v", err)
 	}
 
-	worker := NewDeliverWorker(store)
+	worker := NewDeliverWorker(store, false)
 	// A non-2xx response must return an error so River retries.
 	if err := worker.Work(ctx, &river.Job[DeliverArgs]{Args: DeliverArgs{DeliveryID: deliveryID}}); err == nil {
 		t.Fatal("worker.Work should return an error on a 500 response")
@@ -158,6 +159,66 @@ func TestWebhookDeliveryFailureMarksFailed(t *testing.T) {
 	}
 	if d.LastStatusCode == nil || *d.LastStatusCode != 500 {
 		t.Fatalf("last status code = %v, want 500", d.LastStatusCode)
+	}
+}
+
+// TestSSRFGuardBlocksPrivateTarget verifies the SSRF guard refuses to
+// deliver to a private/loopback address when blockPrivate is on.
+func TestSSRFGuardBlocksPrivateTarget(t *testing.T) {
+	dsn := os.Getenv("DATABASE_URL")
+	if dsn == "" {
+		t.Skip("DATABASE_URL not set")
+	}
+	ctx := context.Background()
+	pool, err := pgxpool.New(ctx, dsn)
+	if err != nil {
+		t.Fatalf("pool: %v", err)
+	}
+	defer pool.Close()
+
+	store := NewStore(pool)
+	accountID := seedAccount(t, ctx, pool)
+
+	// A loopback receiver — a stand-in for an internal service an attacker
+	// might point a webhook at.
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	}))
+	defer srv.Close()
+
+	endpoint, err := store.CreateEndpoint(ctx, accountID, srv.URL)
+	if err != nil {
+		t.Fatalf("create endpoint: %v", err)
+	}
+	payload, _ := MarshalPayload("drill.completed", accountID.String(), nil)
+	deliveryID, err := store.CreateDelivery(ctx, endpoint.ID, accountID, "drill.completed", payload)
+	if err != nil {
+		t.Fatalf("create delivery: %v", err)
+	}
+
+	// blockPrivate=true → the dialer's Control hook rejects 127.0.0.1.
+	worker := NewDeliverWorker(store, true)
+	if err := worker.Work(ctx, &river.Job[DeliverArgs]{Args: DeliverArgs{DeliveryID: deliveryID}}); err == nil {
+		t.Fatal("delivery to a loopback address should be blocked")
+	}
+	d, err := store.GetDelivery(ctx, deliveryID)
+	if err != nil {
+		t.Fatalf("get delivery: %v", err)
+	}
+	if d.Status != StatusFailed {
+		t.Fatalf("blocked delivery status = %s, want failed", d.Status)
+	}
+
+	// isPublicIP unit checks — the guard's core predicate.
+	cases := map[string]bool{
+		"8.8.8.8": true, "1.1.1.1": true,
+		"127.0.0.1": false, "10.0.0.1": false, "192.168.1.1": false,
+		"169.254.1.1": false, "::1": false, "0.0.0.0": false,
+	}
+	for ipStr, wantPublic := range cases {
+		if got := isPublicIP(net.ParseIP(ipStr)); got != wantPublic {
+			t.Errorf("isPublicIP(%s) = %v, want %v", ipStr, got, wantPublic)
+		}
 	}
 }
 

@@ -128,6 +128,61 @@ func TestInvitationLifecycle(t *testing.T) {
 	}
 }
 
+func TestTransferOwnership(t *testing.T) {
+	dsn := os.Getenv("DATABASE_URL")
+	if dsn == "" {
+		t.Skip("DATABASE_URL not set")
+	}
+	ctx := context.Background()
+	pool, err := pgxpool.New(ctx, dsn)
+	if err != nil {
+		t.Fatalf("pool: %v", err)
+	}
+	defer pool.Close()
+	store := account.NewStore(pool)
+
+	ownerID, ownerEmail := seedUser(t, ctx, pool)
+	acct, err := store.CreatePersonalAccount(ctx, ownerID, ownerEmail)
+	if err != nil {
+		t.Fatalf("create account: %v", err)
+	}
+	memberID, _ := seedUser(t, ctx, pool)
+	if _, err := pool.Exec(ctx, `
+		INSERT INTO memberships (account_id, user_id, role) VALUES ($1, $2, 'member')
+	`, acct.ID, memberID); err != nil {
+		t.Fatalf("add member: %v", err)
+	}
+
+	// Transferring to a non-member fails.
+	stranger, _ := seedUser(t, ctx, pool)
+	if err := store.TransferOwnership(ctx, acct.ID, ownerID, stranger); err == nil {
+		t.Fatal("transfer to a non-member should fail")
+	}
+
+	// Transfer ownership to the member.
+	if err := store.TransferOwnership(ctx, acct.ID, ownerID, memberID); err != nil {
+		t.Fatalf("transfer ownership: %v", err)
+	}
+	newOwner, err := store.GetMembership(ctx, acct.ID, memberID)
+	if err != nil || newOwner.Role != account.RoleOwner {
+		t.Fatalf("new owner role = %s err=%v, want owner", newOwner.Role, err)
+	}
+	exOwner, err := store.GetMembership(ctx, acct.ID, ownerID)
+	if err != nil || exOwner.Role != account.RoleAdmin {
+		t.Fatalf("ex-owner role = %s err=%v, want admin", exOwner.Role, err)
+	}
+
+	// The ex-owner (now admin) can no longer transfer ownership.
+	if err := store.TransferOwnership(ctx, acct.ID, ownerID, memberID); err == nil {
+		t.Fatal("a non-owner should not be able to transfer ownership")
+	}
+
+	// Exactly one owner remains — the protection still holds.
+	if err := store.RemoveMember(ctx, acct.ID, memberID); err == nil {
+		t.Fatal("removing the sole (new) owner should fail")
+	}
+}
+
 func TestOwnerProtection(t *testing.T) {
 	dsn := os.Getenv("DATABASE_URL")
 	if dsn == "" {

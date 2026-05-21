@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"context"
+	"crypto/subtle"
 	"log/slog"
 	"net/http"
 
@@ -51,6 +52,7 @@ type Handlers struct {
 	flags                flags.Flags
 	postmarkWebhookToken string
 	staffEmails          map[string]bool
+	metricsToken         string
 }
 
 type Deps struct {
@@ -78,6 +80,7 @@ type Deps struct {
 	Flags                flags.Flags
 	PostmarkWebhookToken string
 	StaffEmails          []string
+	MetricsToken         string
 }
 
 func New(d Deps) *Handlers {
@@ -110,6 +113,7 @@ func New(d Deps) *Handlers {
 		flags:                d.Flags,
 		postmarkWebhookToken: d.PostmarkWebhookToken,
 		staffEmails:          staff,
+		metricsToken:         d.MetricsToken,
 	}
 }
 
@@ -160,7 +164,7 @@ func (h *Handlers) Router(staticFS http.FileSystem) http.Handler {
 	r.Get("/readyz", obs.ReadinessHandler(map[string]func(context.Context) error{
 		"database": h.pool.Ping,
 	}))
-	r.Handle("/metrics", h.obs.Metrics.Handler())
+	r.Handle("/metrics", h.metricsHandler())
 	r.Get("/robots.txt", h.robotsTxt)
 
 	// Inbound Postmark bounce/complaint webhook — authenticated by the
@@ -263,6 +267,7 @@ func (h *Handlers) Router(staticFS http.FileSystem) http.Handler {
 			r.Post("/account/invitations", h.inviteCreate)
 			r.Post("/account/members/{user_id}", h.memberUpdate)
 			r.Post("/account/members/{user_id}/remove", h.memberRemove)
+			r.Post("/account/members/{user_id}/transfer-ownership", h.memberTransferOwnership)
 		})
 		// Webhook management + compliance actions are account-write
 		// concerns. The delete handler additionally requires owner.
@@ -277,6 +282,25 @@ func (h *Handlers) Router(staticFS http.FileSystem) http.Handler {
 	})
 
 	return r
+}
+
+// metricsHandler serves Prometheus metrics. When METRICS_TOKEN is set it
+// requires a matching bearer token; unset leaves /metrics open for local
+// dev. Production should set the token (or scrape over a private network).
+func (h *Handlers) metricsHandler() http.Handler {
+	inner := h.obs.Metrics.Handler()
+	if h.metricsToken == "" {
+		return inner
+	}
+	want := "Bearer " + h.metricsToken
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if subtle.ConstantTimeCompare([]byte(r.Header.Get("Authorization")), []byte(want)) != 1 {
+			w.Header().Set("WWW-Authenticate", "Bearer")
+			http.Error(w, "unauthorized", http.StatusUnauthorized)
+			return
+		}
+		inner.ServeHTTP(w, r)
+	})
 }
 
 // stampAccountForLogs enriches the request-scoped log fields with the
