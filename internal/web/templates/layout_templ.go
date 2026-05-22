@@ -378,7 +378,7 @@ func LayoutWith(title string, lc LayoutCtx) templ.Component {
 				return templ_7745c5c3_Err
 			}
 		} else {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 31, "<a href=\"/pricing\" class=\"btn-ghost\">Pricing</a> <a href=\"/login\" class=\"btn-ghost\">Sign in</a> <a href=\"/signup\" class=\"btn-primary\">Sign up</a>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 31, "<a href=\"/how-it-works\" class=\"btn-ghost\">How it works</a> <a href=\"/pricing\" class=\"btn-ghost\">Pricing</a> <a href=\"/login\" class=\"btn-ghost\">Sign in</a> <a href=\"/signup\" class=\"btn-primary\">Sign up</a>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -411,7 +411,7 @@ func LayoutWith(title string, lc LayoutCtx) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 37, "</main><footer class=\"border-t border-zinc-200 px-4 py-4 text-center text-xs text-zinc-500 dark:border-zinc-800 dark:text-zinc-400\"><p>Soteria — backup verification as a service.</p><nav aria-label=\"Footer\" class=\"mt-1 flex flex-wrap justify-center gap-3\"><a href=\"/pricing\" class=\"hover:underline\">Pricing</a> <a href=\"/docs\" class=\"hover:underline\">API docs</a> <a href=\"/legal/terms\" class=\"hover:underline\">Terms</a> <a href=\"/legal/privacy\" class=\"hover:underline\">Privacy</a> <a href=\"/legal/dpa\" class=\"hover:underline\">DPA</a> <a href=\"/legal/subprocessors\" class=\"hover:underline\">Sub-processors</a> <a href=\"/legal/cookies\" class=\"hover:underline\">Cookies</a></nav></footer></body></html>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 37, "</main><footer class=\"border-t border-zinc-200 px-4 py-4 text-center text-xs text-zinc-500 dark:border-zinc-800 dark:text-zinc-400\"><p>Soteria — backup verification as a service.</p><nav aria-label=\"Footer\" class=\"mt-1 flex flex-wrap justify-center gap-3\"><a href=\"/how-it-works\" class=\"hover:underline\">How it works</a> <a href=\"/pricing\" class=\"hover:underline\">Pricing</a> <a href=\"/docs\" class=\"hover:underline\">API docs</a> <a href=\"/legal/terms\" class=\"hover:underline\">Terms</a> <a href=\"/legal/privacy\" class=\"hover:underline\">Privacy</a> <a href=\"/legal/dpa\" class=\"hover:underline\">DPA</a> <a href=\"/legal/subprocessors\" class=\"hover:underline\">Sub-processors</a> <a href=\"/legal/cookies\" class=\"hover:underline\">Cookies</a></nav></footer></body></html>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
