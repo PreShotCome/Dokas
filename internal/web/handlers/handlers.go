@@ -60,6 +60,8 @@ type Handlers struct {
 	sourceDir            string
 	oauth                *oauth.Registry
 	secureCookies        bool
+	priceStarterLabel    string
+	priceProLabel        string
 }
 
 type Deps struct {
@@ -93,6 +95,8 @@ type Deps struct {
 	SourceDir            string
 	OAuth                *oauth.Registry
 	SecureCookies        bool
+	PriceStarterLabel    string
+	PriceProLabel        string
 }
 
 func New(d Deps) *Handlers {
@@ -131,6 +135,8 @@ func New(d Deps) *Handlers {
 		sourceDir:            d.SourceDir,
 		oauth:                d.OAuth,
 		secureCookies:        d.SecureCookies,
+		priceStarterLabel:    d.PriceStarterLabel,
+		priceProLabel:        d.PriceProLabel,
 	}
 }
 
@@ -200,6 +206,9 @@ func (h *Handlers) Router(staticFS http.FileSystem) http.Handler {
 	// API docs are public.
 	r.Get("/openapi.json", h.openAPISpec)
 	r.Get("/docs", h.docsPage)
+
+	// Public pricing page — self-serve subscribers start here.
+	r.Get("/pricing", h.pricingPage)
 
 	r.Handle("/static/*", http.StripPrefix("/static/", http.FileServer(staticFS)))
 

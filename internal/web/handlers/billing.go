@@ -11,6 +11,14 @@ import (
 	"github.com/preshotcome/anything/internal/web/templates"
 )
 
+// pricingPage renders the public pricing page. It is reachable signed out
+// (the call to action sends visitors to signup) and signed in (an account
+// owner can subscribe straight from here).
+func (h *Handlers) pricingPage(w http.ResponseWriter, r *http.Request) {
+	render(w, r, templates.Pricing(
+		h.layoutCtx(r), h.priceStarterLabel, h.priceProLabel, h.billing.Enabled()))
+}
+
 // billingCheckout starts a Stripe Checkout Session for a plan and redirects
 // the account owner to Stripe's hosted payment page.
 func (h *Handlers) billingCheckout(w http.ResponseWriter, r *http.Request) {

@@ -1,0 +1,40 @@
+# Fly.io deployment manifest for the Restore Drill app server.
+#
+# Secrets are NOT set here — run `fly secrets set KEY=value` for each of:
+#   DATABASE_URL, SESSION_KEY, STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET,
+#   STRIPE_PRICE_STARTER, STRIPE_PRICE_PRO, EVIDENCE_SIGNING_KEY,
+#   EVIDENCE_ENCRYPTION_KEY, POSTMARK_TOKEN, and any other configured seam.
+# See docs/runbooks/ for each integration.
+
+app = "restore-drill"
+primary_region = "iad"
+
+[build]
+  dockerfile = "Dockerfile"
+
+# Runs migrations in a one-off machine on the new image before the deploy
+# is promoted. DATABASE_URL must be set as a secret for this to work.
+[deploy]
+  release_command = "/app/migrate up"
+
+[env]
+  ADDR = ":8080"
+  ENV = "prod"
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  auto_stop_machines = "stop"
+  auto_start_machines = true
+  min_machines_running = 1
+
+  [[http_service.checks]]
+    grace_period = "10s"
+    interval = "15s"
+    method = "GET"
+    path = "/readyz"
+    timeout = "3s"
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "512mb"
