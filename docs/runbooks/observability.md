@@ -46,6 +46,24 @@ The app logs structured JSON to stdout. Ship stdout to Loki with your
 collector (Grafana Alloy tails container stdout). Logs join traces on
 `trace_id`.
 
+### Dashboards & alerts
+
+Both are committed as IaC under `dashboards/`:
+
+- `dashboards/restore-drill.json` — the service dashboard: HTTP request
+  rate + latency, drill outcomes + duration, River queue depth, webhook
+  deliveries.
+- `dashboards/alerts.yml` — Prometheus alerting rules (app down, drill
+  failure rate, queue backlog, 5xx rate, p95 latency, webhook failures),
+  each linking the on-call incident runbook.
+- `dashboards/provisioning/` — Grafana provisioning: a Prometheus
+  datasource and a file-based dashboard provider. Mount
+  `provisioning/datasources/` and `provisioning/dashboards/` into Grafana's
+  `/etc/grafana/provisioning/`, mount `restore-drill.json` into
+  `/etc/grafana/dashboards/`, and set `PROMETHEUS_URL` — Grafana then loads
+  the dashboard on startup, no manual import. Load `alerts.yml` into
+  Prometheus via `rule_files`.
+
 ### Environment variables
 
 | Variable | Value |
@@ -54,6 +72,7 @@ collector (Grafana Alloy tails container stdout). Logs join traces on
 | `OTEL_EXPORTER_OTLP_ENDPOINT` | OTLP/HTTP collector URL |
 | `OTEL_EXPORTER_OTLP_HEADERS` | optional — auth headers for the endpoint |
 | `METRICS_TOKEN` | optional — bearer token guarding `/metrics` |
+| `PROMETHEUS_URL` | Prometheus URL, for the Grafana datasource provisioning |
 
 ## Verify
 
@@ -63,6 +82,5 @@ collector (Grafana Alloy tails container stdout). Logs join traces on
    Tempo/Grafana under `service.name = restore-drill`.
 3. `curl` `/metrics` (with the bearer token if `METRICS_TOKEN` is set) and
    confirm Prometheus is scraping it.
-
-> Grafana dashboards and alert rules are committed as IaC in a later phase —
-> the app emits the telemetry; the dashboards are not in this repo yet.
+4. With the provisioning configs mounted, the "Restore Drill — Service"
+   dashboard appears in Grafana on startup with no manual import.
