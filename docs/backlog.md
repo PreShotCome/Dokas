@@ -108,8 +108,13 @@ Layer-6 observability:
   `internal/obs` (OTLP trace exporter, Prometheus metrics, structured logs,
   Sentry SDK). Documented activation: `OTEL_TRACES_EXPORTER`/`OTEL_EXPORTER_*`
   point traces at a collector; `SENTRY_DSN` enables error reporting. See
-  `docs/runbooks/observability.md` and `sentry.md`. Grafana dashboards as IaC
-  remain deferred.
+  `docs/runbooks/observability.md` and `sentry.md`.
+- **Grafana dashboards as IaC** — the service dashboard
+  (`dashboards/restore-drill.json`), Prometheus alert rules
+  (`dashboards/alerts.yml`), and Grafana provisioning configs
+  (`dashboards/provisioning/` — datasource + file dashboard provider) are
+  all committed, so Grafana loads the dashboard on startup with no manual
+  import.
 
 Layer-9 growth:
 

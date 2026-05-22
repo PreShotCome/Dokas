@@ -1,0 +1,16 @@
+# Grafana datasource provisioning — the Prometheus that scrapes the app's
+# /metrics endpoint. Mount this file into a Grafana instance at
+# /etc/grafana/provisioning/datasources/ and Grafana loads it on startup.
+#
+# PROMETHEUS_URL is read from the environment (Grafana interpolates ${VAR}
+# in provisioning files), so the same config works across environments.
+apiVersion: 1
+
+datasources:
+  - name: Prometheus
+    uid: prometheus
+    type: prometheus
+    access: proxy
+    url: ${PROMETHEUS_URL}
+    isDefault: true
+    editable: false
