@@ -33,7 +33,7 @@ func (h *Handlers) accountExport(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	w.Header().Set("Content-Disposition",
-		`attachment; filename="restore-drill-export-`+lc.Account.Slug+`.json"`)
+		`attachment; filename="soteria-export-`+lc.Account.Slug+`.json"`)
 	_, _ = w.Write(buf.Bytes())
 }
 

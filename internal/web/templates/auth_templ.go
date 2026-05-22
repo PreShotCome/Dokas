@@ -393,7 +393,7 @@ func SignupClosed() templ.Component {
 				}()
 			}
 			ctx = templ.InitializeContext(ctx)
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 25, "<div class=\"mx-auto max-w-sm\"><div class=\"card text-center\"><h1 class=\"mb-1 text-xl font-semibold\">Restore Drill is sales-led</h1><p class=\"mb-4 text-sm text-zinc-600 dark:text-zinc-400\">We're onboarding customers directly right now. Email <a class=\"underline\" href=\"mailto:sales@restoredrill.io\">sales@restoredrill.io</a> and we'll get you set up.</p><a href=\"/login\" class=\"btn-ghost\">Already have an account? Sign in</a></div></div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 25, "<div class=\"mx-auto max-w-sm\"><div class=\"card text-center\"><h1 class=\"mb-1 text-xl font-semibold\">Soteria is sales-led</h1><p class=\"mb-4 text-sm text-zinc-600 dark:text-zinc-400\">We're onboarding customers directly right now. Email <a class=\"underline\" href=\"mailto:sales@soteria.io\">sales@soteria.io</a> and we'll get you set up.</p><a href=\"/login\" class=\"btn-ghost\">Already have an account? Sign in</a></div></div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

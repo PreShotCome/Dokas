@@ -11,7 +11,7 @@ import (
 
 // staffSSOCookie marks an OAuth flow as an admin-panel step-up rather than a
 // normal sign-in. The callback consumes it.
-const staffSSOCookie = "rd_staff_sso"
+const staffSSOCookie = "so_staff_sso"
 
 // staffSSOWindow is how long an SSO step-up admits a session to the admin
 // panel before it must re-verify.

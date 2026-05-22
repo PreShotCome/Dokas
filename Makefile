@@ -1,7 +1,7 @@
 .PHONY: dev build run test lint tidy templ css migrate db-up db-down clean htmx evidence-dir
 
 GOBIN := $(shell go env GOPATH)/bin
-DATABASE_URL ?= postgres://restoredrill:restoredrill@localhost:5432/restoredrill?sslmode=disable
+DATABASE_URL ?= postgres://soteria:soteria@localhost:5432/soteria?sslmode=disable
 
 dev: db-up htmx templ css migrate evidence-dir
 	DATABASE_URL=$(DATABASE_URL) go run ./cmd/server
@@ -47,7 +47,7 @@ migrate:
 db-up:
 	docker compose up -d postgres
 	@echo "Waiting for postgres..."
-	@until docker compose exec -T postgres pg_isready -U restoredrill >/dev/null 2>&1; do sleep 1; done
+	@until docker compose exec -T postgres pg_isready -U soteria >/dev/null 2>&1; do sleep 1; done
 
 db-down:
 	docker compose down

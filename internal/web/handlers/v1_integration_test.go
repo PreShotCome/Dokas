@@ -128,7 +128,7 @@ func TestV1Auth(t *testing.T) {
 		t.Fatalf("no key: got %d, want 401", resp.StatusCode)
 	}
 	// Garbage key → 401.
-	if resp, _ := v1Do(t, "GET", srv.URL+"/databases", "rd_garbage", "", ""); resp.StatusCode != 401 {
+	if resp, _ := v1Do(t, "GET", srv.URL+"/databases", "so_garbage", "", ""); resp.StatusCode != 401 {
 		t.Fatalf("bad key: got %d, want 401", resp.StatusCode)
 	}
 	// Valid key → 200, empty data list.

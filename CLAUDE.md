@@ -4,13 +4,13 @@ Guidance for Claude Code sessions working in this repository.
 
 ## Project
 
-Restore Drill — a B2B backup-verification SaaS (Go monolith: Chi + Templ +
+Soteria — a B2B backup-verification SaaS (Go monolith: Chi + Templ +
 HTMX + Tailwind + Postgres + River). The full plan and the deferred-items
 log live in `docs/plan.md` and `docs/backlog.md` — read them first.
 
 ## Branch & merge workflow
 
-- Develop on `claude/restore-drill-phase-2-vHjzy`. Commit work there.
+- Develop on `claude/soteria-phase-2-vHjzy`. Commit work there.
 - **As the final step of every task, merge the dev branch into `main` and
   push `main`** — the user should not have to merge by hand.
 - **Before pushing `main`, run the full CI pipeline locally and only push

@@ -63,7 +63,7 @@ func APIKeysPage(lc LayoutCtx, keys []apikey.Key, revealedSecret string) templ.C
 				}()
 			}
 			ctx = templ.InitializeContext(ctx)
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"mb-2 flex items-baseline justify-between\"><h1 class=\"text-2xl font-semibold tracking-tight\">API keys</h1><a href=\"/account\" class=\"text-sm underline\">Back to account</a></div><p class=\"mb-6 text-sm text-zinc-600 dark:text-zinc-400\">Keys authenticate the <a href=\"/docs\" class=\"underline\">REST API</a> (<code>Authorization: Bearer rd_…</code>). Treat a key like a password. Each key is limited to the scopes you select below.</p>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"mb-2 flex items-baseline justify-between\"><h1 class=\"text-2xl font-semibold tracking-tight\">API keys</h1><a href=\"/account\" class=\"text-sm underline\">Back to account</a></div><p class=\"mb-6 text-sm text-zinc-600 dark:text-zinc-400\">Keys authenticate the <a href=\"/docs\" class=\"underline\">REST API</a> (<code>Authorization: Bearer so_…</code>). Treat a key like a password. Each key is limited to the scopes you select below.</p>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

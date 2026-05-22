@@ -5,7 +5,7 @@
 apiVersion: 1
 
 providers:
-  - name: restore-drill
+  - name: soteria
     type: file
     # Dashboards provisioned from a file are read-only in the Grafana UI;
     # edits go through the repo.

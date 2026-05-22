@@ -17,7 +17,7 @@ import (
 	"github.com/preshotcome/anything/internal/oauth"
 )
 
-const oauthStateCookie = "rd_oauth_state"
+const oauthStateCookie = "so_oauth_state"
 
 // oauthStart begins a social-login flow: it mints a CSRF state, stashes it in
 // a short-lived cookie, and redirects to the provider's consent screen.

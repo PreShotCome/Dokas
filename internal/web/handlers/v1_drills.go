@@ -195,6 +195,6 @@ func (h *Handlers) v1GetEvidence(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.Header().Set("Content-Type", "application/pdf")
-	w.Header().Set("Content-Disposition", `attachment; filename="restore-drill-`+d.ID.String()+`.pdf"`)
+	w.Header().Set("Content-Disposition", `attachment; filename="soteria-`+d.ID.String()+`.pdf"`)
 	_, _ = w.Write(body)
 }

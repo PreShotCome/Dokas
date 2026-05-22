@@ -54,7 +54,7 @@ func HelpPage(lc LayoutCtx) templ.Component {
 			}
 			templ_7745c5c3_Err = faq("How do I connect a database?",
 				"Go to Databases → Connect a database. In this phase you point "+
-					"Restore Drill at a local pg_dump or .sql file and name the "+
+					"Soteria at a local pg_dump or .sql file and name the "+
 					"table plus minimum row count we should assert after restore.").Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
@@ -88,7 +88,7 @@ func HelpPage(lc LayoutCtx) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "</div><p class=\"mt-8 text-sm text-zinc-600 dark:text-zinc-400\">Still stuck? Email <a class=\"underline\" href=\"mailto:support@restoredrill.io\">support@restoredrill.io</a>.</p>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "</div><p class=\"mt-8 text-sm text-zinc-600 dark:text-zinc-400\">Still stuck? Email <a class=\"underline\" href=\"mailto:support@soteria.io\">support@soteria.io</a>.</p>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

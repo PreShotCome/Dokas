@@ -32,7 +32,7 @@ templ Layout(title string, user *auth.User) {
 }
 
 // Logo is the brand mark — a navy verification seal (rounded square + check).
-// Decorative: the adjacent "Restore Drill" wordmark carries the name.
+// Decorative: the adjacent "Soteria" wordmark carries the name.
 templ Logo() {
 	<svg viewBox="0 0 32 32" class="h-7 w-7 shrink-0" aria-hidden="true" focusable="false">
 		<rect width="32" height="32" rx="8" class="fill-brand-700"></rect>
@@ -54,7 +54,7 @@ templ LayoutWith(title string, lc LayoutCtx) {
 			<meta charset="UTF-8"/>
 			<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 			<meta name="referrer" content="strict-origin-when-cross-origin"/>
-			<title>{ title } · Restore Drill</title>
+			<title>{ title } · Soteria</title>
 			<link rel="stylesheet" href="/static/app.css"/>
 			<script src="/static/htmx.min.js" defer></script>
 			<script src="/static/account-switch.js" defer></script>
@@ -89,7 +89,7 @@ templ LayoutWith(title string, lc LayoutCtx) {
 					<div class="flex items-center gap-3">
 						<a href="/" class="flex items-center gap-2 font-semibold tracking-tight">
 							@Logo()
-							<span>Restore Drill</span>
+							<span>Soteria</span>
 						</a>
 						if lc.Account != nil {
 							<span class="hidden text-zinc-300 sm:inline dark:text-zinc-700">/</span>
@@ -155,7 +155,7 @@ templ LayoutWith(title string, lc LayoutCtx) {
 				{ children... }
 			</main>
 			<footer class="border-t border-zinc-200 px-4 py-4 text-center text-xs text-zinc-500 dark:border-zinc-800 dark:text-zinc-400">
-				<p>Restore Drill — backup verification as a service.</p>
+				<p>Soteria — backup verification as a service.</p>
 				<nav aria-label="Footer" class="mt-1 flex flex-wrap justify-center gap-3">
 					<a href="/pricing" class="hover:underline">Pricing</a>
 					<a href="/docs" class="hover:underline">API docs</a>

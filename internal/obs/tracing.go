@@ -58,7 +58,7 @@ func setupTracing(ctx context.Context, env string) (func(context.Context) error,
 	// NewSchemaless avoids a schema-URL conflict with resource.Default()
 	// (the SDK's default resource pins a different semconv version).
 	res := resource.NewSchemaless(
-		semconv.ServiceName("restore-drill"),
+		semconv.ServiceName("soteria"),
 		semconv.DeploymentEnvironment(env),
 	)
 

@@ -17,8 +17,8 @@ import (
 // Cookie name uses the __Host- prefix in production (requires HTTPS + no Domain attr).
 // In dev we fall back to a plain name so cookies work without TLS.
 const (
-	cookieNameSecure   = "__Host-rd_session"
-	cookieNameInsecure = "rd_session"
+	cookieNameSecure   = "__Host-so_session"
+	cookieNameInsecure = "so_session"
 )
 
 var ErrNoSession = errors.New("no session")

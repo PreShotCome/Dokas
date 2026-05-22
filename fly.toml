@@ -1,4 +1,4 @@
-# Fly.io deployment manifest for the Restore Drill app server.
+# Fly.io deployment manifest for the Soteria app server.
 #
 # Secrets are NOT set here — run `fly secrets set KEY=value` for each of:
 #   DATABASE_URL, SESSION_KEY, STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET,
@@ -6,7 +6,7 @@
 #   EVIDENCE_ENCRYPTION_KEY, POSTMARK_TOKEN, and any other configured seam.
 # See docs/runbooks/ for each integration.
 
-app = "restore-drill"
+app = "soteria"
 # sea (Seattle) — close to the Neon database in AWS us-west-2 (Oregon).
 primary_region = "sea"
 

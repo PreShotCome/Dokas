@@ -1,10 +1,10 @@
-# Restore Drill
+# Soteria
 
 Backup verification as a service. We periodically restore your database
 dumps in an isolated sandbox, run assertions, and produce auditor-grade
 evidence that your backups are actually restorable.
 
-This repo contains the application (Go monolith) at `app.restoredrill.io`.
+This repo contains the application (Go monolith) at `app.soteria.io`.
 The marketing site lives in a separate repo.
 
 ## Status
@@ -44,7 +44,7 @@ Implemented:
 - Email suppression list fed by a Postmark bounce/complaint webhook
 - Product analytics (PostHog seam) on signup / invite / drill events
 - Feature flags (env-driven) — `self_serve_signup` gates the signup route
-- `robots.txt`; "Verified by Restore Drill" referral footer on evidence PDFs
+- `robots.txt`; "Verified by Soteria" referral footer on evidence PDFs
 - Legal pages: Terms, Privacy, DPA, Sub-processors, Cookie Policy
 - WCAG 2.2 AA pass — skip link, focus indicators, ARIA labels, landmarks —
   with an automated structural a11y test (`golang.org/x/net/html`)
@@ -78,7 +78,7 @@ To exercise a drill end-to-end:
 ## Tests
 
 ```sh
-DATABASE_URL=postgres://restoredrill:restoredrill@localhost:5432/restoredrill?sslmode=disable \
+DATABASE_URL=postgres://soteria:soteria@localhost:5432/soteria?sslmode=disable \
   go test ./...
 ```
 

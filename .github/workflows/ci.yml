@@ -12,17 +12,17 @@ jobs:
       postgres:
         image: postgres:16-alpine
         env:
-          POSTGRES_USER: restoredrill
-          POSTGRES_PASSWORD: restoredrill
-          POSTGRES_DB: restoredrill
+          POSTGRES_USER: soteria
+          POSTGRES_PASSWORD: soteria
+          POSTGRES_DB: soteria
         ports: ["5432:5432"]
         options: >-
-          --health-cmd="pg_isready -U restoredrill"
+          --health-cmd="pg_isready -U soteria"
           --health-interval=2s
           --health-timeout=5s
           --health-retries=20
     env:
-      DATABASE_URL: postgres://restoredrill:restoredrill@localhost:5432/restoredrill?sslmode=disable
+      DATABASE_URL: postgres://soteria:soteria@localhost:5432/soteria?sslmode=disable
     steps:
       - uses: actions/checkout@v4
 

@@ -1,7 +1,7 @@
 {
-  "__comment": "Grafana dashboard for Restore Drill. Auto-loaded via the provisioning configs in dashboards/provisioning/, or import manually via Dashboards > Import. Expects a Prometheus datasource scraping the app's /metrics endpoint.",
-  "title": "Restore Drill — Service",
-  "uid": "restore-drill",
+  "__comment": "Grafana dashboard for Soteria. Auto-loaded via the provisioning configs in dashboards/provisioning/, or import manually via Dashboards > Import. Expects a Prometheus datasource scraping the app's /metrics endpoint.",
+  "title": "Soteria — Service",
+  "uid": "soteria",
   "schemaVersion": 39,
   "timezone": "utc",
   "refresh": "30s",

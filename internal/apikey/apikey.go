@@ -20,7 +20,7 @@ import (
 
 // keyPrefix tags every key so a leaked string is recognizable as a Restore
 // Drill credential (helps secret scanners).
-const keyPrefix = "rd_"
+const keyPrefix = "so_"
 
 var (
 	ErrNotFound = errors.New("apikey: not found")

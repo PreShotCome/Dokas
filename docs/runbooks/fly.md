@@ -33,8 +33,8 @@ requires the app to be deployed on Fly.
 ## Setup
 
 1. Install `flyctl` and `fly auth login`.
-2. Create a Fly app to hold drill machines: `fly apps create restore-drill-drills`.
-3. Mint an API token: `fly tokens create deploy -a restore-drill-drills`
+2. Create a Fly app to hold drill machines: `fly apps create soteria-drills`.
+3. Mint an API token: `fly tokens create deploy -a soteria-drills`
    (or an org token) — this is `FLY_API_TOKEN`.
 4. Choose a `FLY_SANDBOX_DB_PASSWORD` (a random string; the sandbox
    databases are ephemeral and private, but pick a strong value anyway).

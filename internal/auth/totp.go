@@ -16,7 +16,7 @@ import (
 const (
 	totpPeriod = 30 * time.Second
 	totpDigits = 6
-	totpIssuer = "Restore Drill"
+	totpIssuer = "Soteria"
 )
 
 // totpEncoding is the standard uppercase base32 alphabet with no padding —

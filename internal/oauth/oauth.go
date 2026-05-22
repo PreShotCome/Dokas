@@ -126,7 +126,7 @@ func (p *provider) get(ctx context.Context, rawURL, token string) ([]byte, error
 	}
 	req.Header.Set("Authorization", "Bearer "+token)
 	req.Header.Set("Accept", "application/json")
-	req.Header.Set("User-Agent", "restore-drill") // GitHub rejects requests without one
+	req.Header.Set("User-Agent", "soteria") // GitHub rejects requests without one
 	return p.do(req)
 }
 

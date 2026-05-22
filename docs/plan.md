@@ -1,8 +1,8 @@
-# Restore Drill — Backup Verification SaaS
+# Soteria — Backup Verification SaaS
 
 ## Context
 
-The user wants to build a real, production-grade app exercising all 11 layers of their fullstack rubric (foundation → support), not a portfolio toy. They asked for an "untapped but easy to access" avenue. Recommendation accepted: **Restore Drill as a Service** — a B2B SaaS that periodically verifies customer database backups by spinning up an ephemeral sandbox, restoring the latest dump, running assertions, and producing auditor-grade evidence (signed PDF + immutable log).
+The user wants to build a real, production-grade app exercising all 11 layers of their fullstack rubric (foundation → support), not a portfolio toy. They asked for an "untapped but easy to access" avenue. Recommendation accepted: **Soteria as a Service** — a B2B SaaS that periodically verifies customer database backups by spinning up an ephemeral sandbox, restoring the latest dump, running assertions, and producing auditor-grade evidence (signed PDF + immutable log).
 
 Why this product:
 - Real, recurring pain ("untested backups don't exist"), validated by SOC 2 / HIPAA control requirements.
@@ -13,7 +13,7 @@ Why this product:
 Locked decisions (from clarifying questions):
 - **GA surface**: Postgres only (defer MySQL/Mongo to v2).
 - **Compliance posture**: SOC 2-ready by GA, HIPAA in v2.
-- **Repo home**: new repo `preshotcome/restore-drill` (must be added to the GitHub MCP allowlist before push), branch `claude/plan-fullstack-architecture-DlqRq`.
+- **Repo home**: new repo `preshotcome/soteria` (must be added to the GitHub MCP allowlist before push), branch `claude/plan-fullstack-architecture-DlqRq`.
 
 ## What this is NOT
 - Not a backup *creator* (we verify the dumps the customer already produces).
@@ -27,8 +27,8 @@ Locked decisions (from clarifying questions):
 
 Two deployable artifacts, single Postgres:
 
-1. **`app.restoredrill.io`** — Go monolith (Chi + Templ + HTMX + Tailwind) serving the authenticated dashboard, API, webhooks, and orchestrator. Single binary, deployed to Fly.io.
-2. **`restoredrill.io`** (marketing/docs/blog) — Astro static site on Cloudflare Pages. Decoupled so MDX content + Lighthouse SEO don't fight HTMX.
+1. **`app.soteria.io`** — Go monolith (Chi + Templ + HTMX + Tailwind) serving the authenticated dashboard, API, webhooks, and orchestrator. Single binary, deployed to Fly.io.
+2. **`soteria.io`** (marketing/docs/blog) — Astro static site on Cloudflare Pages. Decoupled so MDX content + Lighthouse SEO don't fight HTMX.
 
 Drill execution runs on **Fly Machines** spun on-demand per drill (no inbound network, scoped outbound to S3 + control plane, destroyed on completion). Job queue is **River** (Postgres-native) with each drill modeled as a multi-step workflow: `provision → fetch → restore → assert → report → teardown → bill`. Each step is its own River job with idempotency keys so failures resume mid-flight without re-restoring 80GB.
 
@@ -129,7 +129,7 @@ Drill execution runs on **Fly Machines** spun on-demand per drill (no inbound ne
 - **A/B**: PostHog experiments, gated on flag.
 - **Transactional email**: Postmark with SPF/DKIM/DMARC strict, bounce + complaint handling auto-suspends recipients, weekly deliverability report.
 - **SEO**: Astro marketing site, MDX content, OpenGraph cards per page, `sitemap.xml`, `robots.txt`, JSON-LD Product schema.
-- **Referral loop**: every signed PDF report has a footer "Verified by Restore Drill" linking to the marketing site (compliance-safe wording).
+- **Referral loop**: every signed PDF report has a footer "Verified by Soteria" linking to the marketing site (compliance-safe wording).
 
 ### 10. Compliance & legal
 - ToS + Privacy Policy + DPA + Sub-processor list, drafted by counsel before first paid customer.
@@ -156,7 +156,7 @@ Drill execution runs on **Fly Machines** spun on-demand per drill (no inbound ne
 - Real-time UI (HTMX polling on drill detail page is sufficient).
 - Multi-region (single region at GA).
 
-## Critical files (to be created in `preshotcome/restore-drill`)
+## Critical files (to be created in `preshotcome/soteria`)
 
 
 ```
@@ -184,7 +184,7 @@ Drill execution runs on **Fly Machines** spun on-demand per drill (no inbound ne
 
 
 
-Marketing repo (separate, `preshotcome/restore-drill-marketing`):
+Marketing repo (separate, `preshotcome/soteria-marketing`):
 
 ```
 /src/pages/                            # Astro pages
@@ -288,7 +288,7 @@ Locally:
 7. `go test ./...` passes including the new integration test.
 
 ### When you're done
-Commit on the existing Phase 2 branch (`claude/restore-drill-phase-2-vHjzy`). One logical commit per concern is fine; squash if it gets messy. Push and stop — do not open a PR.
+Commit on the existing Phase 2 branch (`claude/soteria-phase-2-vHjzy`). One logical commit per concern is fine; squash if it gets messy. Push and stop — do not open a PR.
 
 ---
 
@@ -341,7 +341,7 @@ login (P4); CSRF/rate-limits/API idempotency-header (P4); plan enforcement
 (P5); signed PDFs/Object Lock (P5); account delete + GDPR export (P5).
 
 ### When you're done
-Commit on `claude/restore-drill-phase-2-vHjzy`. Push and stop — no PR.
+Commit on `claude/soteria-phase-2-vHjzy`. Push and stop — no PR.
 
 ---
 
@@ -391,7 +391,7 @@ Checkout/inbound webhooks; OTel/observability; SSRF-blocking of webhook
 target IPs (noted in the runbook).
 
 ### When you're done
-Commit on `claude/restore-drill-phase-2-vHjzy`. Push and stop — no PR.
+Commit on `claude/soteria-phase-2-vHjzy`. Push and stop — no PR.
 
 ---
 
@@ -435,7 +435,7 @@ Real DigiCert procurement, RFC 3161 ASN.1 wire format, real S3/Object Lock
 API calls (all seams); OTel (P6); marketing site (P7).
 
 ### When you're done
-Commit on `claude/restore-drill-phase-2-vHjzy`. Push and stop — no PR.
+Commit on `claude/soteria-phase-2-vHjzy`. Push and stop — no PR.
 
 ---
 
@@ -470,7 +470,7 @@ fallbacks.
    `/readyz`.
 3. Drill step workers emit spans; teardown records drill metrics; webhook
    worker records delivery metrics; queue-depth sampler.
-4. `runbooks/incident-response.md`, `dashboards/restore-drill.json`,
+4. `runbooks/incident-response.md`, `dashboards/soteria.json`,
    `dashboards/alerts.yml`.
 5. Tests: readiness ready/not-ready, Recoverer captures panics, metrics
    middleware + drill/webhook/queue recording, Noop reporter fallback.
@@ -480,7 +480,7 @@ Running a real collector / Grafana / Sentry; PostHog product analytics
 (layer 9); the external status page.
 
 ### When you're done
-Commit on `claude/restore-drill-phase-2-vHjzy`. Push and stop — no PR.
+Commit on `claude/soteria-phase-2-vHjzy`. Push and stop — no PR.
 
 ---
 
@@ -506,7 +506,7 @@ out of scope; the app gets a correct robots.txt.
   `FEATURE_<NAME>`) behind a `Flags` interface seam. `self_serve_signup`
   gates the signup route (off → "request access" / sales-led page).
 - **Referral:** the signed evidence PDF footer carries "Verified by
-  Restore Drill — restoredrill.io".
+  Soteria — soteria.io".
 - **robots.txt:** the app disallows indexing (marketing is indexed
   separately).
 
@@ -528,7 +528,7 @@ analysis; weekly deliverability report; the email-verification flow
 (layer 5); a PostHog flag-evaluation backend (the `Flags` seam allows it).
 
 ### When you're done
-Commit on `claude/restore-drill-phase-2-vHjzy`. Push and stop — no PR.
+Commit on `claude/soteria-phase-2-vHjzy`. Push and stop — no PR.
 
 ---
 
@@ -568,7 +568,7 @@ Stripe Tax (needs real Checkout); the marketing-site cookie banner;
 counsel-drafted legal copy (pages stay DRAFT); full axe-core in CI.
 
 ### When you're done
-Commit on `claude/restore-drill-phase-2-vHjzy`. Push and stop — no PR.
+Commit on `claude/soteria-phase-2-vHjzy`. Push and stop — no PR.
 
 ---
 
@@ -611,7 +611,7 @@ The Astro docs site + Pagefind (Phase 7); the Plain chat widget; admin
 refunds (billing is a skeleton); real staff SSO.
 
 ### When you're done
-Commit on `claude/restore-drill-phase-2-vHjzy`. Push and stop — no PR.
+Commit on `claude/soteria-phase-2-vHjzy`. Push and stop — no PR.
 
 ---
 
@@ -644,4 +644,4 @@ Per-key scopes (keys get full account access — backlog); OpenAPI generated
 from struct tags (hand-authored); a JS API explorer (CSP).
 
 ### When you're done
-Commit on `claude/restore-drill-phase-2-vHjzy`. Push and stop — no PR.
+Commit on `claude/soteria-phase-2-vHjzy`. Push and stop — no PR.

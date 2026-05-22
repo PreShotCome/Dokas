@@ -101,7 +101,7 @@ func Load() (Config, error) {
 
 		PostmarkToken:        os.Getenv("POSTMARK_TOKEN"),
 		PostmarkWebhookToken: os.Getenv("POSTMARK_WEBHOOK_TOKEN"),
-		EmailFrom:            getenv("EMAIL_FROM", "notifications@restoredrill.io"),
+		EmailFrom:            getenv("EMAIL_FROM", "notifications@soteria.io"),
 		PostHogAPIKey:        os.Getenv("POSTHOG_API_KEY"),
 		PostHogHost:          os.Getenv("POSTHOG_HOST"),
 

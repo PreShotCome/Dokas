@@ -22,8 +22,8 @@ import (
 const FieldName = "_csrf"
 
 const (
-	cookieNameSecure   = "__Host-rd_csrf"
-	cookieNameInsecure = "rd_csrf"
+	cookieNameSecure   = "__Host-so_csrf"
+	cookieNameInsecure = "so_csrf"
 )
 
 type ctxKey int

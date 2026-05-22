@@ -75,7 +75,7 @@ func TestTOTPURI(t *testing.T) {
 	if !strings.HasPrefix(uri, "otpauth://totp/") {
 		t.Errorf("unexpected URI prefix: %s", uri)
 	}
-	for _, want := range []string{"secret=ABCDEF234567", "issuer=Restore", "digits=6", "period=30"} {
+	for _, want := range []string{"secret=ABCDEF234567", "issuer=Soteria", "digits=6", "period=30"} {
 		if !strings.Contains(uri, want) {
 			t.Errorf("URI missing %q: %s", want, uri)
 		}

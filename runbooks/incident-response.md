@@ -1,6 +1,6 @@
 # Runbook: Incident Response
 
-How Restore Drill handles a production incident. Keep this short enough to
+How Soteria handles a production incident. Keep this short enough to
 follow at 3am.
 
 ## Severity levels

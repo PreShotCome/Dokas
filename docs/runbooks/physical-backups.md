@@ -2,7 +2,7 @@
 
 ## Status — seam (documented, not implemented)
 
-Restore Drill verifies all four **logical** `pg_dump` formats today (plain
+Soteria verifies all four **logical** `pg_dump` formats today (plain
 SQL, custom, tar, directory — see `docs/backlog.md` → Resolved).
 **Physical** backups — `pg_basebackup` base backups, pgBackRest, WAL-G —
 are deliberately not implemented yet: they need a different restore model

@@ -1,7 +1,7 @@
 {
   "openapi": "3.1.0",
   "info": {
-    "title": "Restore Drill API",
+    "title": "Soteria API",
     "version": "1.0.0",
     "description": "Backup verification as a service. All endpoints are account-scoped and authenticated with an API key (Authorization: Bearer rd_...). Responses use a {data, meta, errors} envelope. State-changing requests require an Idempotency-Key header."
   },

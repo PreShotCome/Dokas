@@ -30,7 +30,7 @@ func Render(out io.Writer, d Data) error {
 	pdf.AddPage()
 
 	pdf.SetFont("Helvetica", "B", 18)
-	pdf.Cell(0, 10, "Restore Drill Report")
+	pdf.Cell(0, 10, "Soteria Report")
 	pdf.Ln(12)
 
 	pdf.SetFont("Helvetica", "", 10)
@@ -86,7 +86,7 @@ func Render(out io.Writer, d Data) error {
 
 	pdf.Ln(2)
 	pdf.SetFont("Helvetica", "B", 8)
-	pdf.CellFormat(0, 4, "Verified by Restore Drill — restoredrill.io", "", 1, "C", false, 0, "")
+	pdf.CellFormat(0, 4, "Verified by Soteria — soteria.io", "", 1, "C", false, 0, "")
 
 	return pdf.Output(out)
 }
