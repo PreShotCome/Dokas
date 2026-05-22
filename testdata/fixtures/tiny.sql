@@ -2,7 +2,7 @@
 -- PostgreSQL database dump
 --
 
-\restrict IKFKiraZUyDOgxoziJtmnjgn6cNTF1aQe27Y6bJp6zjp37ldrRVWgaJNpAYeVcI
+\restrict xcCqv2h1Nu65dH4zlh4tbclgp9FhcZKoPMRhIaVfzUpTCp4Sfr1CmWIF11eqMWC
 
 -- Dumped from database version 16.13 (Ubuntu 16.13-0ubuntu0.24.04.1)
 -- Dumped by pg_dump version 16.13 (Ubuntu 16.13-0ubuntu0.24.04.1)
@@ -23,7 +23,7 @@ SET default_tablespace = '';
 SET default_table_access_method = heap;
 
 --
--- Name: events; Type: TABLE; Schema: public; Owner: postgres
+-- Name: events; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.events (
@@ -34,10 +34,8 @@ CREATE TABLE public.events (
 );
 
 
-ALTER TABLE public.events OWNER TO postgres;
-
 --
--- Name: events_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+-- Name: events_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
 CREATE SEQUENCE public.events_id_seq
@@ -48,24 +46,22 @@ CREATE SEQUENCE public.events_id_seq
     CACHE 1;
 
 
-ALTER SEQUENCE public.events_id_seq OWNER TO postgres;
-
 --
--- Name: events_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+-- Name: events_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
 ALTER SEQUENCE public.events_id_seq OWNED BY public.events.id;
 
 
 --
--- Name: events id; Type: DEFAULT; Schema: public; Owner: postgres
+-- Name: events id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.events ALTER COLUMN id SET DEFAULT nextval('public.events_id_seq'::regclass);
 
 
 --
--- Data for Name: events; Type: TABLE DATA; Schema: public; Owner: postgres
+-- Data for Name: events; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 COPY public.events (id, kind, payload, created_at) FROM stdin;
@@ -76,14 +72,14 @@ COPY public.events (id, kind, payload, created_at) FROM stdin;
 
 
 --
--- Name: events_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+-- Name: events_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
 SELECT pg_catalog.setval('public.events_id_seq', 3, true);
 
 
 --
--- Name: events events_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: events events_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.events
@@ -94,5 +90,5 @@ ALTER TABLE ONLY public.events
 -- PostgreSQL database dump complete
 --
 
-\unrestrict IKFKiraZUyDOgxoziJtmnjgn6cNTF1aQe27Y6bJp6zjp37ldrRVWgaJNpAYeVcI
+\unrestrict xcCqv2h1Nu65dH4zlh4tbclgp9FhcZKoPMRhIaVfzUpTCp4Sfr1CmWIF11eqMWC
 
