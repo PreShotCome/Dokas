@@ -6,14 +6,9 @@ package runner
 
 import (
 	"context"
-	"errors"
 
 	"github.com/google/uuid"
 )
-
-// ErrNotImplemented is returned by stub runners (e.g. the Fly Machines runner
-// in Phase 2) so callers can detect "this is wired but not built yet".
-var ErrNotImplemented = errors.New("runner: not implemented")
 
 // Sandbox is a handle to an isolated execution environment for a single drill.
 // It is created by Provision and torn down by Teardown. Between those calls,

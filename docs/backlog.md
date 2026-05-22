@@ -9,9 +9,6 @@ not started, planned · `debt` = works but should be revisited.
 
 ## Layer 2 — First drill
 
-- **Fly Machines sandbox runner** — `seam`. `runner.FlyMachineRunner`
-  returns `ErrNotImplemented`; drills run on `LocalRunner` (temp Postgres DB
-  on the host). Real per-drill cloud sandboxes are a later phase.
 - **Physical-backup formats** — `deferred`. All four pg_dump *logical*
   formats are supported (see Resolved); physical backups — base backups,
   pgBackRest, WAL-G — need whole-cluster restore and are not built.
@@ -65,6 +62,14 @@ not started, planned · `debt` = works but should be revisited.
   wants expand-then-contract verified on a prod-sized clone.
 
 ## Resolved
+
+Layer-2 sandbox:
+
+- **Fly Machines runner** — `runner.FlyMachineRunner` provisions a dedicated
+  ephemeral Fly Machine (a per-drill Postgres VM) instead of a temp database
+  on the app's host. `internal/fly` is a unit-tested Machines API client.
+  Build-verified only — not exercised against the live Fly API. Activated by
+  `FLY_API_TOKEN` + `FLY_APP_NAME`; see `docs/runbooks/fly.md`.
 
 Layer-5 evidence storage:
 
