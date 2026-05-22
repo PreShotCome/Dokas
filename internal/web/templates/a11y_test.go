@@ -15,6 +15,7 @@ import (
 // floor, not a substitute for a full axe-core audit (see docs/backlog.md).
 func TestAccessibility(t *testing.T) {
 	pages := map[string]templ.Component{
+		"landing":       Landing(LayoutCtx{}),
 		"login":         Login("", ""),
 		"signup":        Signup("", ""),
 		"signup-closed": SignupClosed(),
