@@ -7,7 +7,8 @@
 # See docs/runbooks/ for each integration.
 
 app = "restore-drill"
-primary_region = "iad"
+# sea (Seattle) — close to the Neon database in AWS us-west-2 (Oregon).
+primary_region = "sea"
 
 [build]
   dockerfile = "Dockerfile"
