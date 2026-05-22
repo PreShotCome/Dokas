@@ -76,6 +76,14 @@ func (h *Handlers) oauthCallback(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// A staff SSO step-up re-proves identity for an already-signed-in staff
+	// user — it is not a normal sign-in, so it branches off here.
+	if c, err := r.Cookie(staffSSOCookie); err == nil && c.Value == "1" {
+		http.SetCookie(w, &http.Cookie{Name: staffSSOCookie, Value: "", Path: "/", MaxAge: -1})
+		h.completeStaffSSO(w, r, provName, id.Email)
+		return
+	}
+
 	userID, mfaEnabled, err := h.findOrCreateOAuthUser(r.Context(),
 		strings.ToLower(strings.TrimSpace(id.Email)))
 	if err != nil {
@@ -108,6 +116,29 @@ func (h *Handlers) oauthCallback(w http.ResponseWriter, r *http.Request) {
 
 func (h *Handlers) oauthCallbackURL(r *http.Request, provName string) string {
 	return absoluteURL(r, "/auth/"+provName+"/callback")
+}
+
+// completeStaffSSO finishes an admin-panel step-up. The SSO identity must
+// belong to the already-signed-in staff user and still be on the staff
+// allowlist — so a step-up doubles as a live re-check of staff eligibility.
+func (h *Handlers) completeStaffSSO(w http.ResponseWriter, r *http.Request, provName, ssoEmail string) {
+	u, ok := auth.FromContext(r.Context())
+	ssoEmail = strings.ToLower(strings.TrimSpace(ssoEmail))
+	if !ok || !u.IsStaff || !strings.EqualFold(u.Email, ssoEmail) || !h.staffEmails[ssoEmail] {
+		http.Error(w, "staff verification failed — that account is not an authorised staff identity",
+			http.StatusForbidden)
+		return
+	}
+	if err := h.sessions.MarkStaffVerified(r.Context(), r); err != nil {
+		http.Error(w, "could not record verification", http.StatusInternalServerError)
+		return
+	}
+	_ = h.audit.Record(r.Context(), audit.Event{
+		ActorID: &u.ID, Action: "staff.sso_verified",
+		IP: audit.ClientIP(r), UserAgent: r.UserAgent(),
+		Metadata: map[string]any{"provider": provName},
+	})
+	http.Redirect(w, r, "/admin", http.StatusSeeOther)
 }
 
 // findOrCreateOAuthUser resolves an OAuth email to a user, provisioning a new

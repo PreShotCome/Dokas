@@ -48,9 +48,6 @@ not started, planned · `debt` = works but should be revisited.
 
 ## Layer 11 — Support
 
-- **Staff SSO** — `debt`. Staff are flagged via `users.is_staff`, promoted
-  from the `STAFF_EMAILS` allowlist at signup. The plan wants real staff
-  SSO behind the admin panel.
 - **Plain live-chat widget** — `deferred`. Third-party chat JS would
   violate the CSP (`script-src 'self'`); in-app help is a static `/help`
   page for now. The widget belongs on the marketing site or behind a CSP
@@ -66,6 +63,16 @@ not started, planned · `debt` = works but should be revisited.
   prod-sized, populated clone — the round trip is schema-only.
 
 ## Resolved
+
+Layer-11 support:
+
+- **Staff SSO step-up** — the admin panel sits behind a fresh SSO check:
+  reaching `/admin/*` requires a staff user to re-prove identity via Google
+  OAuth within the last hour (`sessions.staff_verified_at`). The step-up
+  also re-checks the live `STAFF_EMAILS` allowlist, so removing someone
+  from it revokes admin access at their next step-up. With Google OAuth
+  unconfigured (dev / CI) the step-up is skipped and `is_staff` admits
+  directly. See `docs/runbooks/oauth.md`.
 
 Cross-cutting:
 

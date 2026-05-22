@@ -252,11 +252,21 @@ func (h *Handlers) Router(staticFS http.FileSystem) http.Handler {
 		r.Post("/impersonate/stop", h.impersonateStop)
 	})
 
-	// Staff admin panel — staff-gated, no account requirement (staff act
-	// across accounts).
+	// Staff SSO step-up — staff-gated but NOT behind the step-up itself,
+	// otherwise reaching the verification page would be impossible.
 	r.Group(func(r chi.Router) {
 		r.Use(auth.RequireUser)
 		r.Use(auth.RequireStaff)
+		r.Get("/admin/sso", h.adminSSOPage)
+		r.Get("/admin/sso/start", h.adminSSOStart)
+	})
+
+	// Staff admin panel — staff-gated, no account requirement (staff act
+	// across accounts). requireStaffSSO also enforces a recent SSO step-up
+	// when SSO is configured.
+	r.Group(func(r chi.Router) {
+		r.Use(auth.RequireUser)
+		r.Use(h.requireStaffSSO)
 		r.Get("/admin", h.adminHome)
 		r.Get("/admin/users", h.adminUserSearch)
 		r.Get("/admin/users/{id}", h.adminUserDetail)

@@ -3,6 +3,7 @@ package auth
 import (
 	"context"
 	"net/http"
+	"time"
 
 	"github.com/google/uuid"
 
@@ -16,7 +17,19 @@ const (
 	accountCtxKey
 	membershipCtxKey
 	impersonationCtxKey
+	staffVerifiedCtxKey
 )
+
+// StaffVerifiedAtFromContext returns when the session last completed an SSO
+// step-up, if ever. Used by the admin panel's step-up gate.
+func StaffVerifiedAtFromContext(ctx context.Context) (*time.Time, bool) {
+	t, ok := ctx.Value(staffVerifiedCtxKey).(*time.Time)
+	return t, ok
+}
+
+func withStaffVerifiedAt(ctx context.Context, t *time.Time) context.Context {
+	return context.WithValue(ctx, staffVerifiedCtxKey, t)
+}
 
 // Impersonation describes an active staff impersonation: the effective user
 // (from FromContext) is being acted-as by this staff member.
@@ -79,6 +92,7 @@ func (s *Store) LoadUser(next http.Handler) http.Handler {
 		// it must not authenticate app requests, so leave the user unset.
 		if err == nil && !sess.MFAPending {
 			ctx := WithUser(r.Context(), u)
+			ctx = withStaffVerifiedAt(ctx, sess.StaffVerifiedAt)
 			if sess.ImpersonatorID != nil {
 				if staff, err := s.loadUser(ctx, *sess.ImpersonatorID); err == nil {
 					ctx = withImpersonation(ctx, &Impersonation{

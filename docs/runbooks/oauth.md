@@ -47,6 +47,15 @@ A provider turns on only when *both* of its variables are set.
 | `GITHUB_OAUTH_CLIENT_ID` | GitHub OAuth client ID |
 | `GITHUB_OAUTH_CLIENT_SECRET` | GitHub OAuth client secret |
 
+## Staff SSO step-up
+
+When **Google** OAuth is configured, it also gates the staff admin panel:
+reaching `/admin/*` requires a staff user to re-prove identity via Google
+within the last hour (a "step-up"). The step-up re-checks the live
+`STAFF_EMAILS` allowlist, so removing someone from it revokes their admin
+access at the next step-up. With Google OAuth unset (dev / CI), no step-up
+is required and `is_staff` admits directly — nothing extra to configure.
+
 ## Verify
 
 1. Restart; the startup log should read `social login enabled` with the
