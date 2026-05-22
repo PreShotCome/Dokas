@@ -141,6 +141,49 @@ func (h *Handlers) targetDetail(w http.ResponseWriter, r *http.Request) {
 	render(w, r, templates.TargetDetail(lc, t, asserts, ""))
 }
 
+// targetScheduleUpdate sets a target's recurring drill cadence. The chosen
+// cadence is validated against the account's plan — frequency is a paid axis.
+func (h *Handlers) targetScheduleUpdate(w http.ResponseWriter, r *http.Request) {
+	lc := h.layoutCtx(r)
+	id, err := uuid.Parse(chi.URLParam(r, "id"))
+	if err != nil {
+		http.NotFound(w, r)
+		return
+	}
+	t, err := h.drills.GetTarget(r.Context(), lc.Account.ID, id)
+	if err != nil {
+		http.NotFound(w, r)
+		return
+	}
+	if err := r.ParseForm(); err != nil {
+		http.Error(w, "bad form", http.StatusBadRequest)
+		return
+	}
+	cadence := strings.TrimSpace(r.PostFormValue("cadence"))
+	if !account.CadenceAllowed(lc.Account.Plan, cadence) {
+		asserts, _ := h.drills.ListTargetAssertions(r.Context(), t.ID)
+		w.WriteHeader(http.StatusForbidden)
+		render(w, r, templates.TargetDetail(lc, t, asserts,
+			"That drill frequency is not included in your plan — see Pricing to upgrade."))
+		return
+	}
+	var nextAt *time.Time
+	if cadence != "off" {
+		n := time.Now().UTC().Add(drill.CadenceInterval(cadence))
+		nextAt = &n
+	}
+	if err := h.drills.SetTargetSchedule(r.Context(), lc.Account.ID, id, cadence, nextAt); err != nil {
+		http.Error(w, "save schedule: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+	_ = h.audit.Record(r.Context(), audit.Event{
+		AccountID: &lc.Account.ID, ActorID: &lc.User.ID, Action: "target.schedule_updated",
+		TargetKind: "database_target", TargetID: id.String(),
+		Metadata: map[string]any{"cadence": cadence},
+	})
+	http.Redirect(w, r, "/databases/"+id.String(), http.StatusSeeOther)
+}
+
 func (h *Handlers) assertionCreate(w http.ResponseWriter, r *http.Request) {
 	lc := h.layoutCtx(r)
 	u, acct := lc.User, lc.Account

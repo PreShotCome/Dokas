@@ -21,10 +21,41 @@ func LimitsFor(p Plan) Limits {
 	case PlanPro:
 		return Limits{} // all Unlimited
 	case PlanStarter:
-		return Limits{Databases: 5, Seats: 10, APIKeys: 5, Webhooks: 5}
+		return Limits{Databases: 10, Seats: 10, APIKeys: 5, Webhooks: 5}
 	default:
 		return Limits{Databases: 1, Seats: 2, APIKeys: 1, Webhooks: 1}
 	}
+}
+
+// AllowedCadences returns the drill cadences a plan may select, from least to
+// most frequent. Drill frequency is the primary axis the plan tiers differ
+// on: Trial drills weekly, Starter daily, Pro hourly.
+func AllowedCadences(p Plan) []string {
+	switch p {
+	case PlanPro:
+		return []string{"off", "weekly", "daily", "hourly"}
+	case PlanStarter:
+		return []string{"off", "weekly", "daily"}
+	default:
+		return []string{"off", "weekly"}
+	}
+}
+
+// CadenceAllowed reports whether a plan may schedule drills at a cadence.
+func CadenceAllowed(p Plan, cadence string) bool {
+	for _, c := range AllowedCadences(p) {
+		if c == cadence {
+			return true
+		}
+	}
+	return false
+}
+
+// TopCadence is the most frequent cadence a plan allows — the headline the
+// pricing page leads with.
+func TopCadence(p Plan) string {
+	allowed := AllowedCadences(p)
+	return allowed[len(allowed)-1]
 }
 
 // AtLimit reports whether an account already holding `count` of a resource

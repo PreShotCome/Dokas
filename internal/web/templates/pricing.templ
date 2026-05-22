@@ -15,11 +15,12 @@ templ Pricing(lc LayoutCtx, starterLabel, proLabel string, stripeEnabled bool) {
 	@LayoutWith("Pricing", lc) {
 		<div class="mx-auto max-w-4xl">
 			<div class="mb-10 text-center">
-				<h1 class="text-3xl font-semibold tracking-tight">Simple, per-database pricing</h1>
+				<h1 class="text-3xl font-semibold tracking-tight">Pricing by how often you verify</h1>
 				<p class="mx-auto mt-3 max-w-2xl text-zinc-600 dark:text-zinc-400">
-					Every plan includes scheduled drills, signed PDF evidence, the
-					full assertion suite, the versioned JSON API, and webhooks.
-					Choose a plan by how many databases you need to verify.
+					Every plan includes signed PDF evidence, the full assertion
+					suite, the versioned JSON API, and webhooks. Plans differ by how
+					often Soteria drills your databases — the more critical your
+					data, the more frequently you verify it.
 				</p>
 			</div>
 			<div class="grid gap-6 sm:grid-cols-3">
@@ -38,8 +39,8 @@ templ Pricing(lc LayoutCtx, starterLabel, proLabel string, stripeEnabled bool) {
 	}
 }
 
-// pricingCard renders one plan tier: its price, what it includes, and the
-// call to action appropriate to the visitor.
+// pricingCard renders one plan tier. Drill frequency is the headline; the
+// database count is a fair-use allowance below it.
 templ pricingCard(lc LayoutCtx, plan, name, price, period string, stripeEnabled bool, limits account.Limits) {
 	<div class="card flex flex-col gap-5">
 		<div>
@@ -51,14 +52,30 @@ templ pricingCard(lc LayoutCtx, plan, name, price, period string, stripeEnabled 
 				}
 			</p>
 		</div>
+		<div class="rounded-lg bg-brand-50 px-3 py-2 text-center dark:bg-brand-900/40">
+			<p class="text-[11px] font-medium uppercase tracking-wide text-brand-600 dark:text-brand-300">Drill frequency</p>
+			<p class="font-semibold text-brand-800 dark:text-brand-100">
+				{ cadenceLabel(account.TopCadence(account.Plan(plan))) } drills
+			</p>
+		</div>
 		<ul class="flex-1 space-y-2 text-sm text-zinc-600 dark:text-zinc-400">
-			<li>{ limitText(limits.Databases, "database") }</li>
-			<li>{ limitText(limits.Seats, "team seat") }</li>
-			<li>{ limitText(limits.APIKeys, "API key") }</li>
-			<li>{ limitText(limits.Webhooks, "webhook endpoint") }</li>
+			@pricingFeature(limitText(limits.Databases, "database"))
+			@pricingFeature(limitText(limits.Seats, "team seat"))
+			@pricingFeature("Signed PDF evidence · 7-year retention")
+			@pricingFeature("JSON API & signed webhooks")
+			@pricingFeature(supportLevel(plan))
 		</ul>
 		@pricingCTA(lc, plan, stripeEnabled)
 	</div>
+}
+
+templ pricingFeature(text string) {
+	<li class="flex items-start gap-2">
+		<span class="mt-0.5 shrink-0 text-emerald-500">
+			@landingCheck()
+		</span>
+		<span>{ text }</span>
+	</li>
 }
 
 // pricingCTA picks the call to action: signed-out visitors are sent to
@@ -90,7 +107,7 @@ templ pricingCTA(lc LayoutCtx, plan string, stripeEnabled bool) {
 	}
 }
 
-// limitText renders a resource cap: "1 database", "5 databases", or
+// limitText renders a resource cap: "1 database", "10 databases", or
 // "Unlimited databases" for an uncapped (Pro) tier.
 func limitText(n int, singular string) string {
 	switch {
@@ -100,5 +117,17 @@ func limitText(n int, singular string) string {
 		return "1 " + singular
 	default:
 		return strconv.Itoa(n) + " " + singular + "s"
+	}
+}
+
+// supportLevel is the support tier shown on each plan card.
+func supportLevel(plan string) string {
+	switch plan {
+	case "pro":
+		return "Priority support"
+	case "starter":
+		return "Email support"
+	default:
+		return "Community support"
 	}
 }

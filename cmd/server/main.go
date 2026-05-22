@@ -163,6 +163,10 @@ func main() {
 
 	webhookDispatch := webhooks.NewDispatcher(webhookStore, riverClient)
 
+	// The orchestrator is built here (before workers are registered) so the
+	// drill scheduler worker can enqueue drills through it.
+	orch := drill.NewOrchestrator(drillStore, riverClient, auditLog)
+
 	steps.Register(workers, steps.Deps{
 		Store:     drillStore,
 		Runner:    drillRunner,
@@ -180,6 +184,7 @@ func main() {
 	river.AddWorker(workers, deliverWorker)
 	river.AddWorker(workers, &compliance.PurgeWorker{Purger: purger})
 	river.AddWorker(workers, &compliance.RetentionWorker{Sweeper: sweeper, Logger: logger})
+	river.AddWorker(workers, &drill.SchedulerWorker{Store: drillStore, Orch: orch, Logger: logger})
 
 	if err := riverClient.Start(rootCtx); err != nil {
 		logger.Error("river start", "err", err)
@@ -190,8 +195,6 @@ func main() {
 		defer stopCancel()
 		_ = riverClient.Stop(stopCtx)
 	}()
-
-	orch := drill.NewOrchestrator(drillStore, riverClient, auditLog)
 
 	// Perimeter: per-IP / per-account rate limiters.
 	authLimiter := ratelimit.New(20, 10)  // 20/min, burst 10 — login/signup
@@ -299,6 +302,7 @@ func newRiverClient(pool *pgxpool.Pool, workers *river.Workers) (*river.Client[p
 		Workers: workers,
 		PeriodicJobs: []*river.PeriodicJob{
 			compliance.PeriodicJob(),
+			drill.SchedulerPeriodicJob(),
 		},
 	})
 }

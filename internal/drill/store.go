@@ -52,6 +52,10 @@ type Target struct {
 	SourceKind      string
 	SourceURI       string
 	CreatedAt       time.Time
+	// DrillCadence is "off", "weekly", "daily", or "hourly". NextDrillAt is
+	// when the scheduler should next enqueue a drill (nil when cadence is off).
+	DrillCadence string
+	NextDrillAt  *time.Time
 }
 
 // Assertion is one configured check on a target. config holds the raw JSONB
@@ -131,7 +135,8 @@ func (s *Store) CreateTarget(ctx context.Context, t Target) (Target, error) {
 
 func (s *Store) ListTargets(ctx context.Context, accountID uuid.UUID) ([]Target, error) {
 	rows, err := s.pool.Query(ctx, `
-		SELECT id, account_id, created_by_user_id, name, source_kind, source_uri, created_at
+		SELECT id, account_id, created_by_user_id, name, source_kind, source_uri, created_at,
+		       drill_cadence, next_drill_at
 		  FROM database_targets
 		 WHERE account_id = $1 AND deleted_at IS NULL
 		 ORDER BY created_at DESC
@@ -144,7 +149,7 @@ func (s *Store) ListTargets(ctx context.Context, accountID uuid.UUID) ([]Target,
 	for rows.Next() {
 		var t Target
 		if err := rows.Scan(&t.ID, &t.AccountID, &t.CreatedByUserID, &t.Name, &t.SourceKind, &t.SourceURI,
-			&t.CreatedAt); err != nil {
+			&t.CreatedAt, &t.DrillCadence, &t.NextDrillAt); err != nil {
 			return nil, err
 		}
 		out = append(out, t)
@@ -209,14 +214,69 @@ func (s *Store) ListDrillsPage(ctx context.Context, accountID uuid.UUID, afterAt
 func (s *Store) GetTarget(ctx context.Context, accountID, targetID uuid.UUID) (Target, error) {
 	var t Target
 	err := s.pool.QueryRow(ctx, `
-		SELECT id, account_id, created_by_user_id, name, source_kind, source_uri, created_at
+		SELECT id, account_id, created_by_user_id, name, source_kind, source_uri, created_at,
+		       drill_cadence, next_drill_at
 		  FROM database_targets
 		 WHERE id = $1 AND account_id = $2 AND deleted_at IS NULL
-	`, targetID, accountID).Scan(&t.ID, &t.AccountID, &t.CreatedByUserID, &t.Name, &t.SourceKind, &t.SourceURI, &t.CreatedAt)
+	`, targetID, accountID).Scan(&t.ID, &t.AccountID, &t.CreatedByUserID, &t.Name, &t.SourceKind, &t.SourceURI,
+		&t.CreatedAt, &t.DrillCadence, &t.NextDrillAt)
 	if errors.Is(err, pgx.ErrNoRows) {
 		return Target{}, ErrNotFound
 	}
 	return t, err
+}
+
+// SetTargetSchedule updates a target's drill cadence and its next run time.
+// Pass cadence "off" with a nil nextAt to disable scheduling.
+func (s *Store) SetTargetSchedule(ctx context.Context, accountID, targetID uuid.UUID, cadence string, nextAt *time.Time) error {
+	ct, err := s.pool.Exec(ctx, `
+		UPDATE database_targets
+		   SET drill_cadence = $3, next_drill_at = $4
+		 WHERE id = $1 AND account_id = $2 AND deleted_at IS NULL
+	`, targetID, accountID, cadence, nextAt)
+	if err != nil {
+		return err
+	}
+	if ct.RowsAffected() == 0 {
+		return ErrNotFound
+	}
+	return nil
+}
+
+// DueTargets returns every scheduled target whose next drill is due. Used by
+// the scheduler worker.
+func (s *Store) DueTargets(ctx context.Context) ([]Target, error) {
+	rows, err := s.pool.Query(ctx, `
+		SELECT id, account_id, created_by_user_id, name, source_kind, source_uri, created_at,
+		       drill_cadence, next_drill_at
+		  FROM database_targets
+		 WHERE deleted_at IS NULL
+		   AND drill_cadence <> 'off'
+		   AND next_drill_at IS NOT NULL
+		   AND next_drill_at <= now()
+	`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var out []Target
+	for rows.Next() {
+		var t Target
+		if err := rows.Scan(&t.ID, &t.AccountID, &t.CreatedByUserID, &t.Name, &t.SourceKind, &t.SourceURI,
+			&t.CreatedAt, &t.DrillCadence, &t.NextDrillAt); err != nil {
+			return nil, err
+		}
+		out = append(out, t)
+	}
+	return out, rows.Err()
+}
+
+// AdvanceTargetSchedule moves a target's next drill time forward after the
+// scheduler has enqueued its drill.
+func (s *Store) AdvanceTargetSchedule(ctx context.Context, targetID uuid.UUID, nextAt time.Time) error {
+	_, err := s.pool.Exec(ctx,
+		`UPDATE database_targets SET next_drill_at = $2 WHERE id = $1`, targetID, nextAt)
+	return err
 }
 
 // --- drills ---

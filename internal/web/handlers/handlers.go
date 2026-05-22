@@ -337,6 +337,7 @@ func (h *Handlers) Router(staticFS http.FileSystem) http.Handler {
 			r.Post("/databases", h.targetCreate)
 			r.Post("/databases/{id}/assertions", h.assertionCreate)
 			r.Post("/databases/{id}/assertions/{assertion_id}/delete", h.assertionDelete)
+			r.Post("/databases/{id}/schedule", h.targetScheduleUpdate)
 		})
 		r.Group(func(r chi.Router) {
 			r.Use(auth.RequireAction(auth.ActionDrillWrite))
