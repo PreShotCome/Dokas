@@ -15,9 +15,11 @@ import (
 // floor, not a substitute for a full axe-core audit (see docs/backlog.md).
 func TestAccessibility(t *testing.T) {
 	pages := map[string]templ.Component{
+		"landing":       Landing(LayoutCtx{}),
 		"login":         Login("", ""),
 		"signup":        Signup("", ""),
 		"signup-closed": SignupClosed(),
+		"pricing":       Pricing(LayoutCtx{}, "$99", "$399", true),
 		"legal-cookies": LegalPage(LayoutCtx{}, "Cookie Policy", LegalCookies()),
 		"legal-subproc": LegalPage(LayoutCtx{}, "Sub-processors", LegalSubprocessors()),
 		"help":          HelpPage(LayoutCtx{}),

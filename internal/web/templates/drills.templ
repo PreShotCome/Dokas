@@ -98,18 +98,13 @@ templ DrillDetail(lc LayoutCtx, d drill.Drill, t drill.Target, steps []drill.Ste
 			<dt class="font-medium">Drill ID</dt>
 			<dd class="font-mono text-xs">{ d.ID.String() }</dd>
 			<dt class="font-medium">Status</dt>
-			<dd>@StatusBadge(d.Status)</dd>
+			<dd id="drill-status">@StatusBadge(d.Status)</dd>
 			<dt class="font-medium">Created</dt>
 			<dd class="text-xs">{ d.CreatedAt.UTC().Format(time.RFC3339) }</dd>
 			<dt class="font-medium">Duration</dt>
-			<dd class="text-xs">{ duration(d.StartedAt, d.CompletedAt) }</dd>
-			if d.EvidencePath != nil && *d.EvidencePath != "" {
-				<dt class="font-medium">Evidence</dt>
-				<dd>
-					<a href={ templ.SafeURL("/drills/" + d.ID.String() + "/evidence") }
-					   class="btn-primary px-3 py-1 text-xs">Download PDF</a>
-				</dd>
-			}
+			<dd id="drill-duration" class="text-xs">{ duration(d.StartedAt, d.CompletedAt) }</dd>
+			<dt class="font-medium">Evidence</dt>
+			<dd id="drill-evidence">@drillEvidenceCell(d)</dd>
 		</dl>
 
 		if verify.Signed {
@@ -161,6 +156,11 @@ templ DrillStepsPartial(d drill.Drill, steps []drill.Step, ars []drill.Assertion
 	} else {
 		<div hx-swap-oob="true" id="poll-marker" data-terminal="false"></div>
 	}
+	// Out-of-band updates so the summary card stays current while only the
+	// steps pane is polled — otherwise the badge freezes at its load value.
+	<dd hx-swap-oob="true" id="drill-status">@StatusBadge(d.Status)</dd>
+	<dd hx-swap-oob="true" id="drill-duration" class="text-xs">{ duration(d.StartedAt, d.CompletedAt) }</dd>
+	<dd hx-swap-oob="true" id="drill-evidence">@drillEvidenceCell(d)</dd>
 	<h2 class="mb-3 text-lg font-semibold">Steps</h2>
 	<div class="card overflow-x-auto p-0">
 		<table class="min-w-full divide-y divide-zinc-200 text-sm dark:divide-zinc-800">
@@ -210,6 +210,16 @@ templ DrillStepsPartial(d drill.Drill, steps []drill.Step, ars []drill.Assertion
 				</tbody>
 			</table>
 		</div>
+	}
+}
+
+// drillEvidenceCell renders the evidence column of the summary card: a
+// download button once the report step has written the PDF, a dash before.
+templ drillEvidenceCell(d drill.Drill) {
+	if d.EvidencePath != nil && *d.EvidencePath != "" {
+		<a href={ templ.SafeURL("/drills/" + d.ID.String() + "/evidence") } class="btn-primary px-3 py-1 text-xs">Download PDF</a>
+	} else {
+		<span class="text-xs text-zinc-500">—</span>
 	}
 }
 

@@ -1,0 +1,93 @@
+package templates
+
+// Landing is the public home page shown at "/" to signed-out visitors.
+// Signed-in users are redirected to their dashboard before this renders.
+templ Landing(lc LayoutCtx) {
+	@LayoutWith("Backup verification as a service", lc) {
+		<div class="space-y-20">
+			<!-- Hero -->
+			<section class="pt-6 text-center">
+				<p class="mb-3 inline-flex rounded-full bg-brand-100 px-3 py-1 text-xs font-medium text-brand-800 dark:bg-brand-900/40 dark:text-brand-200">
+					Backup verification as a service
+				</p>
+				<h1 class="mx-auto max-w-2xl text-4xl font-semibold tracking-tight sm:text-5xl">
+					Know your backups actually restore.
+				</h1>
+				<p class="mx-auto mt-4 max-w-xl text-lg text-zinc-600 dark:text-zinc-400">
+					Restore Drill restores your database dumps in an isolated
+					sandbox, runs the checks you define, and hands you signed,
+					auditor-grade evidence — on a schedule, automatically.
+				</p>
+				<div class="mt-8 flex flex-wrap justify-center gap-3">
+					<a href="/signup" class="btn-primary px-5 py-2.5">Start free</a>
+					<a href="/pricing" class="btn-ghost px-5 py-2.5">View pricing</a>
+				</div>
+				<p class="mt-3 text-xs text-zinc-500">
+					Free trial — no card required. Postgres supported today.
+				</p>
+			</section>
+			<!-- Problem -->
+			<section class="mx-auto max-w-2xl text-center">
+				<h2 class="text-2xl font-semibold tracking-tight">An untested backup is a guess</h2>
+				<p class="mt-3 text-zinc-600 dark:text-zinc-400">
+					Most teams find out a backup is broken in the middle of an
+					outage — wrong format, missing extension, a silent
+					truncation. A green backup job proves a file was written,
+					not that it restores. Restore Drill closes that gap by
+					actually performing the restore, before you need it.
+				</p>
+			</section>
+			<!-- How it works -->
+			<section>
+				<h2 class="mb-8 text-center text-2xl font-semibold tracking-tight">How it works</h2>
+				<div class="grid gap-6 sm:grid-cols-3">
+					@howCard("1", "Connect a database", "Point Restore Drill at the dump your existing backup job already produces. We never create or touch your production database.")
+					@howCard("2", "We run a drill", "On your schedule, we provision an isolated sandbox, restore the dump, and run your assertions — row counts, required tables, no-null checks, and more.")
+					@howCard("3", "Get signed evidence", "Each drill produces a signed PDF report and an immutable audit entry — the proof auditors and customers ask for.")
+				</div>
+			</section>
+			<!-- Features -->
+			<section>
+				<h2 class="mb-8 text-center text-2xl font-semibold tracking-tight">Built for teams that get audited</h2>
+				<div class="grid gap-6 sm:grid-cols-2">
+					@featureCard("Scheduled drills", "Verification runs on a cadence you set, so a broken backup is caught in days — not during a recovery.")
+					@featureCard("Signed PDF evidence", "Every drill is cryptographically signed and retained for seven years, with a live tamper-check.")
+					@featureCard("A real assertion suite", "Go beyond \"it restored\": assert row counts, table and column existence, and non-null constraints on the restored data.")
+					@featureCard("Immutable audit log", "Every drill, download, and account change is recorded — the trail SOC 2 and HIPAA reviewers expect.")
+					@featureCard("API and webhooks", "A versioned JSON API and signed webhooks put drill results straight into your own tooling and alerts.")
+					@featureCard("No production access", "Restore Drill verifies the dumps you already have. It needs no connection to your live database.")
+				</div>
+			</section>
+			<!-- Final CTA -->
+			<section class="card text-center">
+				<h2 class="text-2xl font-semibold tracking-tight">Stop guessing about your backups</h2>
+				<p class="mx-auto mt-2 max-w-md text-zinc-600 dark:text-zinc-400">
+					Run your first drill in minutes. Free to start.
+				</p>
+				<div class="mt-6 flex flex-wrap justify-center gap-3">
+					<a href="/signup" class="btn-primary px-5 py-2.5">Create an account</a>
+					<a href="/pricing" class="btn-ghost px-5 py-2.5">See plans</a>
+				</div>
+			</section>
+		</div>
+	}
+}
+
+// howCard is one numbered step in the "How it works" section.
+templ howCard(num, title, body string) {
+	<div class="card">
+		<div class="mb-3 flex h-8 w-8 items-center justify-center rounded-full bg-brand-700 text-sm font-semibold text-white">
+			{ num }
+		</div>
+		<h3 class="font-semibold">{ title }</h3>
+		<p class="mt-1 text-sm text-zinc-600 dark:text-zinc-400">{ body }</p>
+	</div>
+}
+
+// featureCard is one item in the feature grid.
+templ featureCard(title, body string) {
+	<div class="card">
+		<h3 class="font-semibold">{ title }</h3>
+		<p class="mt-1 text-sm text-zinc-600 dark:text-zinc-400">{ body }</p>
+	</div>
+}

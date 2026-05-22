@@ -232,6 +232,8 @@ func main() {
 		SourceDir:            cfg.SourceDir,
 		OAuth:                oauthRegistry,
 		SecureCookies:        cfg.IsProduction(),
+		PriceStarterLabel:    cfg.PriceStarterLabel,
+		PriceProLabel:        cfg.PriceProLabel,
 	})
 
 	// Sample River queue depth into the metrics gauge every 15s.

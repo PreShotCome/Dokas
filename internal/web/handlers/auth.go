@@ -24,7 +24,7 @@ func (h *Handlers) index(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/dashboard", http.StatusSeeOther)
 		return
 	}
-	http.Redirect(w, r, "/login", http.StatusSeeOther)
+	render(w, r, templates.Landing(h.layoutCtx(r)))
 }
 
 func (h *Handlers) loginPage(w http.ResponseWriter, r *http.Request) {

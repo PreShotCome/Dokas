@@ -26,7 +26,13 @@ type Config struct {
 	StripePricePro      string
 	// StripeMeterEvent is the Stripe Billing Meter event name drill usage is
 	// reported under. Empty disables usage-based billing.
-	StripeMeterEvent   string
+	StripeMeterEvent string
+	// PriceStarterLabel / PriceProLabel are the headline monthly prices shown
+	// on the public /pricing page. They are display-only — the amount actually
+	// charged is set on the Stripe Price — so they must be kept in sync with
+	// Stripe by whoever configures the account.
+	PriceStarterLabel  string
+	PriceProLabel      string
 	EvidenceSigningKey string
 	// EvidenceVerificationKeys holds zero or more concatenated PEM public-key
 	// blocks — keys retired by rotation, kept so old evidence still verifies.
@@ -80,6 +86,8 @@ func Load() (Config, error) {
 		StripePriceStarter:       os.Getenv("STRIPE_PRICE_STARTER"),
 		StripePricePro:           os.Getenv("STRIPE_PRICE_PRO"),
 		StripeMeterEvent:         os.Getenv("STRIPE_METER_EVENT"),
+		PriceStarterLabel:        getenv("PRICE_STARTER_LABEL", "$99"),
+		PriceProLabel:            getenv("PRICE_PRO_LABEL", "$399"),
 		EvidenceSigningKey:       os.Getenv("EVIDENCE_SIGNING_KEY"),
 		EvidenceVerificationKeys: os.Getenv("EVIDENCE_VERIFICATION_KEYS"),
 		EvidenceEncryptionKey:    os.Getenv("EVIDENCE_ENCRYPTION_KEY"),

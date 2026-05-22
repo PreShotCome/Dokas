@@ -109,6 +109,19 @@ func restoreDump(ctx context.Context, dsn, localPath string) error {
 	if err != nil {
 		return err
 	}
+	// Preflight: the restore shells out to a PostgreSQL client binary. A
+	// missing binary is an operator-environment problem, not a bad dump, so
+	// surface an actionable message instead of a raw "executable not found".
+	tool := "pg_restore"
+	if format == dumpPlainSQL {
+		tool = "psql"
+	}
+	if _, err := exec.LookPath(tool); err != nil {
+		return fmt.Errorf("%s is required to restore this dump but was not "+
+			"found on PATH — install the PostgreSQL client tools (which "+
+			"provide psql and pg_restore) and ensure their bin directory is "+
+			"on PATH", tool)
+	}
 	if format == dumpPlainSQL {
 		cmd := exec.CommandContext(ctx, "psql", "--quiet", "--no-psqlrc",
 			"--set=ON_ERROR_STOP=1", "-d", dsn, "-f", localPath)
