@@ -58,7 +58,14 @@ func (r *LocalRunner) Provision(ctx context.Context, drillID uuid.UUID) (*Sandbo
 // Fetch for postgres_dump_local validates the dump source and returns its
 // absolute path. A plain file or a pg_dump -Fd directory (identified by its
 // toc.dat) is accepted; later runners will copy from object storage.
-func (r *LocalRunner) Fetch(ctx context.Context, _ *Sandbox, sourceURI string) (string, error) {
+func (r *LocalRunner) Fetch(_ context.Context, _ *Sandbox, sourceURI string) (string, error) {
+	return fetchDump(sourceURI)
+}
+
+// fetchDump resolves and validates a dump source path. Shared by the local
+// and Fly runners — both restore by running pg_restore/psql from the app
+// against the sandbox DSN, so both just need the dump readable on disk.
+func fetchDump(sourceURI string) (string, error) {
 	abs, err := filepath.Abs(sourceURI)
 	if err != nil {
 		return "", fmt.Errorf("resolve source path: %w", err)
@@ -92,18 +99,24 @@ const (
 //   - custom / tar — applied with pg_restore (it auto-detects either)
 //   - directory    — applied with pg_restore reading the directory
 func (r *LocalRunner) Restore(ctx context.Context, sb *Sandbox, localPath string) error {
+	return restoreDump(ctx, sb.DSN, localPath)
+}
+
+// restoreDump loads a dump into the database at dsn, picking psql or
+// pg_restore from the detected format. Shared by the local and Fly runners.
+func restoreDump(ctx context.Context, dsn, localPath string) error {
 	format, err := detectDumpFormat(localPath)
 	if err != nil {
 		return err
 	}
 	if format == dumpPlainSQL {
 		cmd := exec.CommandContext(ctx, "psql", "--quiet", "--no-psqlrc",
-			"--set=ON_ERROR_STOP=1", "-d", sb.DSN, "-f", localPath)
+			"--set=ON_ERROR_STOP=1", "-d", dsn, "-f", localPath)
 		return runDumpCmd(cmd, "psql")
 	}
 	cmd := exec.CommandContext(ctx, "pg_restore",
 		"--no-owner", "--no-privileges", "--exit-on-error",
-		"-d", sb.DSN, localPath)
+		"-d", dsn, localPath)
 	return runDumpCmd(cmd, "pg_restore")
 }
 

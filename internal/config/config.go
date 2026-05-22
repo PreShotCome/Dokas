@@ -51,6 +51,14 @@ type Config struct {
 	GitHubOAuthClientID     string
 	GitHubOAuthClientSecret string
 
+	// Fly* configure the Fly Machines drill runner; with no token the local
+	// runner (a temp database on the app's Postgres host) is used instead.
+	FlyAPIToken          string
+	FlyAppName           string
+	FlyPostgresImage     string
+	FlyRegion            string
+	FlySandboxDBPassword string
+
 	StaffEmails  []string
 	MetricsToken string
 }
@@ -89,8 +97,15 @@ func Load() (Config, error) {
 		GoogleOAuthClientSecret: os.Getenv("GOOGLE_OAUTH_CLIENT_SECRET"),
 		GitHubOAuthClientID:     os.Getenv("GITHUB_OAUTH_CLIENT_ID"),
 		GitHubOAuthClientSecret: os.Getenv("GITHUB_OAUTH_CLIENT_SECRET"),
-		StaffEmails:             parseList(os.Getenv("STAFF_EMAILS")),
-		MetricsToken:            os.Getenv("METRICS_TOKEN"),
+
+		FlyAPIToken:          os.Getenv("FLY_API_TOKEN"),
+		FlyAppName:           os.Getenv("FLY_APP_NAME"),
+		FlyPostgresImage:     os.Getenv("FLY_POSTGRES_IMAGE"),
+		FlyRegion:            getenv("FLY_REGION", "iad"),
+		FlySandboxDBPassword: os.Getenv("FLY_SANDBOX_DB_PASSWORD"),
+
+		StaffEmails:  parseList(os.Getenv("STAFF_EMAILS")),
+		MetricsToken: os.Getenv("METRICS_TOKEN"),
 	}
 
 	if c.DatabaseURL == "" {

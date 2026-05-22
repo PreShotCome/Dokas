@@ -30,6 +30,7 @@ import (
 	"github.com/preshotcome/anything/internal/email"
 	"github.com/preshotcome/anything/internal/evidence"
 	"github.com/preshotcome/anything/internal/flags"
+	"github.com/preshotcome/anything/internal/fly"
 	"github.com/preshotcome/anything/internal/oauth"
 	"github.com/preshotcome/anything/internal/obs"
 	"github.com/preshotcome/anything/internal/ratelimit"
@@ -95,7 +96,13 @@ func main() {
 		os.Exit(1)
 	}
 
-	localRunner := runner.NewLocalRunner(cfg.DatabaseURL)
+	var drillRunner runner.Runner = runner.NewLocalRunner(cfg.DatabaseURL)
+	if cfg.FlyAPIToken != "" && cfg.FlyAppName != "" {
+		drillRunner = runner.NewFlyMachineRunner(
+			fly.NewClient(cfg.FlyAppName, cfg.FlyAPIToken),
+			cfg.FlyAppName, cfg.FlyPostgresImage, cfg.FlyRegion, cfg.FlySandboxDBPassword)
+		logger.Info("drill runner: fly machines", "app", cfg.FlyAppName)
+	}
 	webhookStore := webhooks.NewStore(pool)
 
 	// Growth: transactional email, product analytics, feature flags.
@@ -157,7 +164,7 @@ func main() {
 
 	steps.Register(workers, steps.Deps{
 		Store:     drillStore,
-		Runner:    localRunner,
+		Runner:    drillRunner,
 		Inserter:  riverClient,
 		Audit:     auditLog,
 		Evidence:  evidenceService,

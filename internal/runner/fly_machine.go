@@ -2,43 +2,92 @@ package runner
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/google/uuid"
+
+	"github.com/preshotcome/anything/internal/fly"
 )
 
-// FlyMachineRunner is the production sandbox driver. It will provision a
-// dedicated Fly Machine per drill, attach a volume, fetch the dump from
-// object storage, run pg_restore against an in-machine Postgres, run
-// assertions, and destroy the machine on teardown.
+// FlyMachineRunner runs each drill in a dedicated, ephemeral Fly Machine — a
+// per-drill Postgres VM, isolated from the app and from other drills.
+// Provision creates the machine; Restore loads the dump into it (the app
+// runs pg_restore against the machine's private DSN); Teardown destroys it.
+// Fetch and Restore reuse the local-runner logic — only the sandbox
+// lifecycle differs.
 //
-// Phase 2 ships the type and interface compliance only. Real wiring is
-// deferred to a later phase; every method returns ErrNotImplemented so
-// callers can detect "this is the stub" and fall back to the local runner.
+// Reaching a machine's Postgres requires the app to share Fly's private
+// network with it (6PN); see docs/runbooks/fly.md. This runner is
+// build-verified — it has not been exercised against the live Fly API.
 type FlyMachineRunner struct {
-	// AppName, APIToken, Region, VolumeSizeGB, MachineCPUKind, MachineCPU,
-	// MachineMemoryMB — populated when the real runner lands.
+	fly      *fly.Client
+	app      string
+	image    string // a Postgres container image
+	region   string
+	dbPass   string // POSTGRES_PASSWORD baked into every sandbox machine
+	memoryMB int
 }
 
-func NewFlyMachineRunner() *FlyMachineRunner { return &FlyMachineRunner{} }
-
-func (f *FlyMachineRunner) Provision(_ context.Context, _ uuid.UUID) (*Sandbox, error) {
-	return nil, ErrNotImplemented
+// NewFlyMachineRunner builds the runner. image must be a Postgres container
+// image (default postgres:16-alpine); dbPass is the password every sandbox
+// Postgres is created with — fixed, so Rehydrate can rebuild the DSN.
+func NewFlyMachineRunner(client *fly.Client, app, image, region, dbPass string) *FlyMachineRunner {
+	if image == "" {
+		image = "postgres:16-alpine"
+	}
+	return &FlyMachineRunner{
+		fly: client, app: app, image: image, region: region,
+		dbPass: dbPass, memoryMB: 1024,
+	}
 }
 
-func (f *FlyMachineRunner) Fetch(_ context.Context, _ *Sandbox, _ string) (string, error) {
-	return "", ErrNotImplemented
+// dsn builds the libpq URL for a sandbox machine. Fly's private DNS resolves
+// <machine-id>.vm.<app>.internal over the 6PN network.
+func (r *FlyMachineRunner) dsn(machineID string) string {
+	return fmt.Sprintf("postgres://postgres:%s@%s.vm.%s.internal:5432/postgres?sslmode=disable",
+		r.dbPass, machineID, r.app)
 }
 
-func (f *FlyMachineRunner) Restore(_ context.Context, _ *Sandbox, _ string) error {
-	return ErrNotImplemented
+func (r *FlyMachineRunner) Provision(ctx context.Context, drillID uuid.UUID) (*Sandbox, error) {
+	m, err := r.fly.CreateMachine(ctx, fly.CreateInput{
+		Image:  r.image,
+		Region: r.region,
+		Env: map[string]string{
+			"POSTGRES_PASSWORD": r.dbPass,
+			"POSTGRES_DB":       "postgres",
+		},
+		MemoryMB: r.memoryMB,
+		CPUs:     1,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("fly: provision machine: %w", err)
+	}
+	if err := r.fly.WaitStarted(ctx, m.ID); err != nil {
+		_ = r.fly.Destroy(ctx, m.ID) // never orphan a machine
+		return nil, fmt.Errorf("fly: machine %s never started: %w", m.ID, err)
+	}
+	return &Sandbox{DrillID: drillID, Name: m.ID, DSN: r.dsn(m.ID)}, nil
 }
 
-func (f *FlyMachineRunner) Rehydrate(_ uuid.UUID, _ string) (*Sandbox, error) {
-	return nil, ErrNotImplemented
+func (r *FlyMachineRunner) Fetch(_ context.Context, _ *Sandbox, sourceURI string) (string, error) {
+	return fetchDump(sourceURI)
 }
 
-func (f *FlyMachineRunner) Teardown(_ context.Context, _ *Sandbox) error {
-	return ErrNotImplemented
+func (r *FlyMachineRunner) Restore(ctx context.Context, sb *Sandbox, localPath string) error {
+	return restoreDump(ctx, sb.DSN, localPath)
+}
+
+// Rehydrate rebuilds a Sandbox from a drill ID and the persisted machine ID.
+func (r *FlyMachineRunner) Rehydrate(drillID uuid.UUID, machineID string) (*Sandbox, error) {
+	return &Sandbox{DrillID: drillID, Name: machineID, DSN: r.dsn(machineID)}, nil
+}
+
+// Teardown destroys the drill's machine. Safe on a nil/zero sandbox.
+func (r *FlyMachineRunner) Teardown(ctx context.Context, sb *Sandbox) error {
+	if sb == nil || sb.Name == "" {
+		return nil
+	}
+	return r.fly.Destroy(ctx, sb.Name)
 }
 
 // Compile-time interface guard.
