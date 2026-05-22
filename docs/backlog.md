@@ -27,9 +27,15 @@ not started, planned · `debt` = works but should be revisited.
 - **Document-signing cert** — `seam`. Evidence is signed with an Ed25519
   key (ephemeral in dev). The plan wants a real DigiCert document-signing
   cert + chain. `EVIDENCE_SIGNING_KEY` swaps in a persistent key; a full
-  cert chain is deferred.
+  cert chain is deferred. Deliberately not coded — unverified
+  security-critical crypto (CMS/PKCS#7 + KMS/HSM key custody) would
+  undermine the feature it supports. See `docs/runbooks/signing-cert.md`
+  for the seam, the interim, and a bounded implementation plan.
 - **RFC 3161 timestamp** — `seam`. The signature covers `signed_at`, a
-  self-asserted timestamp. A real RFC 3161 TSA (ASN.1 token) is deferred.
+  self-asserted timestamp bound into the Ed25519 signature. A real RFC 3161
+  TSA (DER-encoded ASN.1 token) is deferred — for the same reason as the
+  signing cert, and built together with it. See
+  `docs/runbooks/rfc3161.md`.
 - **Legal copy** — `deferred`. ToS/Privacy/DPA pages are DRAFT placeholders
   pending counsel.
 

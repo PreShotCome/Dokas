@@ -18,8 +18,10 @@ Each service is independent — activate them in any order.
 | PostHog | Analytics + feature flags | ✅ complete | [posthog.md](posthog.md) |
 | OpenTelemetry / Grafana | Traces, metrics, logs | ✅ complete | [observability.md](observability.md) |
 | Sentry | Error tracking | ✅ complete | [sentry.md](sentry.md) |
-| Document-signing certificate | Evidence trust chain | ⬜ pending | — |
-| RFC 3161 timestamp authority | Evidence timestamping | ⬜ pending | — |
+| Document-signing certificate | Evidence trust chain | 🟡 seam — see runbook | [signing-cert.md](signing-cert.md) |
+| RFC 3161 timestamp authority | Evidence timestamping | 🟡 seam — see runbook | [rfc3161.md](rfc3161.md) |
 
 "Code status" is whether the in-repo integration is implemented. A ✅ service
 works the moment its environment variables are set; nothing else to build.
+A 🟡 seam is deliberately *not* coded — its runbook explains the current
+interim, why it is sound, and what a real implementation would need.
