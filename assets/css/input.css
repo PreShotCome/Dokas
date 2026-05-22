@@ -11,7 +11,11 @@
   }
   @media (prefers-color-scheme: dark) {
     body {
-      @apply bg-zinc-950 text-zinc-100;
+      @apply text-zinc-100;
+      /* Soft navy-blue easing into near-black, left to right — keeps the
+         dark theme from reading as a flat black wall. */
+      background: linear-gradient(to right, #1e2d4d, #09090b);
+      background-attachment: fixed;
     }
   }
   /* WCAG 2.4.7: every focusable element gets a visible focus indicator,
