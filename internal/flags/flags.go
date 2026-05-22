@@ -6,6 +6,7 @@ package flags
 
 import (
 	"context"
+	"log/slog"
 	"os"
 	"strconv"
 	"strings"
@@ -49,10 +50,12 @@ func (StaticFlags) Enabled(_ context.Context, key, _ string) bool {
 	return defaults[key]
 }
 
-// New is the constructor used at startup. PostHog flag evaluation is a
-// later refinement; for now every deployment uses StaticFlags, so flags are
-// controlled by environment regardless of whether PostHog is wired for
-// analytics.
-func New() Flags {
-	return NewStaticFlags()
+// New is the constructor used at startup. With a PostHog project key it
+// returns a PostHog-backed evaluator (which itself falls back to the static
+// env defaults); without one, plain env-driven StaticFlags.
+func New(posthogAPIKey, posthogHost string, logger *slog.Logger) Flags {
+	if posthogAPIKey == "" {
+		return NewStaticFlags()
+	}
+	return NewPostHogFlags(posthogAPIKey, posthogHost, logger)
 }

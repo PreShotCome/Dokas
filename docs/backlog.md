@@ -52,8 +52,6 @@ not started, planned · `debt` = works but should be revisited.
 
 - **Postmark / PostHog are seams** — `seam`. Without tokens the app uses
   `LogMailer` and `NoopAnalytics`.
-- **PostHog flag backend** — `deferred`. `flags.Flags` only has the
-  env-driven `StaticFlags`; no PostHog flag-evaluation impl.
 - **A/B experiments, deliverability report** — `deferred`.
 - **Marketing site** — `deferred`. The Astro site + its SEO (OG cards,
   JSON-LD, sitemap, MDX content) is Phase 7 in a separate repo.
@@ -79,6 +77,13 @@ not started, planned · `debt` = works but should be revisited.
   wants expand-then-contract verified on a prod-sized clone.
 
 ## Resolved
+
+Layer-9 growth:
+
+- **PostHog feature-flag backend** — `flags.PostHogFlags` evaluates flags via
+  PostHog's `/decide` endpoint with a 60s per-distinct-ID cache and a
+  background refresh, so flag checks never block a request. Falls back to the
+  static env defaults on any miss/error. Activated by `POSTHOG_API_KEY`.
 
 Layer-3 billing:
 

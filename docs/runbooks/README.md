@@ -15,7 +15,7 @@ Each service is independent — activate them in any order.
 | Fly Machines | Per-drill cloud sandbox | ⬜ pending | — |
 | S3 / R2 Object Lock | Evidence storage | ⬜ pending | — |
 | Google + GitHub OAuth | Social login | ⬜ pending | — |
-| PostHog | Analytics + feature flags | ⬜ pending | — |
+| PostHog | Analytics + feature flags | ✅ complete | [posthog.md](posthog.md) |
 | OpenTelemetry / Grafana | Traces, metrics, logs | ⬜ pending | — |
 | Sentry | Error tracking | ⬜ pending | — |
 | Document-signing certificate | Evidence trust chain | ⬜ pending | — |

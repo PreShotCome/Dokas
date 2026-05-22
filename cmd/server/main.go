@@ -106,7 +106,7 @@ func main() {
 		logger.Info("email disabled (no POSTMARK_TOKEN) — using log mailer")
 	}
 	analyticsClient := analytics.New(cfg.PostHogAPIKey, cfg.PostHogHost, logger)
-	featureFlags := flags.New()
+	featureFlags := flags.New(cfg.PostHogAPIKey, cfg.PostHogHost, logger)
 
 	// Evidence: detached-signature signer + local store.
 	signer, err := evidence.NewSignerWithVerificationKeys(cfg.EvidenceSigningKey, cfg.EvidenceVerificationKeys)
