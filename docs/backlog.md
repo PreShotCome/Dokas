@@ -9,9 +9,12 @@ not started, planned · `debt` = works but should be revisited.
 
 ## Layer 2 — First drill
 
-- **Physical-backup formats** — `deferred`. All four pg_dump *logical*
-  formats are supported (see Resolved); physical backups — base backups,
-  pgBackRest, WAL-G — need whole-cluster restore and are not built.
+- **Physical-backup formats** — `seam`. All four pg_dump *logical* formats
+  are supported (see Resolved); physical backups — base backups,
+  pgBackRest, WAL-G — need whole-cluster restore, which does not fit the
+  shared-host local runner and belongs on the Fly per-drill VM. The design,
+  the blockers, and a bounded implementation plan are documented in
+  `docs/runbooks/physical-backups.md`.
 
 ## Layer 3 — Multi-tenant
 
