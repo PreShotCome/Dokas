@@ -57,8 +57,6 @@ not started, planned · `debt` = works but should be revisited.
   carve-out.
 - **Help docs** — `deferred`. The full docs site (Astro + MDX + Pagefind
   search) is Phase 7, a separate repo. `/help` is an interim FAQ.
-- **Admin refunds** — `deferred`. The plan's admin panel includes refunds;
-  billing is still a skeleton, so there is nothing to refund yet.
 
 ## Cross-cutting
 
@@ -102,6 +100,13 @@ Layer-9 growth:
 
 Layer-3 billing:
 
+- **Admin refunds** — staff can issue a full Stripe refund from a new
+  account-detail admin page (`/admin/accounts/{id}`). The page lists the
+  customer's recent charges fetched live from Stripe (`billing.ListCharges`)
+  — the app stores no per-charge data — and each refundable charge has a
+  Refund button. `billing.Refund` posts to `/v1/refunds` with a
+  charge-derived idempotency key, so a double-submit can't refund twice;
+  every refund is audited as `staff.refund_issued`.
 - **Plan enforcement** — each subscription tier now caps the countable
   resources an account can create: databases, team seats (members +
   pending invitations), API keys, and webhook endpoints. Trial = 1 each

@@ -33,6 +33,39 @@ type AdminUserDetailView struct {
 	Drills   []drill.Drill
 }
 
+// AdminCharge is the staff-panel view of a Stripe charge. Amount is
+// pre-formatted by the handler so the template stays currency-agnostic.
+type AdminCharge struct {
+	ID          string
+	Amount      string
+	Created     time.Time
+	Status      string
+	Refunded    bool
+	Description string
+}
+
+// AdminAccountInfo is the staff-panel view of an account row.
+type AdminAccountInfo struct {
+	ID               uuid.UUID
+	Name             string
+	Slug             string
+	Plan             string
+	StripeCustomerID string
+}
+
+// AdminAccountDetailView bundles the account-detail page input.
+type AdminAccountDetailView struct {
+	Ctx     LayoutCtx
+	Account AdminAccountInfo
+	Charges []AdminCharge
+	// BillingError, when set, replaces the charges table — Stripe is off,
+	// the account never subscribed, or the charge fetch failed.
+	BillingError string
+	// Notice / ActionError surface the outcome of a refund attempt.
+	Notice      string
+	ActionError string
+}
+
 templ AdminHome(lc LayoutCtx) {
 	@LayoutWith("Admin", lc) {
 		<h1 class="mb-2 text-2xl font-semibold tracking-tight">Staff admin</h1>
@@ -137,7 +170,7 @@ templ AdminUserDetail(v AdminUserDetailView) {
 				<ul class="card divide-y divide-zinc-200 p-0 text-sm dark:divide-zinc-800">
 					for _, a := range v.Accounts {
 						<li class="flex items-center justify-between px-4 py-2">
-							<span>{ a.Name }</span>
+							<a href={ templ.SafeURL("/admin/accounts/" + a.ID.String()) } class="underline">{ a.Name }</a>
 							<span class="rounded-full bg-zinc-100 px-2 py-0.5 text-xs dark:bg-zinc-800">{ a.Role }</span>
 						</li>
 					}
@@ -209,6 +242,95 @@ templ AdminDrillDetail(lc LayoutCtx, d drill.Drill, t drill.Target, steps []dril
 			@SignaturePanel(verify)
 		}
 		@DrillStepsPartial(d, steps, ars)
+	}
+}
+
+templ AdminAccountDetail(v AdminAccountDetailView) {
+	@LayoutWith("Admin — account", v.Ctx) {
+		<div class="mb-4 flex items-baseline justify-between">
+			<h1 class="text-2xl font-semibold tracking-tight">{ v.Account.Name }</h1>
+			<a href="/admin" class="text-sm underline">Admin home</a>
+		</div>
+
+		if v.Notice != "" {
+			<div class="alert-success mb-4">{ v.Notice }</div>
+		}
+		if v.ActionError != "" {
+			<div class="alert-error mb-4">{ v.ActionError }</div>
+		}
+
+		<dl class="card mb-6 grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
+			<dt class="font-medium">Account ID</dt>
+			<dd class="font-mono text-xs">{ v.Account.ID.String() }</dd>
+			<dt class="font-medium">Slug</dt>
+			<dd>{ v.Account.Slug }</dd>
+			<dt class="font-medium">Plan</dt>
+			<dd>{ v.Account.Plan }</dd>
+			<dt class="font-medium">Stripe customer</dt>
+			<dd class="font-mono text-xs">
+				if v.Account.StripeCustomerID != "" {
+					{ v.Account.StripeCustomerID }
+				} else {
+					—
+				}
+			</dd>
+		</dl>
+
+		<section>
+			<h2 class="mb-2 text-lg font-semibold">Charges &amp; refunds</h2>
+			if v.BillingError != "" {
+				<p class="text-sm text-zinc-500">{ v.BillingError }</p>
+			} else if len(v.Charges) == 0 {
+				<p class="text-sm text-zinc-500">No charges on this customer.</p>
+			} else {
+				<div class="card overflow-x-auto p-0">
+					<table class="min-w-full divide-y divide-zinc-200 text-sm dark:divide-zinc-800">
+						<thead class="bg-zinc-50 dark:bg-zinc-900/50">
+							<tr>
+								<th class="px-4 py-2 text-left font-medium">Date</th>
+								<th class="px-4 py-2 text-left font-medium">Description</th>
+								<th class="px-4 py-2 text-right font-medium">Amount</th>
+								<th class="px-4 py-2 text-left font-medium">Status</th>
+								<th class="px-4 py-2 text-right font-medium">Refund</th>
+							</tr>
+						</thead>
+						<tbody class="divide-y divide-zinc-200 dark:divide-zinc-800">
+							for _, c := range v.Charges {
+								<tr>
+									<td class="px-4 py-2 text-xs text-zinc-500">{ c.Created.Format("2006-01-02") }</td>
+									<td class="px-4 py-2">
+										if c.Description != "" {
+											{ c.Description }
+										} else {
+											<span class="font-mono text-xs text-zinc-500">{ c.ID }</span>
+										}
+									</td>
+									<td class="px-4 py-2 text-right tabular-nums">{ c.Amount }</td>
+									<td class="px-4 py-2 text-xs">{ c.Status }</td>
+									<td class="px-4 py-2 text-right">
+										if c.Refunded {
+											<span class="text-xs text-zinc-500">refunded</span>
+										} else if c.Status == "succeeded" {
+											<form method="POST" action={ templ.SafeURL("/admin/accounts/" + v.Account.ID.String() + "/refund") } class="inline">
+												@CSRFField()
+												<input type="hidden" name="charge_id" value={ c.ID }/>
+												<button type="submit" class="btn-ghost text-xs text-rose-700 dark:text-rose-400">Refund</button>
+											</form>
+										} else {
+											<span class="text-xs text-zinc-400">—</span>
+										}
+									</td>
+								</tr>
+							}
+						</tbody>
+					</table>
+				</div>
+				<p class="mt-2 text-xs text-zinc-500">
+					Refunds are full-amount and irreversible. Every refund is recorded
+					in the audit log against your staff account.
+				</p>
+			}
+		</section>
 	}
 }
 

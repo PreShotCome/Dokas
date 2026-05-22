@@ -55,6 +55,11 @@ type Service interface {
 	PlanForPrice(priceID string) string
 	// VerifyWebhook checks a Stripe-Signature header against the raw body.
 	VerifyWebhook(payload []byte, sigHeader string) error
+	// ListCharges returns a customer's recent charges, newest first.
+	ListCharges(ctx context.Context, customerID string) ([]Charge, error)
+	// Refund issues a full refund of a charge. idempotencyKey makes a
+	// retried call safe.
+	Refund(ctx context.Context, chargeID, idempotencyKey string) (RefundResult, error)
 	// Enabled reports whether a real Stripe is wired.
 	Enabled() bool
 }
@@ -210,6 +215,12 @@ func (s *stripeService) post(ctx context.Context, path string, form url.Values, 
 	if idempotencyKey != "" {
 		req.Header.Set("Idempotency-Key", idempotencyKey)
 	}
+	return s.do(req, path)
+}
+
+// do executes a prepared Stripe request and decodes the JSON response.
+// Shared by post and get.
+func (s *stripeService) do(req *http.Request, path string) (map[string]any, error) {
 	resp, err := s.http.Do(req)
 	if err != nil {
 		return nil, err

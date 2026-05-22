@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"bytes"
+	"fmt"
 	"net/http"
 	"strings"
 	"time"
@@ -229,4 +230,106 @@ func (h *Handlers) adminEvidenceRegen(w http.ResponseWriter, r *http.Request) {
 		IP: audit.ClientIP(r), UserAgent: r.UserAgent(),
 	})
 	http.Redirect(w, r, "/admin/drills/"+drillID.String(), http.StatusSeeOther)
+}
+
+// adminAccountDetail is the staff cross-account billing view: account info
+// plus the customer's recent Stripe charges, each refundable.
+func (h *Handlers) adminAccountDetail(w http.ResponseWriter, r *http.Request) {
+	accountID, err := uuid.Parse(chi.URLParam(r, "id"))
+	if err != nil {
+		http.NotFound(w, r)
+		return
+	}
+	var notice string
+	if refundID := strings.TrimSpace(r.URL.Query().Get("refunded")); refundID != "" {
+		notice = "Refund issued — Stripe refund " + refundID + "."
+	}
+	h.renderAdminAccount(w, r, accountID, notice, "")
+}
+
+// renderAdminAccount loads the account + its Stripe charges and renders the
+// account-detail page. notice / actionErr surface a prior refund's outcome.
+func (h *Handlers) renderAdminAccount(w http.ResponseWriter, r *http.Request, accountID uuid.UUID, notice, actionErr string) {
+	acct, err := h.accounts.GetAccount(r.Context(), accountID)
+	if err != nil {
+		http.NotFound(w, r)
+		return
+	}
+	view := templates.AdminAccountDetailView{
+		Ctx: h.layoutCtx(r),
+		Account: templates.AdminAccountInfo{
+			ID: acct.ID, Name: acct.Name, Slug: acct.Slug, Plan: string(acct.Plan),
+		},
+		Notice:      notice,
+		ActionError: actionErr,
+	}
+	if acct.StripeCustomerID != nil {
+		view.Account.StripeCustomerID = *acct.StripeCustomerID
+	}
+
+	switch {
+	case !h.billing.Enabled():
+		view.BillingError = "Stripe is not configured in this environment."
+	case view.Account.StripeCustomerID == "":
+		view.BillingError = "This account has no Stripe customer — it has never subscribed."
+	default:
+		charges, err := h.billing.ListCharges(r.Context(), view.Account.StripeCustomerID)
+		if err != nil {
+			view.BillingError = "Could not load charges from Stripe: " + err.Error()
+			break
+		}
+		for _, c := range charges {
+			view.Charges = append(view.Charges, templates.AdminCharge{
+				ID:          c.ID,
+				Amount:      formatMoney(c.Amount, c.Currency),
+				Created:     c.Created,
+				Status:      c.Status,
+				Refunded:    c.Refunded,
+				Description: c.Description,
+			})
+		}
+	}
+	render(w, r, templates.AdminAccountDetail(view))
+}
+
+// adminRefund issues a full Stripe refund of a charge. The idempotency key
+// is derived from the charge, so a double-submit cannot refund it twice.
+func (h *Handlers) adminRefund(w http.ResponseWriter, r *http.Request) {
+	staff, _ := auth.FromContext(r.Context())
+	accountID, err := uuid.Parse(chi.URLParam(r, "id"))
+	if err != nil {
+		http.NotFound(w, r)
+		return
+	}
+	if err := r.ParseForm(); err != nil {
+		http.Error(w, "bad form", http.StatusBadRequest)
+		return
+	}
+	chargeID := strings.TrimSpace(r.PostFormValue("charge_id"))
+	if chargeID == "" {
+		h.renderAdminAccount(w, r, accountID, "", "A charge must be selected to refund.")
+		return
+	}
+
+	res, err := h.billing.Refund(r.Context(), chargeID, "admin-refund-"+chargeID)
+	if err != nil {
+		h.renderAdminAccount(w, r, accountID, "", "Refund failed: "+err.Error())
+		return
+	}
+	_ = h.audit.Record(r.Context(), audit.Event{
+		AccountID: &accountID, ActorID: &staff.ID, Action: "staff.refund_issued",
+		TargetKind: "account", TargetID: accountID.String(),
+		IP: audit.ClientIP(r), UserAgent: r.UserAgent(),
+		Metadata: map[string]any{
+			"charge_id": chargeID, "refund_id": res.ID,
+			"amount": res.Amount, "status": res.Status,
+		},
+	})
+	http.Redirect(w, r, "/admin/accounts/"+accountID.String()+"?refunded="+res.ID, http.StatusSeeOther)
+}
+
+// formatMoney renders a Stripe amount (in the currency's minor unit) as a
+// human string, e.g. (1500, "usd") → "USD 15.00".
+func formatMoney(minorUnits int64, currency string) string {
+	return fmt.Sprintf("%s %.2f", strings.ToUpper(currency), float64(minorUnits)/100)
 }
