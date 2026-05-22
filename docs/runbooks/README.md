@@ -16,8 +16,8 @@ Each service is independent — activate them in any order.
 | S3 / R2 Object Lock | Evidence storage | ⬜ pending | — |
 | Google + GitHub OAuth | Social login | ✅ complete | [oauth.md](oauth.md) |
 | PostHog | Analytics + feature flags | ✅ complete | [posthog.md](posthog.md) |
-| OpenTelemetry / Grafana | Traces, metrics, logs | ⬜ pending | — |
-| Sentry | Error tracking | ⬜ pending | — |
+| OpenTelemetry / Grafana | Traces, metrics, logs | ✅ complete | [observability.md](observability.md) |
+| Sentry | Error tracking | ✅ complete | [sentry.md](sentry.md) |
 | Document-signing certificate | Evidence trust chain | ⬜ pending | — |
 | RFC 3161 timestamp authority | Evidence timestamping | ⬜ pending | — |
 

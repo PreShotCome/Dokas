@@ -39,12 +39,6 @@ not started, planned · `debt` = works but should be revisited.
 - **Legal copy** — `deferred`. ToS/Privacy/DPA pages are DRAFT placeholders
   pending counsel.
 
-## Layer 6 — Observability
-
-- **No real backends** — `seam`. OTLP collector, Grafana, and Sentry are
-  config-gated; locally tracing uses the stdout exporter and errors use the
-  noop reporter. Dashboards/alerts are committed as IaC, not deployed.
-
 ## Layer 9 — Growth
 
 - **Postmark / PostHog are seams** — `seam`. Without tokens the app uses
@@ -74,6 +68,15 @@ not started, planned · `debt` = works but should be revisited.
   wants expand-then-contract verified on a prod-sized clone.
 
 ## Resolved
+
+Layer-6 observability:
+
+- **OpenTelemetry + Sentry backends** — the integration code was already in
+  `internal/obs` (OTLP trace exporter, Prometheus metrics, structured logs,
+  Sentry SDK). Documented activation: `OTEL_TRACES_EXPORTER`/`OTEL_EXPORTER_*`
+  point traces at a collector; `SENTRY_DSN` enables error reporting. See
+  `docs/runbooks/observability.md` and `sentry.md`. Grafana dashboards as IaC
+  remain deferred.
 
 Layer-9 growth:
 
