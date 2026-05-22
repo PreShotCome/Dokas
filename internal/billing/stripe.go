@@ -60,6 +60,9 @@ type Service interface {
 	// Refund issues a full refund of a charge. idempotencyKey makes a
 	// retried call safe.
 	Refund(ctx context.Context, chargeID, idempotencyKey string) (RefundResult, error)
+	// ReportUsage records one unit of metered usage for a customer.
+	// identifier dedups retries. A no-op when no meter is configured.
+	ReportUsage(ctx context.Context, customerID, identifier string) error
 	// Enabled reports whether a real Stripe is wired.
 	Enabled() bool
 }
@@ -70,6 +73,9 @@ type Config struct {
 	WebhookSecret string // whsec_... — webhook signing secret
 	PriceStarter  string // price_... for the Starter plan
 	PricePro      string // price_... for the Pro plan
+	// MeterEvent is the Stripe Billing Meter event name that drill usage is
+	// reported under. Empty disables usage reporting.
+	MeterEvent string
 }
 
 // New returns a Service. With an empty SecretKey it returns a no-op so

@@ -18,9 +18,6 @@ not started, planned · `debt` = works but should be revisited.
 
 ## Layer 3 — Multi-tenant
 
-- **Metered / usage billing** — `deferred`. Per-tier feature caps are now
-  enforced (see Resolved), but there is no usage-based / metered billing —
-  e.g. charging per database or per drill above an included allowance.
 ## Layer 4 — Perimeter & webhooks
 
 
@@ -125,6 +122,12 @@ Layer-9 growth:
 
 Layer-3 billing:
 
+- **Usage-based billing** — the app reports one Stripe Billing Meter event
+  per drill run (`billing.ReportUsage`, sent from the teardown step and
+  deduped on the drill ID), so a plan can charge for drill volume on top of
+  the flat tier price. The Stripe meter + metered price decide the included
+  allowance; the app only reports raw usage. Activated by
+  `STRIPE_METER_EVENT`, off otherwise. See `docs/runbooks/stripe.md`.
 - **Admin refunds** — staff can issue a full Stripe refund from a new
   account-detail admin page (`/admin/accounts/{id}`). The page lists the
   customer's recent charges fetched live from Stripe (`billing.ListCharges`)

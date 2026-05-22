@@ -83,6 +83,7 @@ func main() {
 		WebhookSecret: cfg.StripeWebhookSecret,
 		PriceStarter:  cfg.StripePriceStarter,
 		PricePro:      cfg.StripePricePro,
+		MeterEvent:    cfg.StripeMeterEvent,
 	})
 	if billingCustomers.Enabled() {
 		logger.Info("billing enabled (stripe)")
@@ -171,6 +172,8 @@ func main() {
 		Webhooks:  webhookDispatch,
 		Metrics:   observ.Metrics,
 		Analytics: analyticsClient,
+		Billing:   billingCustomers,
+		Accounts:  accountStore,
 	})
 	deliverWorker := webhooks.NewDeliverWorker(webhookStore, cfg.IsProduction())
 	deliverWorker.Metrics = observ.Metrics

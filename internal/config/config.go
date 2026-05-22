@@ -24,7 +24,10 @@ type Config struct {
 	StripeWebhookSecret string
 	StripePriceStarter  string
 	StripePricePro      string
-	EvidenceSigningKey  string
+	// StripeMeterEvent is the Stripe Billing Meter event name drill usage is
+	// reported under. Empty disables usage-based billing.
+	StripeMeterEvent   string
+	EvidenceSigningKey string
 	// EvidenceVerificationKeys holds zero or more concatenated PEM public-key
 	// blocks — keys retired by rotation, kept so old evidence still verifies.
 	EvidenceVerificationKeys string
@@ -76,6 +79,7 @@ func Load() (Config, error) {
 		StripeWebhookSecret:      os.Getenv("STRIPE_WEBHOOK_SECRET"),
 		StripePriceStarter:       os.Getenv("STRIPE_PRICE_STARTER"),
 		StripePricePro:           os.Getenv("STRIPE_PRICE_PRO"),
+		StripeMeterEvent:         os.Getenv("STRIPE_METER_EVENT"),
 		EvidenceSigningKey:       os.Getenv("EVIDENCE_SIGNING_KEY"),
 		EvidenceVerificationKeys: os.Getenv("EVIDENCE_VERIFICATION_KEYS"),
 		EvidenceEncryptionKey:    os.Getenv("EVIDENCE_ENCRYPTION_KEY"),

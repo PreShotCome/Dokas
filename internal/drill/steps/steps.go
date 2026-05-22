@@ -22,6 +22,7 @@ import (
 	"github.com/riverqueue/river"
 	"github.com/riverqueue/river/rivertype"
 
+	"github.com/preshotcome/anything/internal/account"
 	"github.com/preshotcome/anything/internal/analytics"
 	"github.com/preshotcome/anything/internal/assertions"
 	"github.com/preshotcome/anything/internal/audit"
@@ -49,6 +50,40 @@ type Deps struct {
 	Metrics *obs.Metrics
 	// Analytics captures drill funnel events. Optional: nil disables it.
 	Analytics analytics.Analytics
+	// Billing reports billable drill usage to the billing provider.
+	// Optional: nil disables usage reporting.
+	Billing UsageReporter
+	// Accounts resolves an account's Stripe customer for usage reporting.
+	// Optional: nil disables usage reporting.
+	Accounts AccountLookup
+}
+
+// UsageReporter records billable drill usage with the billing provider.
+// billing.Service satisfies it.
+type UsageReporter interface {
+	ReportUsage(ctx context.Context, customerID, identifier string) error
+	Enabled() bool
+}
+
+// AccountLookup resolves an account to its billing identity. account.Store
+// satisfies it.
+type AccountLookup interface {
+	GetAccount(ctx context.Context, id uuid.UUID) (account.Account, error)
+}
+
+// reportUsage records one billable drill, best-effort. A drill is one unit
+// of metered usage; the Stripe meter handles any included allowance. The
+// drill ID is the dedup identifier, so a teardown retry counts once. A
+// billing hiccup must never fail a drill, so the error is swallowed.
+func (d Deps) reportUsage(ctx context.Context, dr drill.Drill) {
+	if d.Billing == nil || d.Accounts == nil || !d.Billing.Enabled() {
+		return
+	}
+	acct, err := d.Accounts.GetAccount(ctx, dr.AccountID)
+	if err != nil || acct.StripeCustomerID == nil || *acct.StripeCustomerID == "" {
+		return
+	}
+	_ = d.Billing.ReportUsage(ctx, *acct.StripeCustomerID, dr.ID.String())
 }
 
 // captureDrill records a drill funnel event, if analytics is wired.
@@ -515,6 +550,10 @@ func (w *TeardownWorker) Work(ctx context.Context, job *river.Job[drill.Teardown
 	if err != nil {
 		return err
 	}
+
+	// A drill that reached teardown ran — record one unit of metered usage.
+	// Best-effort and idempotent (deduped on the drill ID).
+	w.D.reportUsage(ctx, dr)
 
 	// Best-effort: even if rehydration fails (sandbox never provisioned),
 	// the runner.Teardown of a nil sandbox is a no-op.
