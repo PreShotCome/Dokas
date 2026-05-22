@@ -416,7 +416,7 @@ func LayoutWith(title string, lc LayoutCtx) templ.Component {
 			return templ_7745c5c3_Err
 		}
 		if lc.User != nil && lc.Account != nil {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 36, "<nav aria-label=\"Primary\" class=\"mx-auto flex max-w-5xl items-center gap-4 px-4 pb-2 text-sm\"><a href=\"/dashboard\" class=\"hover:underline\">Dashboard</a> <a href=\"/databases\" class=\"hover:underline\">Databases</a> <a href=\"/drills\" class=\"hover:underline\">Drills</a> <a href=\"/account\" class=\"hover:underline\">Account</a> <a href=\"/help\" class=\"hover:underline\">Help</a> ")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 36, "<nav aria-label=\"Primary\" class=\"mx-auto flex max-w-5xl items-center gap-4 px-4 pb-2 text-sm\"><a href=\"/dashboard\" class=\"hover:underline\">Dashboard</a> <a href=\"/databases\" class=\"hover:underline\">Databases</a> <a href=\"/drills\" class=\"hover:underline\">Drills</a> <a href=\"/reports\" class=\"hover:underline\">Reports</a> <a href=\"/account\" class=\"hover:underline\">Account</a> <a href=\"/help\" class=\"hover:underline\">Help</a> ")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

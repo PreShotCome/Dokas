@@ -22,6 +22,7 @@ func TestAccessibility(t *testing.T) {
 		"pricing":       Pricing(LayoutCtx{}, "$99", "$399", true),
 		"how-it-works":  HowItWorks(LayoutCtx{}),
 		"trial-ended":   TrialEnded(LayoutCtx{}),
+		"reports":       Reports(ReportsView{Ctx: LayoutCtx{}, WindowMonths: 3}),
 		"legal-cookies": LegalPage(LayoutCtx{}, "Cookie Policy", LegalCookies()),
 		"legal-subproc": LegalPage(LayoutCtx{}, "Sub-processors", LegalSubprocessors()),
 		"help":          HelpPage(LayoutCtx{}),

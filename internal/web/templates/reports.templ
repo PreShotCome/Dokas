@@ -1,0 +1,159 @@
+package templates
+
+import (
+	"strconv"
+	"time"
+
+	"github.com/preshotcome/anything/internal/drill"
+)
+
+// ReportsView is the data for the month-over-month drill reporting page.
+type ReportsView struct {
+	Ctx          LayoutCtx
+	Months       []drill.MonthlyStat
+	Databases    []drill.DatabaseStat
+	TotalDrills  int
+	Succeeded    int
+	Failed       int
+	WindowMonths int
+	IsPro        bool
+}
+
+templ Reports(v ReportsView) {
+	@LayoutWith("Reports", v.Ctx) {
+		<div class="mb-6 flex flex-wrap items-baseline justify-between gap-2">
+			<div>
+				<h1 class="text-2xl font-semibold tracking-tight">Reports</h1>
+				<p class="text-sm text-zinc-500">
+					Drill history for the last { strconv.Itoa(v.WindowMonths) } months.
+				</p>
+			</div>
+			if v.IsPro {
+				<a href="/reports/export.csv" class="btn-ghost text-sm">Download CSV</a>
+			}
+		</div>
+		<div class="mb-8 grid grid-cols-2 gap-4 sm:grid-cols-4">
+			@reportTile("Total drills", strconv.Itoa(v.TotalDrills))
+			@reportTile("Pass rate", reportPassRate(v.Succeeded, v.Failed))
+			@reportTile("Failed", strconv.Itoa(v.Failed))
+			@reportTile("Databases", strconv.Itoa(len(v.Databases)))
+		</div>
+		if v.TotalDrills == 0 {
+			<div class="card text-center text-sm text-zinc-600 dark:text-zinc-400">
+				No drills in this window yet.
+				<a href="/drills" class="underline">Run a drill</a> to start building your history.
+			</div>
+		} else {
+			<section class="mb-8">
+				<h2 class="mb-3 text-lg font-semibold">Drills per month</h2>
+				<div class="card space-y-4">
+					for _, m := range v.Months {
+						@reportMonthRow(m, reportMax(v.Months))
+					}
+				</div>
+			</section>
+			<section>
+				<h2 class="mb-3 text-lg font-semibold">By database</h2>
+				<div class="card overflow-x-auto p-0">
+					<table class="min-w-full divide-y divide-zinc-200 text-sm dark:divide-zinc-800">
+						<thead class="bg-zinc-50 dark:bg-zinc-900/50">
+							<tr>
+								<th class="px-4 py-2 text-left font-medium">Database</th>
+								<th class="px-4 py-2 text-right font-medium">Drills</th>
+								<th class="px-4 py-2 text-right font-medium">Passed</th>
+								<th class="px-4 py-2 text-right font-medium">Failed</th>
+								<th class="px-4 py-2 text-right font-medium">Pass rate</th>
+								<th class="px-4 py-2 text-right font-medium">Last drill</th>
+							</tr>
+						</thead>
+						<tbody class="divide-y divide-zinc-200 dark:divide-zinc-800">
+							for _, d := range v.Databases {
+								<tr>
+									<td class="px-4 py-2 font-medium">{ d.Name }</td>
+									<td class="px-4 py-2 text-right">{ strconv.Itoa(d.Total) }</td>
+									<td class="px-4 py-2 text-right text-emerald-600 dark:text-emerald-400">{ strconv.Itoa(d.Succeeded) }</td>
+									<td class="px-4 py-2 text-right text-rose-600 dark:text-rose-400">{ strconv.Itoa(d.Failed) }</td>
+									<td class="px-4 py-2 text-right">{ reportPassRate(d.Succeeded, d.Failed) }</td>
+									<td class="px-4 py-2 text-right text-xs text-zinc-500">{ reportLastDrill(d.LastDrill) }</td>
+								</tr>
+							}
+						</tbody>
+					</table>
+				</div>
+			</section>
+		}
+		if !v.IsPro {
+			<p class="mt-6 text-center text-xs text-zinc-500">
+				This view covers { strconv.Itoa(v.WindowMonths) } months. The Pro plan unlocks a full
+				12-month window and CSV export — <a href="/pricing" class="underline">see plans</a>.
+			</p>
+		}
+	}
+}
+
+templ reportTile(label, value string) {
+	<div class="card">
+		<p class="text-[11px] uppercase tracking-wide text-zinc-500">{ label }</p>
+		<p class="mt-1 text-2xl font-semibold tracking-tight">{ value }</p>
+	</div>
+}
+
+// reportMonthRow renders one month's drill volume as a bar (emerald =
+// succeeded, rose = failed) scaled against the busiest month in the window.
+templ reportMonthRow(m drill.MonthlyStat, max int) {
+	<div>
+		<div class="flex flex-wrap items-baseline justify-between gap-x-2 text-xs">
+			<span class="font-medium">{ reportMonthLabel(m.Month) }</span>
+			<span class="text-zinc-500">
+				{ strconv.Itoa(m.Total) } drills · { strconv.Itoa(m.Succeeded) } passed · { strconv.Itoa(m.Failed) } failed
+			</span>
+		</div>
+		<svg viewBox="0 0 100 8" preserveAspectRatio="none" class="mt-1 h-2.5 w-full rounded-sm bg-zinc-100 dark:bg-zinc-800" role="img" aria-label="drill outcomes for the month">
+			<rect x="0" y="0" height="8" width={ reportBarW(m.Succeeded, max) } fill="#10b981"></rect>
+			<rect x={ reportBarW(m.Succeeded, max) } y="0" height="8" width={ reportBarW(m.Failed, max) } fill="#f43f5e"></rect>
+		</svg>
+	</div>
+}
+
+// --- helpers ---
+
+// reportMax is the busiest month's drill count, floored at 1 so the bar
+// width never divides by zero.
+func reportMax(months []drill.MonthlyStat) int {
+	max := 1
+	for _, m := range months {
+		if m.Total > max {
+			max = m.Total
+		}
+	}
+	return max
+}
+
+// reportBarW is a count as a percentage (0–100) of the busiest month, for an
+// SVG rect width on a 0–100 viewBox.
+func reportBarW(n, max int) string {
+	if max <= 0 {
+		return "0"
+	}
+	return strconv.FormatFloat(float64(n)/float64(max)*100, 'f', 2, 64)
+}
+
+// reportPassRate is the share of terminal drills that succeeded.
+func reportPassRate(succeeded, failed int) string {
+	done := succeeded + failed
+	if done == 0 {
+		return "—"
+	}
+	return strconv.Itoa(succeeded*100/done) + "%"
+}
+
+func reportMonthLabel(t time.Time) string {
+	return t.Format("Jan 2006")
+}
+
+func reportLastDrill(t *time.Time) string {
+	if t == nil {
+		return "never"
+	}
+	return t.UTC().Format("2006-01-02")
+}

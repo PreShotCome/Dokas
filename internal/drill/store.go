@@ -690,3 +690,82 @@ func (s *Store) CreateDrillIdempotent(ctx context.Context, accountID, createdByU
 	}
 	return drillID, false, nil
 }
+
+// MonthlyStat aggregates an account's drills for one calendar month.
+type MonthlyStat struct {
+	Month      time.Time
+	Total      int
+	Succeeded  int
+	Failed     int
+	AvgSeconds float64
+}
+
+// MonthlyStats returns per-month drill aggregates for an account, oldest
+// month first, covering drills created at or after `since`.
+func (s *Store) MonthlyStats(ctx context.Context, accountID uuid.UUID, since time.Time) ([]MonthlyStat, error) {
+	rows, err := s.pool.Query(ctx, `
+		SELECT date_trunc('month', created_at) AS month,
+		       count(*) AS total,
+		       count(*) FILTER (WHERE status = 'succeeded') AS succeeded,
+		       count(*) FILTER (WHERE status = 'failed') AS failed,
+		       COALESCE(avg(extract(epoch FROM (completed_at - started_at)))
+		                FILTER (WHERE completed_at IS NOT NULL AND started_at IS NOT NULL), 0)
+		  FROM drills
+		 WHERE account_id = $1 AND created_at >= $2
+		 GROUP BY 1 ORDER BY 1
+	`, accountID, since)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var out []MonthlyStat
+	for rows.Next() {
+		var m MonthlyStat
+		if err := rows.Scan(&m.Month, &m.Total, &m.Succeeded, &m.Failed, &m.AvgSeconds); err != nil {
+			return nil, err
+		}
+		out = append(out, m)
+	}
+	return out, rows.Err()
+}
+
+// DatabaseStat aggregates an account's drills for one database target.
+type DatabaseStat struct {
+	TargetID  uuid.UUID
+	Name      string
+	Total     int
+	Succeeded int
+	Failed    int
+	LastDrill *time.Time
+}
+
+// DatabaseStats returns per-database drill aggregates for an account, over
+// drills created at or after `since`. Targets with no drills in the window
+// are included with zero counts.
+func (s *Store) DatabaseStats(ctx context.Context, accountID uuid.UUID, since time.Time) ([]DatabaseStat, error) {
+	rows, err := s.pool.Query(ctx, `
+		SELECT t.id, t.name,
+		       count(d.id) AS total,
+		       count(d.id) FILTER (WHERE d.status = 'succeeded') AS succeeded,
+		       count(d.id) FILTER (WHERE d.status = 'failed') AS failed,
+		       max(d.created_at) AS last_drill
+		  FROM database_targets t
+		  LEFT JOIN drills d ON d.target_id = t.id AND d.created_at >= $2
+		 WHERE t.account_id = $1 AND t.deleted_at IS NULL
+		 GROUP BY t.id, t.name
+		 ORDER BY t.name
+	`, accountID, since)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var out []DatabaseStat
+	for rows.Next() {
+		var d DatabaseStat
+		if err := rows.Scan(&d.TargetID, &d.Name, &d.Total, &d.Succeeded, &d.Failed, &d.LastDrill); err != nil {
+			return nil, err
+		}
+		out = append(out, d)
+	}
+	return out, rows.Err()
+}
