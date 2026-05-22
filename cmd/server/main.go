@@ -134,7 +134,13 @@ func main() {
 		logger.Warn("evidence encryption key not configured — using an EPHEMERAL master key; " +
 			"evidence will not decrypt across restarts. Set EVIDENCE_ENCRYPTION_KEY in production.")
 	}
-	evidenceService := evidence.NewService(evidence.NewLocalStore(evidenceDir), signer, evidenceCipher, pool)
+	var evidenceStore evidence.Store = evidence.NewLocalStore(evidenceDir)
+	if cfg.EvidenceS3Bucket != "" {
+		evidenceStore = evidence.NewS3Store(cfg.EvidenceS3Bucket, cfg.EvidenceS3Region,
+			cfg.EvidenceS3Endpoint, cfg.EvidenceS3AccessKeyID, cfg.EvidenceS3SecretAccessKey)
+		logger.Info("evidence store: s3-compatible bucket", "bucket", cfg.EvidenceS3Bucket)
+	}
+	evidenceService := evidence.NewService(evidenceStore, signer, evidenceCipher, pool)
 
 	loginThrottle := auth.NewLoginThrottle(pool, 5, 15*time.Minute)
 	sweeper := compliance.NewSweeper(pool, evidenceService, loginThrottle)

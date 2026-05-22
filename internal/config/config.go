@@ -31,7 +31,14 @@ type Config struct {
 	// EvidenceEncryptionKey is the base64 32-byte master key that wraps each
 	// account's evidence data-encryption key (at-rest encryption / crypto-shred).
 	EvidenceEncryptionKey string
-	SentryDSN             string
+	// EvidenceS3* configure an S3-compatible evidence bucket; with an empty
+	// bucket evidence is stored on local disk instead.
+	EvidenceS3Bucket          string
+	EvidenceS3Region          string
+	EvidenceS3Endpoint        string
+	EvidenceS3AccessKeyID     string
+	EvidenceS3SecretAccessKey string
+	SentryDSN                 string
 
 	PostmarkToken        string
 	PostmarkWebhookToken string
@@ -64,7 +71,13 @@ func Load() (Config, error) {
 		EvidenceSigningKey:       os.Getenv("EVIDENCE_SIGNING_KEY"),
 		EvidenceVerificationKeys: os.Getenv("EVIDENCE_VERIFICATION_KEYS"),
 		EvidenceEncryptionKey:    os.Getenv("EVIDENCE_ENCRYPTION_KEY"),
-		SentryDSN:                os.Getenv("SENTRY_DSN"),
+
+		EvidenceS3Bucket:          os.Getenv("EVIDENCE_S3_BUCKET"),
+		EvidenceS3Region:          os.Getenv("EVIDENCE_S3_REGION"),
+		EvidenceS3Endpoint:        os.Getenv("EVIDENCE_S3_ENDPOINT"),
+		EvidenceS3AccessKeyID:     os.Getenv("EVIDENCE_S3_ACCESS_KEY_ID"),
+		EvidenceS3SecretAccessKey: os.Getenv("EVIDENCE_S3_SECRET_ACCESS_KEY"),
+		SentryDSN:                 os.Getenv("SENTRY_DSN"),
 
 		PostmarkToken:        os.Getenv("POSTMARK_TOKEN"),
 		PostmarkWebhookToken: os.Getenv("POSTMARK_WEBHOOK_TOKEN"),

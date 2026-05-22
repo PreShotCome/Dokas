@@ -33,9 +33,6 @@ not started, planned · `debt` = works but should be revisited.
   cert chain is deferred.
 - **RFC 3161 timestamp** — `seam`. The signature covers `signed_at`, a
   self-asserted timestamp. A real RFC 3161 TSA (ASN.1 token) is deferred.
-- **S3 Object Lock** — `seam`. `evidence.S3Store` is a stub; evidence lives
-  on local disk. Retention is enforced in the app layer, not by Object
-  Lock.
 - **Legal copy** — `deferred`. ToS/Privacy/DPA pages are DRAFT placeholders
   pending counsel.
 
@@ -68,6 +65,14 @@ not started, planned · `debt` = works but should be revisited.
   wants expand-then-contract verified on a prod-sized clone.
 
 ## Resolved
+
+Layer-5 evidence storage:
+
+- **S3 / R2 evidence store** — `evidence.S3Store` stores evidence in an
+  S3-compatible bucket (AWS S3 or Cloudflare R2), signing requests with
+  hand-rolled AWS SigV4 (no SDK; the signer is unit-tested against AWS's
+  published vector). Activated by `EVIDENCE_S3_*` env vars; with Object Lock
+  the bucket enforces immutability. See `docs/runbooks/s3.md`.
 
 Layer-6 observability:
 

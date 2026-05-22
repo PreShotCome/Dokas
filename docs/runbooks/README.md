@@ -13,7 +13,7 @@ Each service is independent — activate them in any order.
 | Postmark | Transactional email | ✅ complete | [postmark.md](postmark.md) |
 | Stripe | Billing / subscriptions | ✅ complete | [stripe.md](stripe.md) |
 | Fly Machines | Per-drill cloud sandbox | ⬜ pending | — |
-| S3 / R2 Object Lock | Evidence storage | ⬜ pending | — |
+| S3 / R2 Object Lock | Evidence storage | ✅ complete | [s3.md](s3.md) |
 | Google + GitHub OAuth | Social login | ✅ complete | [oauth.md](oauth.md) |
 | PostHog | Analytics + feature flags | ✅ complete | [posthog.md](posthog.md) |
 | OpenTelemetry / Grafana | Traces, metrics, logs | ✅ complete | [observability.md](observability.md) |
