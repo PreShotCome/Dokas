@@ -333,3 +333,32 @@ func (h *Handlers) adminRefund(w http.ResponseWriter, r *http.Request) {
 func formatMoney(minorUnits int64, currency string) string {
 	return fmt.Sprintf("%s %.2f", strings.ToUpper(currency), float64(minorUnits)/100)
 }
+
+// adminEmailReport is the staff email-deliverability view: how much mail was
+// sent, how much bounced or drew a complaint, and the recent suppressions.
+func (h *Handlers) adminEmailReport(w http.ResponseWriter, r *http.Request) {
+	d, err := h.mailer.Deliverability(r.Context())
+	if err != nil {
+		http.Error(w, "load deliverability: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+	view := templates.AdminEmailReportView{
+		Ctx:           h.layoutCtx(r),
+		ProviderOn:    h.mailer.ProviderEnabled(),
+		Sends7d:       d.Sends7d,
+		Sends30d:      d.Sends30d,
+		Suppressed30d: d.Suppressed30d,
+		SuppressedAll: d.SuppressedAll,
+		BounceRate:    fmt.Sprintf("%.2f%%", d.BounceRate30d),
+	}
+	for _, rc := range d.ByReason {
+		view.ByReason = append(view.ByReason,
+			templates.AdminEmailReason{Reason: rc.Reason, Count: rc.Count})
+	}
+	for _, s := range d.Recent {
+		view.Recent = append(view.Recent, templates.AdminEmailSuppression{
+			Email: s.Email, Reason: s.Reason, SuppressedAt: s.SuppressedAt,
+		})
+	}
+	render(w, r, templates.AdminEmailReport(view))
+}

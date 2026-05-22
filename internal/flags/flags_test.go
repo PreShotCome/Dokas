@@ -48,3 +48,23 @@ func TestStaticFlagsIgnoresJunkEnv(t *testing.T) {
 		t.Error("junk env value should fall back to the default")
 	}
 }
+
+func TestStaticFlagsVariant(t *testing.T) {
+	f := NewStaticFlags()
+	ctx := context.Background()
+
+	// Unset → no variant.
+	if v := f.Variant(ctx, "homepage_cta", "anyone"); v != "" {
+		t.Errorf("unset variant flag = %q, want empty", v)
+	}
+	// A non-boolean string value is the variant.
+	t.Setenv("FEATURE_HOMEPAGE_CTA", "blue-button")
+	if v := f.Variant(ctx, "homepage_cta", "anyone"); v != "blue-button" {
+		t.Errorf("variant = %q, want blue-button", v)
+	}
+	// A boolean value is an on/off flag, not an experiment variant.
+	t.Setenv("FEATURE_HOMEPAGE_CTA", "true")
+	if v := f.Variant(ctx, "homepage_cta", "anyone"); v != "" {
+		t.Errorf("a boolean flag should not yield a variant, got %q", v)
+	}
+}

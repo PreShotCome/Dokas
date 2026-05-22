@@ -276,6 +276,7 @@ func (h *Handlers) Router(staticFS http.FileSystem) http.Handler {
 		r.Post("/admin/drills/{id}/regen-evidence", h.adminEvidenceRegen)
 		r.Get("/admin/accounts/{id}", h.adminAccountDetail)
 		r.Post("/admin/accounts/{id}/refund", h.adminRefund)
+		r.Get("/admin/email", h.adminEmailReport)
 	})
 
 	r.Group(func(r chi.Router) {

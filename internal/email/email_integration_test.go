@@ -111,6 +111,64 @@ func TestMessageBuilders(t *testing.T) {
 	}
 }
 
+func TestDeliverabilityReport(t *testing.T) {
+	dsn := os.Getenv("DATABASE_URL")
+	if dsn == "" {
+		t.Skip("DATABASE_URL not set")
+	}
+	ctx := context.Background()
+	pool, err := pgxpool.New(ctx, dsn)
+	if err != nil {
+		t.Fatalf("pool: %v", err)
+	}
+	defer pool.Close()
+
+	addr := "deliv-" + randomLocalPart(t) + "@example.com"
+	t.Cleanup(func() {
+		_, _ = pool.Exec(context.Background(), `DELETE FROM email_suppressions WHERE email = $1`, addr)
+	})
+	mailer := NewMailer(pool, NewLogMailer(discardLogger()), discardLogger())
+
+	// email_sends is a shared table, so assert on the delta this test causes,
+	// not absolute counts.
+	before, err := mailer.Deliverability(ctx)
+	if err != nil {
+		t.Fatalf("Deliverability before: %v", err)
+	}
+
+	for i := 0; i < 3; i++ {
+		if err := mailer.Send(ctx, Message{To: addr, Subject: "hi", TextBody: "body"}); err != nil {
+			t.Fatalf("send %d: %v", i, err)
+		}
+	}
+	if err := mailer.Suppress(ctx, addr, "TestBounce", "synthetic"); err != nil {
+		t.Fatalf("suppress: %v", err)
+	}
+
+	after, err := mailer.Deliverability(ctx)
+	if err != nil {
+		t.Fatalf("Deliverability after: %v", err)
+	}
+	if got := after.Sends30d - before.Sends30d; got != 3 {
+		t.Errorf("Sends30d delta = %d, want 3", got)
+	}
+	if after.SuppressedAll <= before.SuppressedAll {
+		t.Error("SuppressedAll should have grown after a suppression")
+	}
+	var found bool
+	for _, s := range after.Recent {
+		if s.Email == addr {
+			found = true
+			if s.Reason != "TestBounce" {
+				t.Errorf("recent suppression reason = %q, want TestBounce", s.Reason)
+			}
+		}
+	}
+	if !found {
+		t.Error("the suppressed address should appear in the recent list")
+	}
+}
+
 func contains(s, sub string) bool {
 	for i := 0; i+len(sub) <= len(s); i++ {
 		if s[i:i+len(sub)] == sub {

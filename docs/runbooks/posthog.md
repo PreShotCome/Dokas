@@ -39,6 +39,13 @@ Unknown flags, or any PostHog outage, fall through to the static default
 (`self_serve_signup` defaults to **on**; override per-deploy with
 `FEATURE_SELF_SERVE_SIGNUP=false`).
 
+**A/B experiments** use the same path. A PostHog experiment is a
+*multivariate* flag — its value is a variant name, not a boolean. The app
+reads it with `flags.Variant(key, distinctID)` (alongside the boolean
+`Enabled`); a `FEATURE_<KEY>` env value that is not `true`/`false` pins the
+variant in dev. Capture the experiment's goal event through `internal/analytics`
+and PostHog computes the result.
+
 ### 3. Environment variables
 
 | Variable | Required | Value |

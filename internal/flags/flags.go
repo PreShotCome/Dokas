@@ -25,11 +25,15 @@ var defaults = map[string]bool{
 	SelfServeSignup: true, // open in dev; flip off for sales-led GA
 }
 
-// Flags evaluates a boolean flag for a distinct actor. distinctID lets a
+// Flags evaluates feature flags for a distinct actor. distinctID lets a
 // real provider do percentage rollouts / per-account targeting; StaticFlags
 // ignores it.
 type Flags interface {
+	// Enabled evaluates a boolean on/off flag.
 	Enabled(ctx context.Context, key, distinctID string) bool
+	// Variant evaluates a multivariate flag — the variant assigned for an
+	// A/B experiment — returning "" when the flag is off or not a variant.
+	Variant(ctx context.Context, key, distinctID string) string
 }
 
 // StaticFlags resolves flags from FEATURE_<UPPER_SNAKE> env vars, falling
@@ -48,6 +52,20 @@ func (StaticFlags) Enabled(_ context.Context, key, _ string) bool {
 		}
 	}
 	return defaults[key]
+}
+
+// Variant resolves a multivariate flag from FEATURE_<UPPER_SNAKE>. A boolean
+// value is an on/off flag, not a variant, so it yields "". This lets dev and
+// CI pin an experiment to a fixed variant.
+func (StaticFlags) Variant(_ context.Context, key, _ string) string {
+	v := strings.TrimSpace(os.Getenv("FEATURE_" + strings.ToUpper(key)))
+	if v == "" {
+		return ""
+	}
+	if _, err := strconv.ParseBool(v); err == nil {
+		return ""
+	}
+	return v
 }
 
 // New is the constructor used at startup. With a PostHog project key it

@@ -42,7 +42,6 @@ not started, planned · `debt` = works but should be revisited.
 
 - **Postmark / PostHog are seams** — `seam`. Without tokens the app uses
   `LogMailer` and `NoopAnalytics`.
-- **A/B experiments, deliverability report** — `deferred`.
 - **Marketing site** — `deferred`. The Astro site + its SEO (OG cards,
   JSON-LD, sitemap, MDX content) is Phase 7 in a separate repo.
 
@@ -119,6 +118,13 @@ Layer-9 growth:
   PostHog's `/decide` endpoint with a 60s per-distinct-ID cache and a
   background refresh, so flag checks never block a request. Falls back to the
   static env defaults on any miss/error. Activated by `POSTHOG_API_KEY`.
+- **Deliverability report & A/B-experiment variants** — a staff
+  email-deliverability page (`/admin/email`) reports sends vs.
+  bounces/complaints over 7/30 days with a bounce rate and the recent
+  suppressions; every delivered email is counted in `email_sends`. The
+  `flags` seam gained `Variant` — multivariate evaluation for A/B
+  experiments, served from PostHog (or a `FEATURE_<KEY>` env override), so
+  an experiment defined in the PostHog UI is read like any other flag.
 
 Layer-3 billing:
 

@@ -48,6 +48,29 @@ func TestPostHogFlagsEvaluatesAndCaches(t *testing.T) {
 	}
 }
 
+func TestPostHogFlagsVariant(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		_, _ = io.WriteString(w,
+			`{"featureFlags":{"homepage_cta":"variant-b","self_serve_signup":true}}`)
+	}))
+	defer srv.Close()
+
+	f := NewPostHogFlags("phc_test", srv.URL, slog.New(slog.DiscardHandler))
+	ctx := context.Background()
+
+	// Cache miss → static fallback ("").
+	if v := f.Variant(ctx, "homepage_cta", "ip-v"); v != "" {
+		t.Fatalf("first call should fall back to the static default, got %q", v)
+	}
+	// Once the refresh lands, PostHog's variant wins.
+	waitFor(t, func() bool { return f.Variant(ctx, "homepage_cta", "ip-v") == "variant-b" })
+
+	// A boolean flag carries no variant.
+	if v := f.Variant(ctx, "self_serve_signup", "ip-v"); v != "" {
+		t.Errorf("a boolean flag should have no variant, got %q", v)
+	}
+}
+
 func TestPostHogFlagsFallsBackOnError(t *testing.T) {
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		http.Error(w, "boom", http.StatusInternalServerError)

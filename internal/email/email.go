@@ -44,7 +44,8 @@ func NewMailer(pool *pgxpool.Pool, sender Sender, logger *slog.Logger) *Mailer {
 }
 
 // Send delivers a message unless the recipient is suppressed. Suppression
-// returns ErrSuppressed; the caller logs and moves on.
+// returns ErrSuppressed; the caller logs and moves on. A delivered message
+// is recorded in email_sends for the deliverability report.
 func (m *Mailer) Send(ctx context.Context, msg Message) error {
 	suppressed, err := m.isSuppressed(ctx, msg.To)
 	if err != nil {
@@ -54,7 +55,15 @@ func (m *Mailer) Send(ctx context.Context, msg Message) error {
 		m.logger.InfoContext(ctx, "email skipped: recipient suppressed", "to", msg.To)
 		return ErrSuppressed
 	}
-	return m.sender.send(ctx, msg)
+	if err := m.sender.send(ctx, msg); err != nil {
+		return err
+	}
+	// Best-effort: the email was sent — a failed count write must not turn a
+	// successful send into an error for the caller.
+	if _, err := m.pool.Exec(ctx, `INSERT INTO email_sends DEFAULT VALUES`); err != nil {
+		m.logger.WarnContext(ctx, "could not record email send", "err", err)
+	}
+	return nil
 }
 
 // ProviderEnabled reports whether a real email provider is configured.
