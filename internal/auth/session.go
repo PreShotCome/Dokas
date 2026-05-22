@@ -33,6 +33,9 @@ type Session struct {
 	// MFAPending is true between a correct password and a correct MFA code:
 	// the session exists but must not authenticate app requests.
 	MFAPending bool
+	// StaffVerifiedAt is the last time this session re-proved staff identity
+	// via an SSO step-up. nil means it never has.
+	StaffVerifiedAt *time.Time
 }
 
 type User struct {
@@ -153,6 +156,21 @@ func (s *Store) SetCurrentAccount(ctx context.Context, r *http.Request, accountI
 	return err
 }
 
+// MarkStaffVerified stamps the current session as having just completed an
+// SSO step-up. The caller MUST have verified the SSO identity belongs to a
+// staff user first.
+func (s *Store) MarkStaffVerified(ctx context.Context, r *http.Request) error {
+	c, err := r.Cookie(s.cookieName())
+	if err != nil {
+		return ErrNoSession
+	}
+	hash := hashToken(c.Value)
+	_, err = s.pool.Exec(ctx, `
+		UPDATE sessions SET staff_verified_at = now() WHERE token_hash = $1
+	`, hash)
+	return err
+}
+
 // Lookup resolves the session cookie to a user, sliding the idle window.
 // Returns ErrNoSession when missing/expired/unknown.
 func (s *Store) Lookup(ctx context.Context, r *http.Request) (*User, *Session, error) {
@@ -170,12 +188,12 @@ func (s *Store) Lookup(ctx context.Context, r *http.Request) (*User, *Session, e
 		 WHERE token_hash   = $2
 		   AND expires_at   > $1
 		   AND last_seen_at > $3
-	  RETURNING id, user_id, created_at, expires_at, impersonator_user_id, mfa_pending
+	  RETURNING id, user_id, created_at, expires_at, impersonator_user_id, mfa_pending, staff_verified_at
 	`, now, hash, idleCutoff)
 
 	var sess Session
 	if err := row.Scan(&sess.ID, &sess.UserID, &sess.CreatedAt, &sess.ExpiresAt,
-		&sess.ImpersonatorID, &sess.MFAPending); err != nil {
+		&sess.ImpersonatorID, &sess.MFAPending, &sess.StaffVerifiedAt); err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, nil, ErrNoSession
 		}
