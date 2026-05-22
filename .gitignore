@@ -8,10 +8,9 @@
 # Generated templ files (uncomment if you prefer to regenerate in CI)
 # *_templ.go
 
-# Tailwind output
-/assets/static/app.css
-# Vendored JS fetched at build time
-/assets/static/htmx.min.js
+# app.css (compiled Tailwind) and htmx.min.js are committed so a plain
+# `git pull` + `go run ./cmd/server` serves correct styles without a build
+# step. Rebuild app.css with `make css` after changing templates.
 
 # Local env
 .env
