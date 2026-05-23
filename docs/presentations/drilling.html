@@ -1,120 +1,253 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="scroll-smooth">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>What is a Drill? — Soteria</title>
 <script src="https://cdn.tailwindcss.com"></script>
+<script>
+  // Match the real Soteria brand palette (tailwind.config.js).
+  tailwind.config = {
+    darkMode: 'class',
+    theme: {
+      extend: {
+        fontFamily: {
+          sans: ['ui-sans-serif', 'system-ui', 'sans-serif'],
+          mono: ['ui-monospace', 'SFMono-Regular', 'monospace'],
+        },
+        colors: {
+          brand: {
+            50:  '#eef2f8',
+            100: '#d6e0ee',
+            200: '#b0c4dd',
+            300: '#84a0c6',
+            400: '#5b7cab',
+            500: '#3f5e8d',
+            600: '#314a73',
+            700: '#283c5d',
+            800: '#21304a',
+            900: '#18233a',
+          },
+        },
+      },
+    },
+  };
+  // Apply persisted/system dark preference before paint to avoid a flash.
+  (function () {
+    const stored = localStorage.getItem('theme');
+    const dark = stored ? stored === 'dark'
+                        : window.matchMedia('(prefers-color-scheme: dark)').matches;
+    if (dark) document.documentElement.classList.add('dark');
+  })();
+</script>
 <style>
-  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif; }
-  .tab-active { border-bottom-color: #111827 !important; color: #111827 !important; font-weight: 500; }
-  .tab-inactive { border-bottom-color: transparent; color: #6b7280; }
-  .section-label { letter-spacing: 0.1em; }
-  .panel { display: none; }
+  body {
+    font-family: ui-sans-serif, system-ui, sans-serif;
+    background: #fafafa;
+  }
+  .dark body {
+    background: linear-gradient(to right, #1e2d4d, #09090b);
+    background-attachment: fixed;
+    color: #f4f4f5;
+  }
+  .tab-active { border-bottom-color: #283c5d !important; color: #18233a !important; font-weight: 600; }
+  .dark .tab-active { border-bottom-color: #84a0c6 !important; color: #d6e0ee !important; }
+  .tab-inactive { border-bottom-color: transparent; }
+  .panel { display: none; animation: fadeIn 220ms ease-out; }
   .panel.active { display: block; }
-  .accent-bar-green { box-shadow: inset 3px 0 0 0 #22c55e; }
-  .accent-bar-gray { box-shadow: inset 3px 0 0 0 #d1d5db; }
-  .progress-track { height: 6px; border-radius: 999px; background: #f3f4f6; overflow: hidden; }
-  .progress-fill { height: 100%; background: #22c55e; border-radius: 999px; transition: width 0.3s; }
-  .why-tab-active { background: #f9fafb; color: #111827; font-weight: 600; }
-  .why-tab-inactive { color: #6b7280; }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(4px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .accent-bar-brand   { box-shadow: inset 3px 0 0 0 #283c5d; }
+  .accent-bar-emerald { box-shadow: inset 3px 0 0 0 #10b981; }
+  .accent-bar-zinc    { box-shadow: inset 3px 0 0 0 #d4d4d8; }
+  .dark .accent-bar-zinc { box-shadow: inset 3px 0 0 0 #3f3f46; }
+  .progress-track { height: 6px; border-radius: 999px; background: #f4f4f5; overflow: hidden; }
+  .dark .progress-track { background: #27272a; }
+  .progress-fill  { height: 100%; background: #283c5d; border-radius: 999px; transition: width 0.4s ease; }
+  .dark .progress-fill { background: #84a0c6; }
+  .why-tab-active   { background: #eef2f8; color: #18233a; font-weight: 600; border-color: #b0c4dd; }
+  .dark .why-tab-active { background: rgba(40,60,93,0.4); color: #d6e0ee; border-color: #283c5d; }
+  .why-tab-inactive { color: #71717a; }
+  .dark .why-tab-inactive { color: #a1a1aa; }
+  .sparkline path { stroke: #10b981; stroke-width: 2; fill: none; }
+  .sparkline path.area { fill: rgba(16,185,129,0.12); stroke: none; }
 </style>
 </head>
-<body class="bg-gray-50 text-gray-900">
+<body class="text-zinc-900 dark:text-zinc-100">
 
-<div class="max-w-5xl mx-auto px-6 py-12">
-
-  <!-- Header -->
-  <div class="mb-10">
-    <div class="text-xs uppercase section-label text-green-600 font-semibold mb-3">A Soteria Primer</div>
-    <h1 class="text-4xl font-bold mb-3 tracking-tight">What is a Drill?</h1>
-    <p class="text-lg text-gray-600">Backups you can prove will restore.</p>
+<!-- ============= Top bar ============= -->
+<header class="border-b border-zinc-200/70 dark:border-zinc-800/70 backdrop-blur sticky top-0 z-40 bg-white/70 dark:bg-zinc-950/40">
+  <div class="max-w-6xl mx-auto px-6 h-14 flex items-center justify-between">
+    <div class="flex items-center gap-2">
+      <span class="inline-flex h-7 w-7 items-center justify-center rounded-md bg-brand-700 text-white">
+        <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 2 4 6v6c0 5 3.5 9 8 10 4.5-1 8-5 8-10V6l-8-4z"/>
+        </svg>
+      </span>
+      <span class="font-semibold tracking-tight">Soteria</span>
+      <span class="ml-2 hidden sm:inline text-xs text-zinc-500">/ Drilling primer</span>
+    </div>
+    <button id="theme-toggle" class="rounded-md border border-zinc-200 dark:border-zinc-800 px-2.5 py-1.5 text-xs text-zinc-600 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-900" aria-label="Toggle dark mode">
+      <span class="dark:hidden">Dark</span>
+      <span class="hidden dark:inline">Light</span>
+    </button>
   </div>
+</header>
 
-  <!-- Card with tabs -->
-  <div class="bg-white border border-gray-200 rounded-xl shadow-sm">
-    <!-- Tab nav -->
-    <div class="flex border-b border-gray-200 px-4 overflow-x-auto">
+<main class="max-w-6xl mx-auto px-6 py-12 space-y-16">
+
+  <!-- ============= Hero ============= -->
+  <section class="relative overflow-hidden rounded-3xl border border-zinc-200 dark:border-zinc-800 bg-gradient-to-b from-brand-50 to-white dark:from-brand-900/40 dark:to-zinc-950 px-6 sm:px-12 py-14 text-center">
+    <p class="mb-5 inline-flex items-center gap-2 rounded-full border border-brand-200 dark:border-brand-800 bg-white/70 dark:bg-brand-900/40 px-3 py-1 text-xs font-medium text-brand-800 dark:text-brand-200">
+      <span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
+      Backup verification as a service
+    </p>
+    <h1 class="mx-auto max-w-3xl text-4xl sm:text-5xl font-semibold tracking-tight">
+      Your backups are untested until something restores them.
+    </h1>
+    <p class="mx-auto mt-5 max-w-xl text-lg text-zinc-600 dark:text-zinc-400">
+      A <span class="font-semibold text-zinc-900 dark:text-zinc-100">drill</span> restores your latest backup into an isolated sandbox, proves the data really came back, and signs the result &mdash; so a broken backup shows up in a report, not an outage.
+    </p>
+    <div class="mt-8 flex flex-wrap justify-center gap-3">
+      <a href="#what-is" class="inline-flex items-center rounded-md bg-brand-700 hover:bg-brand-600 text-white px-6 py-3 text-base font-medium transition-colors">What's a drill?</a>
+      <a href="#whats-included" class="inline-flex items-center rounded-md border border-zinc-300 dark:border-zinc-700 px-6 py-3 text-base font-medium hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-colors">See what's included</a>
+    </div>
+    <p class="mt-4 text-xs text-zinc-500">No card required &middot; Postgres supported today</p>
+
+    <!-- Hero product mockup: browser chrome + drill detail -->
+    <div class="mx-auto mt-12 max-w-3xl">
+      <div class="overflow-hidden rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-left shadow-2xl">
+        <div class="flex items-center gap-1.5 border-b border-zinc-200 dark:border-zinc-800 px-4 py-2.5">
+          <span class="h-2.5 w-2.5 rounded-full bg-red-400"></span>
+          <span class="h-2.5 w-2.5 rounded-full bg-amber-400"></span>
+          <span class="h-2.5 w-2.5 rounded-full bg-emerald-400"></span>
+          <span class="ml-3 font-mono text-xs text-zinc-400">app.soteria.io/drills/a1f9c2</span>
+        </div>
+        <div class="space-y-4 p-5">
+          <div class="flex items-start justify-between">
+            <div>
+              <p class="font-semibold">production-primary</p>
+              <p class="text-xs text-zinc-500">Daily drill &middot; pg_dump -Fc &middot; 4.2 GB</p>
+            </div>
+            <span class="inline-flex items-center gap-1.5 rounded-full bg-emerald-100 dark:bg-emerald-900/40 px-2.5 py-1 text-xs font-medium text-emerald-800 dark:text-emerald-300">
+              <span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
+              passed
+            </span>
+          </div>
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div class="rounded-lg border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-950/50 px-3 py-2">
+              <p class="text-[11px] uppercase tracking-wide text-zinc-500">Restore time</p>
+              <p class="mt-0.5 font-semibold">2m 14s</p>
+            </div>
+            <div class="rounded-lg border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-950/50 px-3 py-2">
+              <p class="text-[11px] uppercase tracking-wide text-zinc-500">Rows verified</p>
+              <p class="mt-0.5 font-semibold">4.2M</p>
+            </div>
+            <div class="rounded-lg border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-950/50 px-3 py-2">
+              <p class="text-[11px] uppercase tracking-wide text-zinc-500">Assertions</p>
+              <p class="mt-0.5 font-semibold">6 / 6</p>
+            </div>
+            <div class="rounded-lg border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-950/50 px-3 py-2">
+              <p class="text-[11px] uppercase tracking-wide text-zinc-500">Evidence</p>
+              <p class="mt-0.5 font-semibold">Signed</p>
+            </div>
+          </div>
+          <div class="flex flex-wrap gap-1.5">
+            <span class="inline-flex items-center gap-1 rounded-md bg-emerald-50 dark:bg-emerald-900/30 px-2 py-1 text-xs text-emerald-700 dark:text-emerald-300"><svg class="h-3.5 w-3.5" viewBox="0 0 14 14" fill="none"><path d="M3 7.5l2.5 2.5L11 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>provision</span>
+            <span class="inline-flex items-center gap-1 rounded-md bg-emerald-50 dark:bg-emerald-900/30 px-2 py-1 text-xs text-emerald-700 dark:text-emerald-300"><svg class="h-3.5 w-3.5" viewBox="0 0 14 14" fill="none"><path d="M3 7.5l2.5 2.5L11 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>fetch</span>
+            <span class="inline-flex items-center gap-1 rounded-md bg-emerald-50 dark:bg-emerald-900/30 px-2 py-1 text-xs text-emerald-700 dark:text-emerald-300"><svg class="h-3.5 w-3.5" viewBox="0 0 14 14" fill="none"><path d="M3 7.5l2.5 2.5L11 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>restore</span>
+            <span class="inline-flex items-center gap-1 rounded-md bg-emerald-50 dark:bg-emerald-900/30 px-2 py-1 text-xs text-emerald-700 dark:text-emerald-300"><svg class="h-3.5 w-3.5" viewBox="0 0 14 14" fill="none"><path d="M3 7.5l2.5 2.5L11 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>assert</span>
+            <span class="inline-flex items-center gap-1 rounded-md bg-emerald-50 dark:bg-emerald-900/30 px-2 py-1 text-xs text-emerald-700 dark:text-emerald-300"><svg class="h-3.5 w-3.5" viewBox="0 0 14 14" fill="none"><path d="M3 7.5l2.5 2.5L11 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>report</span>
+            <span class="inline-flex items-center gap-1 rounded-md bg-emerald-50 dark:bg-emerald-900/30 px-2 py-1 text-xs text-emerald-700 dark:text-emerald-300"><svg class="h-3.5 w-3.5" viewBox="0 0 14 14" fill="none"><path d="M3 7.5l2.5 2.5L11 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>teardown</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============= Tabbed card ============= -->
+  <section id="what-is" class="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-sm">
+
+    <div class="flex border-b border-zinc-200 dark:border-zinc-800 px-4 overflow-x-auto">
       <button data-tab="overview" class="tab-btn px-5 py-4 text-sm whitespace-nowrap border-b-2 tab-inactive">Overview</button>
       <button data-tab="risk" class="tab-btn px-5 py-4 text-sm whitespace-nowrap border-b-2 tab-inactive">The Risk</button>
       <button data-tab="how" class="tab-btn px-5 py-4 text-sm whitespace-nowrap border-b-2 tab-inactive">How a Drill Works</button>
       <button data-tab="schedule" class="tab-btn px-5 py-4 text-sm whitespace-nowrap border-b-2 tab-inactive">Sample Schedule</button>
       <button data-tab="included" class="tab-btn px-5 py-4 text-sm whitespace-nowrap border-b-2 tab-inactive">What's Included</button>
+      <button data-tab="pricing" class="tab-btn px-5 py-4 text-sm whitespace-nowrap border-b-2 tab-inactive">Pricing</button>
     </div>
 
     <div class="p-8 md:p-10">
 
-      <!-- OVERVIEW -->
-      <div id="panel-overview" class="panel active space-y-8">
+      <!-- ============= OVERVIEW ============= -->
+      <div id="panel-overview" class="panel active space-y-10">
 
-        <!-- Current Situation callout -->
         <div>
-          <div class="text-xs uppercase section-label text-gray-500 font-semibold mb-3">CURRENT SITUATION</div>
-          <div class="bg-white border border-gray-200 rounded-lg p-6 accent-bar-gray">
-            <p class="text-gray-700 leading-relaxed">
+          <div class="text-xs uppercase tracking-widest text-zinc-500 font-semibold mb-3">CURRENT SITUATION</div>
+          <div class="bg-white dark:bg-zinc-950/40 border border-zinc-200 dark:border-zinc-800 rounded-lg p-6 accent-bar-zinc">
+            <p class="text-zinc-700 dark:text-zinc-300 leading-relaxed">
               Your team runs nightly backups. The dashboard shows green. But no one
               has actually tried to restore one in months. When the bad day comes
-              — ransomware, a bad migration, a dropped table — you discover the
+              &mdash; ransomware, a bad migration, a dropped table &mdash; you discover the
               backup is corrupted, incomplete, or takes 14 hours to restore. By
               then it's too late.
             </p>
           </div>
         </div>
 
-        <!-- The Drill Solution callout -->
         <div>
-          <div class="text-xs uppercase section-label text-green-600 font-semibold mb-3">THE DRILL SOLUTION</div>
-          <div class="bg-white border border-gray-200 rounded-lg p-6 accent-bar-green">
-            <p class="text-gray-700 leading-relaxed">
-              A drill is a controlled restore. We pull your latest backup into a
-              clean, isolated database, run the assertions your team defines —
-              row counts, schema integrity, critical tables present, business
-              invariants — and produce a cryptographically signed PDF as proof.
-              Run on a schedule. Fail loudly when something's off. Catch the
-              broken backup on a Tuesday, not during the outage.
+          <div class="text-xs uppercase tracking-widest text-brand-700 dark:text-brand-300 font-semibold mb-3">THE DRILL SOLUTION</div>
+          <div class="bg-white dark:bg-zinc-950/40 border border-zinc-200 dark:border-zinc-800 rounded-lg p-6 accent-bar-brand">
+            <p class="text-zinc-700 dark:text-zinc-300 leading-relaxed">
+              A drill is a controlled restore. Soteria pulls your latest backup
+              into a clean, isolated database, runs the assertions your team
+              defined &mdash; row counts, schema integrity, critical tables present,
+              business invariants &mdash; and produces a cryptographically signed PDF
+              as proof. Run on a schedule. Fail loudly when something's off.
+              Catch the broken backup on a Tuesday, not during the outage.
             </p>
           </div>
         </div>
 
         <!-- Why Drilling -->
         <div>
-          <div class="text-xs uppercase section-label text-gray-700 font-semibold mb-4 border-l-2 border-gray-900 pl-2">WHY DRILLING</div>
+          <div class="text-xs uppercase tracking-widest text-zinc-700 dark:text-zinc-300 font-semibold mb-4 border-l-2 border-brand-700 dark:border-brand-400 pl-2">WHY DRILLING</div>
 
           <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <!-- Left column: tab list -->
             <div class="space-y-2">
-              <button data-why="silent" class="why-tab w-full text-left px-4 py-3 rounded-lg border border-gray-200 why-tab-active">
-                <div class="text-xs text-gray-400 mb-1">01</div>
+              <button data-why="silent" class="why-tab w-full text-left px-4 py-3 rounded-lg border border-zinc-200 dark:border-zinc-800 why-tab-active">
+                <div class="text-xs text-zinc-400 mb-1">01</div>
                 <div>Catch silent failures</div>
               </button>
-              <button data-why="compliance" class="why-tab w-full text-left px-4 py-3 rounded-lg border border-gray-200 why-tab-inactive">
-                <div class="text-xs text-gray-400 mb-1">02</div>
+              <button data-why="compliance" class="why-tab w-full text-left px-4 py-3 rounded-lg border border-zinc-200 dark:border-zinc-800 why-tab-inactive">
+                <div class="text-xs text-zinc-400 mb-1">02</div>
                 <div>Compliance evidence</div>
               </button>
-              <button data-why="recovery" class="why-tab w-full text-left px-4 py-3 rounded-lg border border-gray-200 why-tab-inactive">
-                <div class="text-xs text-gray-400 mb-1">03</div>
+              <button data-why="recovery" class="why-tab w-full text-left px-4 py-3 rounded-lg border border-zinc-200 dark:border-zinc-800 why-tab-inactive">
+                <div class="text-xs text-zinc-400 mb-1">03</div>
                 <div>Faster real recovery</div>
               </button>
             </div>
 
-            <!-- Right column: content -->
             <div class="md:col-span-2">
               <div id="why-silent" class="why-panel">
-                <h3 class="text-xl font-bold mb-4">Catch silent failures</h3>
+                <h3 class="text-xl font-semibold mb-4 tracking-tight">Catch silent failures</h3>
                 <div class="space-y-4">
-                  <div class="border border-gray-200 rounded-lg p-5">
-                    <div class="text-xs uppercase section-label text-gray-500 mb-2">THE WHAT-MONITORING-MISSES PROBLEM</div>
-                    <p class="text-gray-700 text-sm leading-relaxed">
+                  <div class="border border-zinc-200 dark:border-zinc-800 rounded-lg p-5">
+                    <div class="text-xs uppercase tracking-widest text-zinc-500 mb-2">WHAT MONITORING MISSES</div>
+                    <p class="text-zinc-700 dark:text-zinc-300 text-sm leading-relaxed">
                       Backup software reports "success" the moment the bytes are
                       written. It doesn't verify the bytes can be restored into a
                       working database. Schema drift, corrupted blocks, missing
-                      WAL segments, encryption-key rotation gone wrong — all
+                      WAL segments, encryption-key rotation gone wrong &mdash; all
                       invisible until restore time.
                     </p>
                   </div>
-                  <div class="border border-gray-200 rounded-lg p-5">
-                    <div class="text-xs uppercase section-label text-gray-500 mb-2">WHAT A DRILL CATCHES</div>
-                    <p class="text-gray-700 text-sm leading-relaxed">
+                  <div class="border border-zinc-200 dark:border-zinc-800 rounded-lg p-5">
+                    <div class="text-xs uppercase tracking-widest text-zinc-500 mb-2">WHAT A DRILL CATCHES</div>
+                    <p class="text-zinc-700 dark:text-zinc-300 text-sm leading-relaxed">
                       Bad dumps, truncated files, schema changes that broke a
                       consumer, tables that quietly stopped being included, row
                       counts that diverged from production. The thing you needed
@@ -125,21 +258,21 @@
               </div>
 
               <div id="why-compliance" class="why-panel hidden">
-                <h3 class="text-xl font-bold mb-4">Compliance evidence</h3>
+                <h3 class="text-xl font-semibold mb-4 tracking-tight">Compliance evidence</h3>
                 <div class="space-y-4">
-                  <div class="border border-gray-200 rounded-lg p-5">
-                    <div class="text-xs uppercase section-label text-gray-500 mb-2">WHAT AUDITORS ACTUALLY WANT</div>
-                    <p class="text-gray-700 text-sm leading-relaxed">
-                      SOC 2, ISO 27001, HIPAA, PCI — every framework expects
+                  <div class="border border-zinc-200 dark:border-zinc-800 rounded-lg p-5">
+                    <div class="text-xs uppercase tracking-widest text-zinc-500 mb-2">WHAT AUDITORS ACTUALLY WANT</div>
+                    <p class="text-zinc-700 dark:text-zinc-300 text-sm leading-relaxed">
+                      SOC 2, ISO 27001, HIPAA, PCI &mdash; every framework expects
                       periodic restore testing. Auditors don't want a policy
                       document saying you do it. They want signed, dated proof
                       that you actually did it.
                     </p>
                   </div>
-                  <div class="border border-gray-200 rounded-lg p-5">
-                    <div class="text-xs uppercase section-label text-gray-500 mb-2">WHAT A DRILL PRODUCES</div>
-                    <p class="text-gray-700 text-sm leading-relaxed">
-                      A cryptographically signed PDF for every drill — the dump
+                  <div class="border border-zinc-200 dark:border-zinc-800 rounded-lg p-5">
+                    <div class="text-xs uppercase tracking-widest text-zinc-500 mb-2">WHAT A DRILL PRODUCES</div>
+                    <p class="text-zinc-700 dark:text-zinc-300 text-sm leading-relaxed">
+                      A cryptographically signed PDF for every drill &mdash; the dump
                       fingerprint, the assertions run, pass/fail results, time
                       taken, the signing key. Hand them the folder; the audit
                       conversation ends in 10 minutes instead of 10 days.
@@ -149,20 +282,20 @@
               </div>
 
               <div id="why-recovery" class="why-panel hidden">
-                <h3 class="text-xl font-bold mb-4">Faster real recovery</h3>
+                <h3 class="text-xl font-semibold mb-4 tracking-tight">Faster real recovery</h3>
                 <div class="space-y-4">
-                  <div class="border border-gray-200 rounded-lg p-5">
-                    <div class="text-xs uppercase section-label text-gray-500 mb-2">THE REHEARSAL EFFECT</div>
-                    <p class="text-gray-700 text-sm leading-relaxed">
+                  <div class="border border-zinc-200 dark:border-zinc-800 rounded-lg p-5">
+                    <div class="text-xs uppercase tracking-widest text-zinc-500 mb-2">THE REHEARSAL EFFECT</div>
+                    <p class="text-zinc-700 dark:text-zinc-300 text-sm leading-relaxed">
                       A drill rehearses the restore path. When the real outage
                       hits, your team has done it a hundred times. The runbook
-                      isn't theoretical — it's the same flow they watched
+                      isn't theoretical &mdash; it's the same flow they watched
                       complete this morning.
                     </p>
                   </div>
-                  <div class="border border-gray-200 rounded-lg p-5">
-                    <div class="text-xs uppercase section-label text-gray-500 mb-2">THE OUTCOME</div>
-                    <p class="text-gray-700 text-sm leading-relaxed">
+                  <div class="border border-zinc-200 dark:border-zinc-800 rounded-lg p-5">
+                    <div class="text-xs uppercase tracking-widest text-zinc-500 mb-2">THE OUTCOME</div>
+                    <p class="text-zinc-700 dark:text-zinc-300 text-sm leading-relaxed">
                       Restore time goes from "we'll have to figure it out" to a
                       number you've measured every day for the past month. RTO
                       stops being aspirational.
@@ -175,45 +308,68 @@
         </div>
       </div>
 
-      <!-- THE RISK -->
+      <!-- ============= THE RISK ============= -->
       <div id="panel-risk" class="panel space-y-8">
         <div>
-          <div class="text-xs uppercase section-label text-gray-500 font-semibold mb-4">THE COST OF UNTESTED BACKUPS</div>
+          <div class="text-xs uppercase tracking-widest text-zinc-500 font-semibold mb-4">THE COST OF UNTESTED BACKUPS</div>
           <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
 
-            <div class="bg-red-50 border border-red-100 rounded-lg p-5">
-              <div class="text-xs uppercase section-label text-red-700 font-semibold mb-2">RESTORES THAT FAIL</div>
+            <div class="bg-red-50 dark:bg-red-950/30 border border-red-100 dark:border-red-900/50 rounded-lg p-5">
+              <div class="text-xs uppercase tracking-widest text-red-700 dark:text-red-300 font-semibold mb-2">RESTORES THAT FAIL</div>
               <div class="text-3xl font-bold mb-1">~1 in 3</div>
-              <div class="text-xs text-gray-500">on first attempt</div>
+              <div class="text-xs text-zinc-500">on first attempt</div>
             </div>
 
-            <div class="bg-white border border-gray-200 rounded-lg p-5">
-              <div class="text-xs uppercase section-label text-gray-500 font-semibold mb-2">DOWNTIME COST</div>
+            <div class="bg-white dark:bg-zinc-950/40 border border-zinc-200 dark:border-zinc-800 rounded-lg p-5">
+              <div class="text-xs uppercase tracking-widest text-zinc-500 font-semibold mb-2">DOWNTIME COST</div>
               <div class="text-3xl font-bold mb-1">$5,600</div>
-              <div class="text-xs text-gray-500">per minute (Gartner)</div>
+              <div class="text-xs text-zinc-500">per minute (Gartner)</div>
             </div>
 
-            <div class="bg-white border border-gray-200 rounded-lg p-5">
-              <div class="text-xs uppercase section-label text-gray-500 font-semibold mb-2">TIME TO DETECT</div>
+            <div class="bg-white dark:bg-zinc-950/40 border border-zinc-200 dark:border-zinc-800 rounded-lg p-5">
+              <div class="text-xs uppercase tracking-widest text-zinc-500 font-semibold mb-2">TIME TO DETECT</div>
               <div class="text-3xl font-bold mb-1">Days</div>
-              <div class="text-xs text-gray-500">often only at restore</div>
+              <div class="text-xs text-zinc-500">often only at restore</div>
             </div>
 
-            <div class="bg-white border border-gray-200 rounded-lg p-5">
-              <div class="text-xs uppercase section-label text-gray-500 font-semibold mb-2">TEAMS WHO TEST WEEKLY</div>
+            <div class="bg-white dark:bg-zinc-950/40 border border-zinc-200 dark:border-zinc-800 rounded-lg p-5">
+              <div class="text-xs uppercase tracking-widest text-zinc-500 font-semibold mb-2">TEAMS WHO TEST WEEKLY</div>
               <div class="text-3xl font-bold mb-1">&lt; 1 in 5</div>
-              <div class="text-xs text-gray-500">most test annually or never</div>
+              <div class="text-xs text-zinc-500">most test annually or never</div>
             </div>
 
           </div>
         </div>
 
-        <div class="border border-gray-200 rounded-lg p-6">
-          <div class="text-xs uppercase section-label text-gray-500 font-semibold mb-3">WHAT THIS LOOKS LIKE IN PRACTICE</div>
+        <!-- Visual: 30-day pass-rate sparkline -->
+        <div class="border border-zinc-200 dark:border-zinc-800 rounded-lg p-6">
+          <div class="flex items-start justify-between mb-4">
+            <div>
+              <div class="text-xs uppercase tracking-widest text-zinc-500 font-semibold mb-1">30-DAY DRILL PASS RATE</div>
+              <div class="text-2xl font-semibold">A real customer view</div>
+            </div>
+            <span class="inline-flex items-center gap-1.5 rounded-full bg-emerald-100 dark:bg-emerald-900/40 px-2.5 py-1 text-xs font-medium text-emerald-800 dark:text-emerald-300">
+              <span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
+              97% pass
+            </span>
+          </div>
+          <svg class="sparkline w-full h-24" viewBox="0 0 300 80" preserveAspectRatio="none">
+            <path class="area" d="M0,30 L10,32 L20,28 L30,30 L40,55 L50,32 L60,28 L70,30 L80,29 L90,32 L100,30 L110,28 L120,30 L130,60 L140,32 L150,28 L160,30 L170,29 L180,30 L190,28 L200,32 L210,30 L220,30 L230,28 L240,30 L250,32 L260,30 L270,28 L280,30 L290,28 L300,30 L300,80 L0,80 Z"/>
+            <path d="M0,30 L10,32 L20,28 L30,30 L40,55 L50,32 L60,28 L70,30 L80,29 L90,32 L100,30 L110,28 L120,30 L130,60 L140,32 L150,28 L160,30 L170,29 L180,30 L190,28 L200,32 L210,30 L220,30 L230,28 L240,30 L250,32 L260,30 L270,28 L280,30 L290,28 L300,30"/>
+          </svg>
+          <div class="flex justify-between text-xs text-zinc-500 mt-1">
+            <span>Apr 23</span>
+            <span class="text-amber-600 dark:text-amber-400">2 failures caught &middot; both fixed same day</span>
+            <span>May 23</span>
+          </div>
+        </div>
+
+        <div class="border border-zinc-200 dark:border-zinc-800 rounded-lg p-6">
+          <div class="text-xs uppercase tracking-widest text-zinc-500 font-semibold mb-3">WHAT THIS LOOKS LIKE IN PRACTICE</div>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <div class="text-sm font-semibold text-gray-700 mb-2">Without drilling</div>
-              <ul class="text-sm text-gray-600 space-y-2 list-disc list-inside">
+              <div class="text-sm font-semibold text-red-700 dark:text-red-400 mb-2">Without drilling</div>
+              <ul class="text-sm text-zinc-600 dark:text-zinc-400 space-y-2 list-disc list-inside">
                 <li>Backups show "success"; no one verifies</li>
                 <li>Restore tested at most once a year</li>
                 <li>Audit prep is a frantic scramble</li>
@@ -222,84 +378,84 @@
               </ul>
             </div>
             <div>
-              <div class="text-sm font-semibold text-green-700 mb-2">With drilling</div>
-              <ul class="text-sm text-gray-600 space-y-2 list-disc list-inside">
+              <div class="text-sm font-semibold text-emerald-700 dark:text-emerald-400 mb-2">With drilling</div>
+              <ul class="text-sm text-zinc-600 dark:text-zinc-400 space-y-2 list-disc list-inside">
                 <li>Every backup verified against assertions you wrote</li>
                 <li>Failures alert in minutes, not at the next outage</li>
                 <li>Signed PDFs ready for any auditor, any time</li>
-                <li>The restore path runs daily — no surprises</li>
+                <li>The restore path runs daily &mdash; no surprises</li>
                 <li>RTO is the median of the last 30 drills</li>
               </ul>
             </div>
           </div>
         </div>
 
-        <p class="text-xs text-gray-400">
+        <p class="text-xs text-zinc-500">
           Industry estimates. Gartner downtime cost is a widely-cited average; your number depends on your business.
         </p>
       </div>
 
-      <!-- HOW IT WORKS -->
+      <!-- ============= HOW IT WORKS ============= -->
       <div id="panel-how" class="panel space-y-8">
         <div>
-          <div class="text-xs uppercase section-label text-gray-500 font-semibold mb-4">THE FIVE STEPS OF A DRILL</div>
+          <div class="text-xs uppercase tracking-widest text-zinc-500 font-semibold mb-4">THE FIVE STEPS OF A DRILL</div>
 
           <div class="space-y-3">
-            <div class="border border-gray-200 rounded-lg p-5 flex gap-5">
-              <div class="text-2xl font-bold text-green-600 w-8 flex-shrink-0">1</div>
+            <div class="border border-zinc-200 dark:border-zinc-800 rounded-lg p-5 flex gap-5">
+              <div class="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-brand-700 text-sm font-semibold text-white">1</div>
               <div>
                 <div class="font-semibold mb-1">Fetch the dump</div>
-                <p class="text-sm text-gray-600 leading-relaxed">
-                  Soteria pulls the latest backup from your storage — S3, GCS,
+                <p class="text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed">
+                  Soteria pulls the latest backup from your storage &mdash; S3, GCS,
                   Azure Blob, a local file path. Read-only; we never touch the
                   source database.
                 </p>
               </div>
             </div>
 
-            <div class="border border-gray-200 rounded-lg p-5 flex gap-5">
-              <div class="text-2xl font-bold text-green-600 w-8 flex-shrink-0">2</div>
+            <div class="border border-zinc-200 dark:border-zinc-800 rounded-lg p-5 flex gap-5">
+              <div class="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-brand-700 text-sm font-semibold text-white">2</div>
               <div>
                 <div class="font-semibold mb-1">Restore into a clean target</div>
-                <p class="text-sm text-gray-600 leading-relaxed">
-                  An isolated, ephemeral database — a fresh Postgres instance,
+                <p class="text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed">
+                  An isolated, ephemeral database &mdash; a fresh Postgres instance,
                   spun up just for this drill, torn down when it's done. Nothing
                   touches production.
                 </p>
               </div>
             </div>
 
-            <div class="border border-gray-200 rounded-lg p-5 flex gap-5">
-              <div class="text-2xl font-bold text-green-600 w-8 flex-shrink-0">3</div>
+            <div class="border border-zinc-200 dark:border-zinc-800 rounded-lg p-5 flex gap-5">
+              <div class="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-brand-700 text-sm font-semibold text-white">3</div>
               <div>
                 <div class="font-semibold mb-1">Run your assertions</div>
-                <p class="text-sm text-gray-600 leading-relaxed">
-                  The checks you defined — "users table has at least 10,000
+                <p class="text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed">
+                  The checks you defined &mdash; "users table has at least 10,000
                   rows," "no NULLs in payments.amount," "schema matches this
                   fingerprint," "last order is &lt; 26 hours old." Plain SQL.
                 </p>
               </div>
             </div>
 
-            <div class="border border-gray-200 rounded-lg p-5 flex gap-5">
-              <div class="text-2xl font-bold text-green-600 w-8 flex-shrink-0">4</div>
+            <div class="border border-zinc-200 dark:border-zinc-800 rounded-lg p-5 flex gap-5">
+              <div class="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-brand-700 text-sm font-semibold text-white">4</div>
               <div>
                 <div class="font-semibold mb-1">Sign the evidence</div>
-                <p class="text-sm text-gray-600 leading-relaxed">
-                  A PDF report — dump fingerprint, each assertion, pass/fail,
-                  timings — signed with an Ed25519 key. Stored encrypted. Anyone
+                <p class="text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed">
+                  A PDF report &mdash; dump fingerprint, each assertion, pass/fail,
+                  timings &mdash; signed with an Ed25519 key. Stored encrypted. Anyone
                   can verify it later with the public key.
                 </p>
               </div>
             </div>
 
-            <div class="border border-gray-200 rounded-lg p-5 flex gap-5">
-              <div class="text-2xl font-bold text-green-600 w-8 flex-shrink-0">5</div>
+            <div class="border border-zinc-200 dark:border-zinc-800 rounded-lg p-5 flex gap-5">
+              <div class="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-brand-700 text-sm font-semibold text-white">5</div>
               <div>
                 <div class="font-semibold mb-1">Tear down and alert</div>
-                <p class="text-sm text-gray-600 leading-relaxed">
+                <p class="text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed">
                   The target database is destroyed. If anything failed, you
-                  hear about it immediately — email, Slack, webhook. If
+                  hear about it immediately &mdash; email, Slack, webhook. If
                   everything passed, the green PDF lands in your evidence vault.
                 </p>
               </div>
@@ -308,197 +464,373 @@
         </div>
 
         <div>
-          <div class="text-xs uppercase section-label text-gray-500 font-semibold mb-4">WHAT A DRILL VERIFIES</div>
-          <div class="border border-gray-200 rounded-lg overflow-hidden">
-            <div class="grid grid-cols-3 px-5 py-3 bg-gray-50 border-b border-gray-200 text-xs uppercase section-label text-gray-500 font-semibold">
+          <div class="text-xs uppercase tracking-widest text-zinc-500 font-semibold mb-4">WHAT A DRILL VERIFIES</div>
+          <div class="border border-zinc-200 dark:border-zinc-800 rounded-lg overflow-hidden">
+            <div class="grid grid-cols-3 px-5 py-3 bg-zinc-50 dark:bg-zinc-950/40 border-b border-zinc-200 dark:border-zinc-800 text-xs uppercase tracking-widest text-zinc-500 font-semibold">
               <div>CHECK</div>
               <div class="col-span-2">WHAT IT CATCHES</div>
             </div>
-            <div class="divide-y divide-gray-200">
+            <div class="divide-y divide-zinc-200 dark:divide-zinc-800">
               <div class="grid grid-cols-3 px-5 py-4 text-sm">
                 <div class="font-semibold">Restorability</div>
-                <div class="col-span-2 text-gray-600">The dump file can actually be loaded into a working database — no truncation, no corruption, no missing dependencies.</div>
+                <div class="col-span-2 text-zinc-600 dark:text-zinc-400">The dump file can actually be loaded into a working database &mdash; no truncation, no corruption, no missing dependencies.</div>
               </div>
               <div class="grid grid-cols-3 px-5 py-4 text-sm">
                 <div class="font-semibold">Schema integrity</div>
-                <div class="col-span-2 text-gray-600">All expected tables, columns, indexes, and constraints are present and match the fingerprint you set.</div>
+                <div class="col-span-2 text-zinc-600 dark:text-zinc-400">All expected tables, columns, indexes, and constraints are present and match the fingerprint you set.</div>
               </div>
               <div class="grid grid-cols-3 px-5 py-4 text-sm">
                 <div class="font-semibold">Row-count floors</div>
-                <div class="col-span-2 text-gray-600">Critical tables have at least N rows — catches accidental truncation or filtered exports.</div>
+                <div class="col-span-2 text-zinc-600 dark:text-zinc-400">Critical tables have at least N rows &mdash; catches accidental truncation or filtered exports.</div>
               </div>
               <div class="grid grid-cols-3 px-5 py-4 text-sm">
                 <div class="font-semibold">Freshness</div>
-                <div class="col-span-2 text-gray-600">The latest timestamp in the dump is recent — catches stale backups silently being uploaded for weeks.</div>
+                <div class="col-span-2 text-zinc-600 dark:text-zinc-400">The latest timestamp in the dump is recent &mdash; catches stale backups silently being uploaded for weeks.</div>
               </div>
               <div class="grid grid-cols-3 px-5 py-4 text-sm">
                 <div class="font-semibold">Business invariants</div>
-                <div class="col-span-2 text-gray-600">Your own SQL — "every order has a customer," "no negative balances" — anything you can express as a query.</div>
+                <div class="col-span-2 text-zinc-600 dark:text-zinc-400">Your own SQL &mdash; "every order has a customer," "no negative balances" &mdash; anything you can express as a query.</div>
               </div>
               <div class="grid grid-cols-3 px-5 py-4 text-sm">
                 <div class="font-semibold">Restore duration</div>
-                <div class="col-span-2 text-gray-600">How long the restore actually takes — your real RTO, measured not guessed.</div>
+                <div class="col-span-2 text-zinc-600 dark:text-zinc-400">How long the restore actually takes &mdash; your real RTO, measured not guessed.</div>
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- SAMPLE SCHEDULE -->
+      <!-- ============= SAMPLE SCHEDULE ============= -->
       <div id="panel-schedule" class="panel space-y-8">
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div class="bg-green-50 border border-green-100 rounded-lg p-5">
-            <div class="text-xs uppercase section-label text-green-700 font-semibold mb-2">DEFAULT CADENCE</div>
+          <div class="bg-brand-50 dark:bg-brand-900/30 border border-brand-100 dark:border-brand-800 rounded-lg p-5">
+            <div class="text-xs uppercase tracking-widest text-brand-700 dark:text-brand-300 font-semibold mb-2">DEFAULT CADENCE</div>
             <div class="text-3xl font-bold mb-1">Daily</div>
-            <div class="text-xs text-gray-500">automated, no human in the loop</div>
+            <div class="text-xs text-zinc-500">automated, no human in the loop</div>
           </div>
-          <div class="bg-white border border-gray-200 rounded-lg p-5">
-            <div class="text-xs uppercase section-label text-gray-500 font-semibold mb-2">AVG DRILL TIME</div>
-            <div class="text-3xl font-bold mb-1">3-15 min</div>
-            <div class="text-xs text-gray-500">depends on dump size</div>
+          <div class="bg-white dark:bg-zinc-950/40 border border-zinc-200 dark:border-zinc-800 rounded-lg p-5">
+            <div class="text-xs uppercase tracking-widest text-zinc-500 font-semibold mb-2">AVG DRILL TIME</div>
+            <div class="text-3xl font-bold mb-1">3&ndash;15 min</div>
+            <div class="text-xs text-zinc-500">depends on dump size</div>
           </div>
-          <div class="bg-white border border-gray-200 rounded-lg p-5">
-            <div class="text-xs uppercase section-label text-gray-500 font-semibold mb-2">EVIDENCE RETAINED</div>
+          <div class="bg-white dark:bg-zinc-950/40 border border-zinc-200 dark:border-zinc-800 rounded-lg p-5">
+            <div class="text-xs uppercase tracking-widest text-zinc-500 font-semibold mb-2">EVIDENCE RETAINED</div>
             <div class="text-3xl font-bold mb-1">7 years</div>
-            <div class="text-xs text-gray-500">configurable per database</div>
+            <div class="text-xs text-zinc-500">configurable per database</div>
           </div>
         </div>
 
-        <div class="border border-gray-200 rounded-lg overflow-hidden">
-          <div class="px-5 py-4 border-b border-gray-200">
-            <div class="font-semibold">Ramp-up Schedule</div>
-            <div class="text-xs text-gray-500">From "never drilled" to "daily across every production DB" over 8 weeks</div>
+        <div class="border border-zinc-200 dark:border-zinc-800 rounded-lg overflow-hidden">
+          <div class="px-5 py-4 border-b border-zinc-200 dark:border-zinc-800">
+            <div class="font-semibold">Ramp-up schedule</div>
+            <div class="text-xs text-zinc-500">From "never drilled" to "daily across every production DB" over 8 weeks</div>
           </div>
-          <div class="grid grid-cols-12 px-5 py-3 bg-gray-50 border-b border-gray-200 text-xs uppercase section-label text-gray-500 font-semibold">
+          <div class="grid grid-cols-12 px-5 py-3 bg-zinc-50 dark:bg-zinc-950/40 border-b border-zinc-200 dark:border-zinc-800 text-xs uppercase tracking-widest text-zinc-500 font-semibold">
             <div class="col-span-2">WEEK</div>
             <div class="col-span-3">CADENCE</div>
             <div class="col-span-5">PROGRESS</div>
             <div class="col-span-2 text-right">DBs DRILLED</div>
           </div>
-          <div class="divide-y divide-gray-200 text-sm">
+          <div class="divide-y divide-zinc-200 dark:divide-zinc-800 text-sm">
 
             <div class="grid grid-cols-12 px-5 py-3 items-center">
-              <div class="col-span-2 font-semibold text-green-600">W1</div>
+              <div class="col-span-2 font-semibold text-brand-700 dark:text-brand-300">W1</div>
               <div class="col-span-3">Manual / ad-hoc</div>
               <div class="col-span-5"><div class="progress-track"><div class="progress-fill" style="width:10%"></div></div></div>
-              <div class="col-span-2 text-right text-gray-600">1 of 5</div>
+              <div class="col-span-2 text-right text-zinc-600 dark:text-zinc-400">1 of 5</div>
             </div>
 
             <div class="grid grid-cols-12 px-5 py-3 items-center">
-              <div class="col-span-2 font-semibold text-green-600">W2</div>
+              <div class="col-span-2 font-semibold text-brand-700 dark:text-brand-300">W2</div>
               <div class="col-span-3">Weekly</div>
               <div class="col-span-5"><div class="progress-track"><div class="progress-fill" style="width:25%"></div></div></div>
-              <div class="col-span-2 text-right text-gray-600">2 of 5</div>
+              <div class="col-span-2 text-right text-zinc-600 dark:text-zinc-400">2 of 5</div>
             </div>
 
             <div class="grid grid-cols-12 px-5 py-3 items-center">
-              <div class="col-span-2 font-semibold text-green-600">W3</div>
+              <div class="col-span-2 font-semibold text-brand-700 dark:text-brand-300">W3</div>
               <div class="col-span-3">Twice weekly</div>
               <div class="col-span-5"><div class="progress-track"><div class="progress-fill" style="width:40%"></div></div></div>
-              <div class="col-span-2 text-right text-gray-600">3 of 5</div>
+              <div class="col-span-2 text-right text-zinc-600 dark:text-zinc-400">3 of 5</div>
             </div>
 
             <div class="grid grid-cols-12 px-5 py-3 items-center">
-              <div class="col-span-2 font-semibold text-green-600">W4</div>
+              <div class="col-span-2 font-semibold text-brand-700 dark:text-brand-300">W4</div>
               <div class="col-span-3">Every 2 days</div>
               <div class="col-span-5"><div class="progress-track"><div class="progress-fill" style="width:55%"></div></div></div>
-              <div class="col-span-2 text-right text-gray-600">4 of 5</div>
+              <div class="col-span-2 text-right text-zinc-600 dark:text-zinc-400">4 of 5</div>
             </div>
 
             <div class="grid grid-cols-12 px-5 py-3 items-center">
-              <div class="col-span-2 font-semibold text-green-600">W6</div>
+              <div class="col-span-2 font-semibold text-brand-700 dark:text-brand-300">W6</div>
               <div class="col-span-3">Daily</div>
               <div class="col-span-5"><div class="progress-track"><div class="progress-fill" style="width:75%"></div></div></div>
-              <div class="col-span-2 text-right text-gray-600">5 of 5</div>
+              <div class="col-span-2 text-right text-zinc-600 dark:text-zinc-400">5 of 5</div>
             </div>
 
-            <div class="grid grid-cols-12 px-5 py-3 items-center bg-green-50">
-              <div class="col-span-2 font-semibold text-green-700">W8</div>
+            <div class="grid grid-cols-12 px-5 py-3 items-center bg-brand-50 dark:bg-brand-900/20">
+              <div class="col-span-2 font-semibold text-brand-800 dark:text-brand-200">W8</div>
               <div class="col-span-3">Daily + on-demand</div>
               <div class="col-span-5"><div class="progress-track"><div class="progress-fill" style="width:100%"></div></div></div>
               <div class="col-span-2 text-right font-semibold">5 of 5</div>
             </div>
 
           </div>
-          <div class="px-5 py-3 bg-gray-50 text-xs text-gray-500 flex justify-between">
+          <div class="px-5 py-3 bg-zinc-50 dark:bg-zinc-950/40 text-xs text-zinc-500 flex justify-between">
             <div>5 example production databases</div>
-            <div>Steady-state: <span class="font-semibold text-gray-700">~150 drills/month</span></div>
+            <div>Steady-state: <span class="font-semibold text-zinc-700 dark:text-zinc-300">~150 drills/month</span></div>
           </div>
         </div>
       </div>
 
-      <!-- WHAT'S INCLUDED -->
-      <div id="panel-included" class="panel">
-        <div class="text-xs uppercase section-label text-green-600 font-semibold mb-4 border-l-2 border-green-500 pl-2">WHAT'S INCLUDED</div>
+      <!-- ============= WHAT'S INCLUDED ============= -->
+      <div id="panel-included" class="panel space-y-10">
 
-        <div class="border border-gray-200 rounded-lg overflow-hidden">
-          <div class="divide-y divide-gray-200">
+        <div>
+          <div class="text-xs uppercase tracking-widest text-brand-700 dark:text-brand-300 font-semibold mb-4 border-l-2 border-brand-700 dark:border-brand-400 pl-2">WHAT'S INCLUDED</div>
 
-            <div class="grid grid-cols-4 px-5 py-4 gap-4">
-              <div class="font-semibold text-sm">Connector library</div>
-              <div class="col-span-3 text-sm text-gray-600 leading-relaxed">Soteria reads dumps from S3, GCS, Azure Blob, Cloudflare R2, or any local/SFTP path. Postgres first, MySQL and SQL Server next. Add your own format with a small plugin.</div>
+          <div class="border border-zinc-200 dark:border-zinc-800 rounded-lg overflow-hidden">
+            <div class="divide-y divide-zinc-200 dark:divide-zinc-800">
+              <div class="grid grid-cols-4 px-5 py-4 gap-4">
+                <div class="font-semibold text-sm">Connector library</div>
+                <div class="col-span-3 text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed">Soteria reads dumps from S3, GCS, Azure Blob, Cloudflare R2, or any local/SFTP path. Postgres first, MySQL and SQL Server next. Add your own format with a small plugin.</div>
+              </div>
+
+              <div class="grid grid-cols-4 px-5 py-4 gap-4">
+                <div class="font-semibold text-sm">Isolated restore runner</div>
+                <div class="col-span-3 text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed">Every drill restores into a fresh, ephemeral target &mdash; a one-off Postgres instance on Fly Machines or a sandbox of your choosing &mdash; torn down the moment the drill ends. Zero touch on production.</div>
+              </div>
+
+              <div class="grid grid-cols-4 px-5 py-4 gap-4">
+                <div class="font-semibold text-sm">Assertion engine</div>
+                <div class="col-span-3 text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed">Write your business invariants in plain SQL &mdash; row counts, freshness checks, foreign-key integrity, anything queryable. Soteria runs them, captures the results, and fails the drill on any red.</div>
+              </div>
+
+              <div class="grid grid-cols-4 px-5 py-4 gap-4">
+                <div class="font-semibold text-sm">Evidence vault</div>
+                <div class="col-span-3 text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed">Every drill produces a signed PDF &mdash; dump fingerprint, assertions, pass/fail, timings &mdash; Ed25519-signed and AES-GCM encrypted at rest. Verifiable by anyone with the public key, years later.</div>
+              </div>
+
+              <div class="grid grid-cols-4 px-5 py-4 gap-4">
+                <div class="font-semibold text-sm">Scheduling</div>
+                <div class="col-span-3 text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed">Cron-style cadences per database, plus on-demand drills via UI or API. Pause for maintenance windows. Different SLAs for different tiers of data.</div>
+              </div>
+
+              <div class="grid grid-cols-4 px-5 py-4 gap-4">
+                <div class="font-semibold text-sm">Failure alerts</div>
+                <div class="col-span-3 text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed">When a drill fails, your team hears about it &mdash; email, Slack, generic webhook &mdash; with the exact failing assertion and a link to the evidence PDF. Pages only on real signal.</div>
+              </div>
+
+              <div class="grid grid-cols-4 px-5 py-4 gap-4">
+                <div class="font-semibold text-sm">Audit-ready reports</div>
+                <div class="col-span-3 text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed">A per-database history page: every drill, every assertion result, pass-rate trend lines, RTO over time. Export the evidence pack as a zip for an auditor or a board meeting.</div>
+              </div>
+
+              <div class="grid grid-cols-4 px-5 py-4 gap-4">
+                <div class="font-semibold text-sm">Tamper-evident chain</div>
+                <div class="col-span-3 text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed">Every drill links to the prior one by hash. Deleting a failure leaves a visible gap. The chain is verifiable end-to-end; auditors love it.</div>
+              </div>
+
+              <div class="grid grid-cols-4 px-5 py-4 gap-4">
+                <div class="font-semibold text-sm">Read-only on production</div>
+                <div class="col-span-3 text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed">Soteria never writes to your source database and never needs production credentials beyond the read access to the dump location. The drill happens entirely in the sandbox.</div>
+              </div>
             </div>
-
-            <div class="grid grid-cols-4 px-5 py-4 gap-4">
-              <div class="font-semibold text-sm">Isolated restore runner</div>
-              <div class="col-span-3 text-sm text-gray-600 leading-relaxed">Every drill restores into a fresh, ephemeral target — a one-off Postgres instance on Fly Machines or a sandbox of your choosing — torn down the moment the drill ends. Zero touch on production.</div>
-            </div>
-
-            <div class="grid grid-cols-4 px-5 py-4 gap-4">
-              <div class="font-semibold text-sm">Assertion engine</div>
-              <div class="col-span-3 text-sm text-gray-600 leading-relaxed">Write your business invariants in plain SQL — row counts, freshness checks, foreign-key integrity, anything queryable. Soteria runs them, captures the results, and fails the drill on any red.</div>
-            </div>
-
-            <div class="grid grid-cols-4 px-5 py-4 gap-4">
-              <div class="font-semibold text-sm">Evidence vault</div>
-              <div class="col-span-3 text-sm text-gray-600 leading-relaxed">Every drill produces a signed PDF — dump fingerprint, assertions, pass/fail, timings — Ed25519-signed and AES-GCM encrypted at rest. Verifiable by anyone with the public key, years later.</div>
-            </div>
-
-            <div class="grid grid-cols-4 px-5 py-4 gap-4">
-              <div class="font-semibold text-sm">Scheduling</div>
-              <div class="col-span-3 text-sm text-gray-600 leading-relaxed">Cron-style cadences per database, plus on-demand drills via UI or API. Pause for maintenance windows. Different SLAs for different tiers of data.</div>
-            </div>
-
-            <div class="grid grid-cols-4 px-5 py-4 gap-4">
-              <div class="font-semibold text-sm">Failure alerts</div>
-              <div class="col-span-3 text-sm text-gray-600 leading-relaxed">When a drill fails, your team hears about it — email, Slack, generic webhook — with the exact failing assertion and a link to the evidence PDF. Pages only on real signal.</div>
-            </div>
-
-            <div class="grid grid-cols-4 px-5 py-4 gap-4">
-              <div class="font-semibold text-sm">Audit-ready reports</div>
-              <div class="col-span-3 text-sm text-gray-600 leading-relaxed">A per-database history page: every drill, every assertion result, pass-rate trend lines, RTO over time. Export the evidence pack as a zip for an auditor or a board meeting.</div>
-            </div>
-
-            <div class="grid grid-cols-4 px-5 py-4 gap-4">
-              <div class="font-semibold text-sm">Tamper-evident chain</div>
-              <div class="col-span-3 text-sm text-gray-600 leading-relaxed">Every drill links to the prior one by hash. Deleting a failure leaves a visible gap. The chain is verifiable end-to-end; auditors love it.</div>
-            </div>
-
-            <div class="grid grid-cols-4 px-5 py-4 gap-4">
-              <div class="font-semibold text-sm">Read-only on production</div>
-              <div class="col-span-3 text-sm text-gray-600 leading-relaxed">Soteria never writes to your source database and never needs production credentials beyond the read access to the dump location. The drill happens entirely in the sandbox.</div>
-            </div>
-
           </div>
         </div>
 
-        <div class="mt-8 border border-gray-200 rounded-lg p-6 bg-gray-50">
-          <div class="text-xs uppercase section-label text-gray-500 font-semibold mb-2">THE ONE-LINE SUMMARY</div>
-          <p class="text-gray-700">
-            A drill turns "we have backups" into "we have signed proof, from this morning, that we can restore."
+        <!-- Evidence PDF mockup -->
+        <div class="grid items-center gap-10 md:grid-cols-2">
+          <div>
+            <p class="text-sm font-semibold uppercase tracking-widest text-brand-700 dark:text-brand-300">Auditor-grade evidence</p>
+            <h3 class="mt-1 text-2xl font-semibold tracking-tight">Proof, not a green checkmark</h3>
+            <p class="mt-4 text-zinc-600 dark:text-zinc-400 leading-relaxed">
+              Every drill ends with a cryptographically signed PDF &mdash; the exact
+              artifact a SOC 2 or HIPAA reviewer will ask for. Retained for seven
+              years. Verifiable with a public key by anyone, anywhere, any time.
+            </p>
+            <ul class="mt-5 space-y-2 text-sm text-zinc-700 dark:text-zinc-300">
+              <li class="flex items-start gap-2">
+                <span class="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-300">
+                  <svg class="h-3 w-3" viewBox="0 0 14 14" fill="none"><path d="M3 7.5l2.5 2.5L11 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </span>
+                An Ed25519-signed PDF for every drill
+              </li>
+              <li class="flex items-start gap-2">
+                <span class="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-300">
+                  <svg class="h-3 w-3" viewBox="0 0 14 14" fill="none"><path d="M3 7.5l2.5 2.5L11 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </span>
+                An immutable audit log of every drill and download
+              </li>
+              <li class="flex items-start gap-2">
+                <span class="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-300">
+                  <svg class="h-3 w-3" viewBox="0 0 14 14" fill="none"><path d="M3 7.5l2.5 2.5L11 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </span>
+                Seven-year retention, encrypted at rest
+              </li>
+            </ul>
+          </div>
+
+          <div class="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-6 shadow-xl">
+            <div class="flex items-center justify-between border-b border-dashed border-zinc-200 dark:border-zinc-800 pb-4">
+              <div class="flex items-center gap-2">
+                <span class="inline-flex h-6 w-6 items-center justify-center rounded-md bg-brand-700 text-white">
+                  <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 4 6v6c0 5 3.5 9 8 10 4.5-1 8-5 8-10V6l-8-4z"/></svg>
+                </span>
+                <span class="font-semibold">Soteria</span>
+              </div>
+              <span class="inline-flex items-center gap-1.5 rounded-full bg-emerald-100 dark:bg-emerald-900/40 px-2.5 py-1 text-xs font-medium text-emerald-800 dark:text-emerald-300">
+                <svg class="h-3.5 w-3.5" viewBox="0 0 14 14" fill="none"><path d="M3 7.5l2.5 2.5L11 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                Verified
+              </span>
+            </div>
+            <p class="mt-4 text-sm font-semibold">Backup Verification Report</p>
+            <dl class="mt-3 space-y-1.5 text-xs">
+              <div class="flex justify-between gap-4"><dt class="text-zinc-500">Database</dt><dd class="text-right font-medium">production-primary</dd></div>
+              <div class="flex justify-between gap-4"><dt class="text-zinc-500">Drill completed</dt><dd class="text-right font-medium">2026-05-22 04:11 UTC</dd></div>
+              <div class="flex justify-between gap-4"><dt class="text-zinc-500">Result</dt><dd class="text-right font-medium">All 6 assertions passed</dd></div>
+              <div class="flex justify-between gap-4"><dt class="text-zinc-500">Retain until</dt><dd class="text-right font-medium">2033-05-22</dd></div>
+            </dl>
+            <div class="mt-4 rounded-lg bg-zinc-50 dark:bg-zinc-950/50 p-3">
+              <p class="text-[11px] uppercase tracking-widest text-zinc-500">Signature</p>
+              <p class="mt-0.5 break-all font-mono text-[11px] text-zinc-400">ed25519:9f2c4b&hellip;a17b &middot; valid</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="border border-zinc-200 dark:border-zinc-800 rounded-lg p-6 bg-zinc-50 dark:bg-zinc-950/40">
+          <div class="text-xs uppercase tracking-widest text-zinc-500 font-semibold mb-2">THE ONE-LINE SUMMARY</div>
+          <p class="text-zinc-700 dark:text-zinc-300">
+            A drill turns &ldquo;we have backups&rdquo; into &ldquo;we have signed proof, from this morning, that we can restore.&rdquo;
           </p>
         </div>
       </div>
 
+      <!-- ============= PRICING ============= -->
+      <div id="panel-pricing" class="panel space-y-10">
+
+        <div class="text-center">
+          <p class="text-xs uppercase tracking-widest text-brand-700 dark:text-brand-300 font-semibold">PRICING</p>
+          <h2 class="mt-1 text-3xl font-semibold tracking-tight">Pricing by how often you verify</h2>
+          <p class="mt-3 max-w-2xl mx-auto text-zinc-600 dark:text-zinc-400">
+            Every plan includes signed PDF evidence, the full assertion suite, the versioned JSON API, and webhooks. Plans differ by how often Soteria drills your databases &mdash; the more critical your data, the more frequently you verify it.
+          </p>
+        </div>
+
+        <div class="grid gap-6 md:grid-cols-3">
+
+          <!-- Trial -->
+          <div class="border border-zinc-200 dark:border-zinc-800 rounded-xl p-6 flex flex-col gap-5 bg-white dark:bg-zinc-950/40">
+            <div>
+              <div class="text-lg font-semibold">Trial</div>
+              <p class="mt-1"><span class="text-3xl font-semibold tracking-tight">Free</span></p>
+            </div>
+            <div class="rounded-lg bg-brand-50 dark:bg-brand-900/40 px-3 py-2 text-center">
+              <p class="text-[11px] font-medium uppercase tracking-wide text-brand-700 dark:text-brand-300">Free for 14 days</p>
+              <p class="font-semibold text-brand-800 dark:text-brand-100">Daily drills, full access</p>
+            </div>
+            <ul class="flex-1 space-y-2 text-sm text-zinc-600 dark:text-zinc-400">
+              <li class="flex items-start gap-2"><span class="mt-0.5 text-emerald-500"><svg class="h-3.5 w-3.5" viewBox="0 0 14 14" fill="none"><path d="M3 7.5l2.5 2.5L11 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>10 databases</li>
+              <li class="flex items-start gap-2"><span class="mt-0.5 text-emerald-500"><svg class="h-3.5 w-3.5" viewBox="0 0 14 14" fill="none"><path d="M3 7.5l2.5 2.5L11 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>10 team seats</li>
+              <li class="flex items-start gap-2"><span class="mt-0.5 text-emerald-500"><svg class="h-3.5 w-3.5" viewBox="0 0 14 14" fill="none"><path d="M3 7.5l2.5 2.5L11 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Signed PDF evidence &middot; 7-year retention</li>
+              <li class="flex items-start gap-2"><span class="mt-0.5 text-emerald-500"><svg class="h-3.5 w-3.5" viewBox="0 0 14 14" fill="none"><path d="M3 7.5l2.5 2.5L11 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>JSON API &amp; signed webhooks</li>
+              <li class="flex items-start gap-2"><span class="mt-0.5 text-emerald-500"><svg class="h-3.5 w-3.5" viewBox="0 0 14 14" fill="none"><path d="M3 7.5l2.5 2.5L11 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Community support</li>
+            </ul>
+            <a href="#" class="inline-flex justify-center rounded-md bg-brand-700 hover:bg-brand-600 text-white px-4 py-2 text-sm font-medium transition-colors">Start free trial</a>
+          </div>
+
+          <!-- Starter (popular) -->
+          <div class="border-2 border-brand-700 dark:border-brand-400 rounded-xl p-6 flex flex-col gap-5 bg-white dark:bg-zinc-950/40 relative shadow-lg">
+            <span class="absolute -top-3 left-1/2 -translate-x-1/2 inline-flex items-center rounded-full bg-brand-700 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-white">Most popular</span>
+            <div>
+              <div class="text-lg font-semibold">Starter</div>
+              <p class="mt-1"><span class="text-3xl font-semibold tracking-tight">$99</span><span class="text-sm text-zinc-500">/mo</span></p>
+            </div>
+            <div class="rounded-lg bg-brand-50 dark:bg-brand-900/40 px-3 py-2 text-center">
+              <p class="text-[11px] font-medium uppercase tracking-wide text-brand-700 dark:text-brand-300">Drill frequency</p>
+              <p class="font-semibold text-brand-800 dark:text-brand-100">Daily drills</p>
+            </div>
+            <ul class="flex-1 space-y-2 text-sm text-zinc-600 dark:text-zinc-400">
+              <li class="flex items-start gap-2"><span class="mt-0.5 text-emerald-500"><svg class="h-3.5 w-3.5" viewBox="0 0 14 14" fill="none"><path d="M3 7.5l2.5 2.5L11 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>10 databases</li>
+              <li class="flex items-start gap-2"><span class="mt-0.5 text-emerald-500"><svg class="h-3.5 w-3.5" viewBox="0 0 14 14" fill="none"><path d="M3 7.5l2.5 2.5L11 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>10 team seats</li>
+              <li class="flex items-start gap-2"><span class="mt-0.5 text-emerald-500"><svg class="h-3.5 w-3.5" viewBox="0 0 14 14" fill="none"><path d="M3 7.5l2.5 2.5L11 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Signed PDF evidence &middot; 7-year retention</li>
+              <li class="flex items-start gap-2"><span class="mt-0.5 text-emerald-500"><svg class="h-3.5 w-3.5" viewBox="0 0 14 14" fill="none"><path d="M3 7.5l2.5 2.5L11 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>JSON API &amp; signed webhooks</li>
+              <li class="flex items-start gap-2"><span class="mt-0.5 text-emerald-500"><svg class="h-3.5 w-3.5" viewBox="0 0 14 14" fill="none"><path d="M3 7.5l2.5 2.5L11 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Email support, business hours</li>
+            </ul>
+            <a href="#" class="inline-flex justify-center rounded-md bg-brand-700 hover:bg-brand-600 text-white px-4 py-2 text-sm font-medium transition-colors">Subscribe</a>
+          </div>
+
+          <!-- Pro -->
+          <div class="border border-zinc-200 dark:border-zinc-800 rounded-xl p-6 flex flex-col gap-5 bg-white dark:bg-zinc-950/40">
+            <div>
+              <div class="text-lg font-semibold">Pro</div>
+              <p class="mt-1"><span class="text-3xl font-semibold tracking-tight">$299</span><span class="text-sm text-zinc-500">/mo</span></p>
+            </div>
+            <div class="rounded-lg bg-brand-50 dark:bg-brand-900/40 px-3 py-2 text-center">
+              <p class="text-[11px] font-medium uppercase tracking-wide text-brand-700 dark:text-brand-300">Drill frequency</p>
+              <p class="font-semibold text-brand-800 dark:text-brand-100">Hourly drills</p>
+            </div>
+            <ul class="flex-1 space-y-2 text-sm text-zinc-600 dark:text-zinc-400">
+              <li class="flex items-start gap-2"><span class="mt-0.5 text-emerald-500"><svg class="h-3.5 w-3.5" viewBox="0 0 14 14" fill="none"><path d="M3 7.5l2.5 2.5L11 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Unlimited databases</li>
+              <li class="flex items-start gap-2"><span class="mt-0.5 text-emerald-500"><svg class="h-3.5 w-3.5" viewBox="0 0 14 14" fill="none"><path d="M3 7.5l2.5 2.5L11 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Unlimited team seats</li>
+              <li class="flex items-start gap-2"><span class="mt-0.5 text-emerald-500"><svg class="h-3.5 w-3.5" viewBox="0 0 14 14" fill="none"><path d="M3 7.5l2.5 2.5L11 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Signed PDF evidence &middot; 7-year retention</li>
+              <li class="flex items-start gap-2"><span class="mt-0.5 text-emerald-500"><svg class="h-3.5 w-3.5" viewBox="0 0 14 14" fill="none"><path d="M3 7.5l2.5 2.5L11 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Unlimited API keys &amp; webhooks</li>
+              <li class="flex items-start gap-2"><span class="mt-0.5 text-emerald-500"><svg class="h-3.5 w-3.5" viewBox="0 0 14 14" fill="none"><path d="M3 7.5l2.5 2.5L11 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Priority support &middot; SLA</li>
+            </ul>
+            <a href="#" class="inline-flex justify-center rounded-md bg-brand-700 hover:bg-brand-600 text-white px-4 py-2 text-sm font-medium transition-colors">Subscribe</a>
+          </div>
+        </div>
+
+        <!-- Feature comparison table -->
+        <div>
+          <div class="text-xs uppercase tracking-widest text-zinc-500 font-semibold mb-3">FEATURE COMPARISON</div>
+          <div class="border border-zinc-200 dark:border-zinc-800 rounded-lg overflow-hidden">
+            <div class="grid grid-cols-4 px-5 py-3 bg-zinc-50 dark:bg-zinc-950/40 border-b border-zinc-200 dark:border-zinc-800 text-xs uppercase tracking-widest text-zinc-500 font-semibold">
+              <div>FEATURE</div>
+              <div class="text-center">TRIAL</div>
+              <div class="text-center">STARTER</div>
+              <div class="text-center">PRO</div>
+            </div>
+            <div class="divide-y divide-zinc-200 dark:divide-zinc-800 text-sm">
+              <div class="grid grid-cols-4 px-5 py-3"><div>Drill frequency</div><div class="text-center text-zinc-600 dark:text-zinc-400">Daily</div><div class="text-center text-zinc-600 dark:text-zinc-400">Daily</div><div class="text-center font-semibold text-brand-700 dark:text-brand-300">Hourly</div></div>
+              <div class="grid grid-cols-4 px-5 py-3"><div>Databases</div><div class="text-center text-zinc-600 dark:text-zinc-400">10</div><div class="text-center text-zinc-600 dark:text-zinc-400">10</div><div class="text-center font-semibold text-brand-700 dark:text-brand-300">Unlimited</div></div>
+              <div class="grid grid-cols-4 px-5 py-3"><div>Team seats</div><div class="text-center text-zinc-600 dark:text-zinc-400">10</div><div class="text-center text-zinc-600 dark:text-zinc-400">10</div><div class="text-center font-semibold text-brand-700 dark:text-brand-300">Unlimited</div></div>
+              <div class="grid grid-cols-4 px-5 py-3"><div>Signed PDF evidence</div><div class="text-center text-emerald-500">&check;</div><div class="text-center text-emerald-500">&check;</div><div class="text-center text-emerald-500">&check;</div></div>
+              <div class="grid grid-cols-4 px-5 py-3"><div>Tamper-evident audit log</div><div class="text-center text-emerald-500">&check;</div><div class="text-center text-emerald-500">&check;</div><div class="text-center text-emerald-500">&check;</div></div>
+              <div class="grid grid-cols-4 px-5 py-3"><div>JSON API &amp; webhooks</div><div class="text-center text-emerald-500">&check;</div><div class="text-center text-emerald-500">&check;</div><div class="text-center text-emerald-500">&check;</div></div>
+              <div class="grid grid-cols-4 px-5 py-3"><div>Slack alerts</div><div class="text-center text-zinc-300 dark:text-zinc-700">&mdash;</div><div class="text-center text-emerald-500">&check;</div><div class="text-center text-emerald-500">&check;</div></div>
+              <div class="grid grid-cols-4 px-5 py-3"><div>SSO / SAML</div><div class="text-center text-zinc-300 dark:text-zinc-700">&mdash;</div><div class="text-center text-zinc-300 dark:text-zinc-700">&mdash;</div><div class="text-center text-emerald-500">&check;</div></div>
+              <div class="grid grid-cols-4 px-5 py-3"><div>Priority support &amp; SLA</div><div class="text-center text-zinc-300 dark:text-zinc-700">&mdash;</div><div class="text-center text-zinc-300 dark:text-zinc-700">&mdash;</div><div class="text-center text-emerald-500">&check;</div></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="rounded-lg border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-950/40 p-5 text-sm text-zinc-600 dark:text-zinc-400">
+          <span class="font-semibold text-zinc-800 dark:text-zinc-200">Need more?</span>
+          Enterprise plans add SOC 2 documentation, dedicated support, custom retention, and self-hosted runners in your own VPC. <a href="mailto:sales@soteria.io" class="text-brand-700 dark:text-brand-300 font-medium hover:underline">Contact sales</a>.
+        </div>
+      </div>
+
     </div>
-  </div>
+  </section>
 
-  <!-- Footer -->
-  <div class="mt-10 text-center text-xs text-gray-400">
-    Soteria — Backup verification you can prove.
-  </div>
+  <!-- ============= Closing CTA ============= -->
+  <section id="whats-included" class="overflow-hidden rounded-3xl bg-gradient-to-br from-brand-700 to-brand-900 px-6 py-14 text-center">
+    <h2 class="text-3xl sm:text-4xl font-semibold tracking-tight text-white">Stop guessing about your backups</h2>
+    <p class="mx-auto mt-3 max-w-md text-brand-100">
+      Run your first drill in minutes. Free to start, no card required.
+    </p>
+    <div class="mt-7 flex flex-wrap justify-center gap-3">
+      <a href="#" class="rounded-md bg-white px-6 py-3 text-base font-medium text-brand-800 transition-colors hover:bg-brand-50">Create an account</a>
+      <a href="#" class="rounded-md border border-white/30 px-6 py-3 text-base font-medium text-white transition-colors hover:bg-white/10">See plans</a>
+    </div>
+  </section>
 
-</div>
+  <footer class="text-center text-xs text-zinc-500 pt-4 pb-2">
+    Soteria &middot; Backup verification you can prove.
+  </footer>
+
+</main>
 
 <script>
   // Top tabs
@@ -527,6 +859,12 @@
     whyPanels.forEach(p => p.classList.toggle('hidden', p.id !== 'why-' + name));
   }
   whyBtns.forEach(b => b.addEventListener('click', () => showWhy(b.dataset.why)));
+
+  // Dark-mode toggle (persists in localStorage)
+  document.getElementById('theme-toggle').addEventListener('click', () => {
+    const isDark = document.documentElement.classList.toggle('dark');
+    localStorage.setItem('theme', isDark ? 'dark' : 'light');
+  });
 </script>
 
 </body>
