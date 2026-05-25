@@ -32,26 +32,19 @@
       },
     },
   };
-  // Apply persisted/system dark preference before paint to avoid a flash.
-  (function () {
-    const stored = localStorage.getItem('theme');
-    const dark = stored ? stored === 'dark'
-                        : window.matchMedia('(prefers-color-scheme: dark)').matches;
-    if (dark) document.documentElement.classList.add('dark');
-  })();
+  // Dark-only brand: lock the dark class on before paint, no toggle.
+  document.documentElement.classList.add('dark');
 </script>
 <style>
+  /* Dark-only brand. The navy-to-near-black gradient is the canvas the
+     amber phoenix sigil sits against; no light variant. */
   body {
     font-family: ui-sans-serif, system-ui, sans-serif;
-    background: #fafafa;
-  }
-  .dark body {
     background: linear-gradient(to right, #1e2d4d, #09090b);
     background-attachment: fixed;
     color: #f4f4f5;
   }
-  .tab-active { border-bottom-color: #283c5d !important; color: #18233a !important; font-weight: 600; }
-  .dark .tab-active { border-bottom-color: #84a0c6 !important; color: #d6e0ee !important; }
+  .tab-active { border-bottom-color: #fcd34d !important; color: #fef3c7 !important; font-weight: 600; }
   .tab-inactive { border-bottom-color: transparent; }
   .panel { display: none; animation: fadeIn 220ms ease-out; }
   .panel.active { display: block; }
@@ -59,18 +52,13 @@
     from { opacity: 0; transform: translateY(4px); }
     to   { opacity: 1; transform: translateY(0); }
   }
-  .accent-bar-brand   { box-shadow: inset 3px 0 0 0 #283c5d; }
+  .accent-bar-brand   { box-shadow: inset 3px 0 0 0 #b45309; }
   .accent-bar-emerald { box-shadow: inset 3px 0 0 0 #10b981; }
-  .accent-bar-zinc    { box-shadow: inset 3px 0 0 0 #d4d4d8; }
-  .dark .accent-bar-zinc { box-shadow: inset 3px 0 0 0 #3f3f46; }
-  .progress-track { height: 6px; border-radius: 999px; background: #f4f4f5; overflow: hidden; }
-  .dark .progress-track { background: #27272a; }
-  .progress-fill  { height: 100%; background: #283c5d; border-radius: 999px; transition: width 0.4s ease; }
-  .dark .progress-fill { background: #84a0c6; }
-  .why-tab-active   { background: #eef2f8; color: #18233a; font-weight: 600; border-color: #b0c4dd; }
-  .dark .why-tab-active { background: rgba(40,60,93,0.4); color: #d6e0ee; border-color: #283c5d; }
-  .why-tab-inactive { color: #71717a; }
-  .dark .why-tab-inactive { color: #a1a1aa; }
+  .accent-bar-zinc    { box-shadow: inset 3px 0 0 0 #3f3f46; }
+  .progress-track { height: 6px; border-radius: 999px; background: #27272a; overflow: hidden; }
+  .progress-fill  { height: 100%; background: #d97706; border-radius: 999px; transition: width 0.4s ease; }
+  .why-tab-active   { background: rgba(180,83,9,0.20); color: #fef3c7; font-weight: 600; border-color: #92400e; }
+  .why-tab-inactive { color: #a1a1aa; }
   .sparkline path { stroke: #10b981; stroke-width: 2; fill: none; }
   .sparkline path.area { fill: rgba(16,185,129,0.12); stroke: none; }
 </style>
@@ -98,10 +86,6 @@
       <span class="font-semibold tracking-tight">Soteria</span>
       <span class="ml-2 hidden sm:inline text-xs text-zinc-500">/ Drilling primer</span>
     </div>
-    <button id="theme-toggle" class="rounded-md border border-zinc-200 dark:border-zinc-800 px-2.5 py-1.5 text-xs text-zinc-600 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-900" aria-label="Toggle dark mode">
-      <span class="dark:hidden">Dark</span>
-      <span class="hidden dark:inline">Light</span>
-    </button>
   </div>
 </header>
 
@@ -879,12 +863,6 @@
     whyPanels.forEach(p => p.classList.toggle('hidden', p.id !== 'why-' + name));
   }
   whyBtns.forEach(b => b.addEventListener('click', () => showWhy(b.dataset.why)));
-
-  // Dark-mode toggle (persists in localStorage)
-  document.getElementById('theme-toggle').addEventListener('click', () => {
-    const isDark = document.documentElement.classList.toggle('dark');
-    localStorage.setItem('theme', isDark ? 'dark' : 'light');
-  });
 </script>
 
 </body>

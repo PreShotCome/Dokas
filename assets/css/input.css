@@ -3,20 +3,19 @@
 @tailwind utilities;
 
 @layer base {
+  /* Dark-only brand. <html class="dark"> is hard-set in layout.templ so
+     every `dark:` utility in templates becomes the actual style, not an
+     alternate. color-scheme: dark also tells the browser to render
+     scrollbars, form controls and built-in widgets in dark theme. */
   :root {
-    color-scheme: light dark;
+    color-scheme: dark;
   }
   body {
-    @apply bg-zinc-50 text-zinc-900 antialiased;
-  }
-  @media (prefers-color-scheme: dark) {
-    body {
-      @apply text-zinc-100;
-      /* Soft navy-blue easing into near-black, left to right — keeps the
-         dark theme from reading as a flat black wall. */
-      background: linear-gradient(to right, #1e2d4d, #09090b);
-      background-attachment: fixed;
-    }
+    @apply text-zinc-100 antialiased;
+    /* Soft navy-blue easing into near-black, left to right — keeps the
+       dark theme from reading as a flat black wall. */
+    background: linear-gradient(to right, #1e2d4d, #09090b);
+    background-attachment: fixed;
   }
   /* WCAG 2.4.7: every focusable element gets a visible focus indicator,
      even links that otherwise rely only on :hover. */

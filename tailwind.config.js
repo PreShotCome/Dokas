@@ -1,6 +1,10 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   content: ["./internal/web/**/*.templ", "./internal/web/**/*.go"],
+  // Dark-only brand: <html class="dark"> is hard-set in layout.templ so
+  // every existing `dark:` modifier fires unconditionally. Keep the
+  // modifiers in templates — they're the dark values, not alternates.
+  darkMode: "class",
   theme: {
     extend: {
       fontFamily: {
