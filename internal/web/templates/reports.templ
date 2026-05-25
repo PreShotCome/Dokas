@@ -36,7 +36,7 @@ templ Reports(v ReportsView) {
 			@reportTile("Total drills", strconv.Itoa(v.TotalDrills))
 			@reportTile("Pass rate", reportPassRate(v.Succeeded, v.Failed))
 			@reportTile("Failed", strconv.Itoa(v.Failed))
-			@reportTile("Databases", strconv.Itoa(len(v.Databases)))
+			@reportTile("Databases drilled", strconv.Itoa(countDrilledDatabases(v.Databases)))
 		</div>
 		if v.TotalDrills == 0 {
 			<div class="card text-center text-sm text-zinc-600 dark:text-zinc-400">
@@ -156,4 +156,18 @@ func reportLastDrill(t *time.Time) string {
 		return "never"
 	}
 	return t.UTC().Format("2006-01-02")
+}
+
+// countDrilledDatabases returns the number of database targets that had at
+// least one drill in the reporting window — the headline alongside the
+// other window-scoped counters, not the raw target count (which would
+// include never-drilled databases and be misleading).
+func countDrilledDatabases(dbs []drill.DatabaseStat) int {
+	n := 0
+	for _, d := range dbs {
+		if d.Total > 0 {
+			n++
+		}
+	}
+	return n
 }

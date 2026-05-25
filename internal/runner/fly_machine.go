@@ -34,8 +34,12 @@ type FlyMachineRunner struct {
 }
 
 // NewFlyMachineRunner builds the runner. image must be a Postgres container
-// image (default postgres:16-alpine); dbPass is the password every sandbox
-// Postgres is created with — fixed, so Rehydrate can rebuild the DSN.
+// image — pin it by digest (postgres:16-alpine@sha256:…) in production so
+// every drill's sandbox is bit-for-bit reproducible, which is what an
+// auditor expects when they read the evidence chain. The floating
+// "postgres:16-alpine" default is dev-only. dbPass is the password every
+// sandbox Postgres is created with — fixed, so Rehydrate can rebuild the
+// DSN.
 func NewFlyMachineRunner(client *fly.Client, app, image, region, dbPass string) *FlyMachineRunner {
 	if image == "" {
 		image = "postgres:16-alpine"

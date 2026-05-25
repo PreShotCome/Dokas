@@ -189,9 +189,17 @@ templ LayoutWith(title string, lc LayoutCtx) {
 }
 
 // trialBannerText is the days-left message shown in the trial banner.
+// "0 days left" reads as already-lapsed; for the final sub-day window we
+// show "Less than a day left" so the banner is still motivating, not
+// confusing.
 func trialBannerText(a *account.Account) string {
-	if account.TrialDaysLeft(*a) == 1 {
+	days := account.TrialDaysLeft(*a)
+	switch {
+	case days == 0:
+		return "Less than a day left in your free trial."
+	case days == 1:
 		return "1 day left in your free trial."
+	default:
+		return strconv.Itoa(days) + " days left in your free trial."
 	}
-	return strconv.Itoa(account.TrialDaysLeft(*a)) + " days left in your free trial."
 }

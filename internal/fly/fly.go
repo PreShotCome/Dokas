@@ -7,6 +7,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -27,7 +28,9 @@ func NewClient(app, token string) *Client {
 		app:   app,
 		token: token,
 		base:  "https://api.machines.dev/v1",
-		http:  &http.Client{Timeout: 30 * time.Second},
+		// 90s > the 60s WaitStarted server timeout so the client doesn't
+		// give up while Fly is still working.
+		http: &http.Client{Timeout: 90 * time.Second},
 	}
 }
 
@@ -81,32 +84,67 @@ func (c *Client) Destroy(ctx context.Context, machineID string) error {
 }
 
 // do issues an authenticated request, decoding a JSON response into out when
-// out is non-nil.
+// out is non-nil. Transient 5xx and transport errors are retried with
+// exponential backoff (200ms, 400ms, 800ms) so a single api.machines.dev
+// blip doesn't fail an otherwise-retryable drill permanently.
 func (c *Client) do(ctx context.Context, method, path string, body, out any) error {
-	var rdr io.Reader
+	var raw []byte
 	if body != nil {
 		b, err := json.Marshal(body)
 		if err != nil {
 			return err
 		}
-		rdr = bytes.NewReader(b)
+		raw = b
+	}
+	var lastErr error
+	backoff := 200 * time.Millisecond
+	for attempt := 0; attempt < 4; attempt++ {
+		if attempt > 0 {
+			select {
+			case <-ctx.Done():
+				return ctx.Err()
+			case <-time.After(backoff):
+			}
+			backoff *= 2
+		}
+		err := c.doOnce(ctx, method, path, raw, body != nil, out)
+		if err == nil {
+			return nil
+		}
+		// Retry only on transient HTTP-status errors. Other errors (4xx,
+		// malformed responses, context cancelled) are returned immediately.
+		if !isTransient(err) {
+			return err
+		}
+		lastErr = err
+	}
+	return lastErr
+}
+
+func (c *Client) doOnce(ctx context.Context, method, path string, body []byte, hasBody bool, out any) error {
+	var rdr io.Reader
+	if hasBody {
+		rdr = bytes.NewReader(body)
 	}
 	req, err := http.NewRequestWithContext(ctx, method, c.base+path, rdr)
 	if err != nil {
 		return err
 	}
 	req.Header.Set("Authorization", "Bearer "+c.token)
-	if body != nil {
+	if hasBody {
 		req.Header.Set("Content-Type", "application/json")
 	}
 	resp, err := c.http.Do(req)
 	if err != nil {
-		return fmt.Errorf("fly: %s %s: %w", method, path, err)
+		return &transientError{err: fmt.Errorf("fly: %s %s: %w", method, path, err)}
 	}
 	defer resp.Body.Close()
 	payload, _ := io.ReadAll(io.LimitReader(resp.Body, 1<<20))
 	if resp.StatusCode == http.StatusNotFound && method == http.MethodDelete {
 		return nil
+	}
+	if resp.StatusCode >= 500 || resp.StatusCode == http.StatusTooManyRequests {
+		return &transientError{err: fmt.Errorf("fly: %s %s: %s: %s", method, path, resp.Status, snippet(payload))}
 	}
 	if resp.StatusCode >= 400 {
 		return fmt.Errorf("fly: %s %s: %s: %s", method, path, resp.Status, snippet(payload))
@@ -117,6 +155,17 @@ func (c *Client) do(ctx context.Context, method, path string, body, out any) err
 		}
 	}
 	return nil
+}
+
+// transientError marks an error eligible for retry (5xx, 429, transport).
+type transientError struct{ err error }
+
+func (e *transientError) Error() string { return e.err.Error() }
+func (e *transientError) Unwrap() error { return e.err }
+
+func isTransient(err error) bool {
+	var t *transientError
+	return errors.As(err, &t)
 }
 
 func snippet(b []byte) string {

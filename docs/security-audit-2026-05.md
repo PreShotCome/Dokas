@@ -58,12 +58,12 @@ Tracking the 40 findings from the deep-scan audit run on 2026-05-23, plus
 
 | ID   | Title | File | Status | Commit |
 |------|-------|------|--------|--------|
-| N31  | MagicLink templates pass `user=nil` to layout | `internal/web/templates/magiclink.templ` | ✅ | (Phase 5) |
+| N31  | MagicLink templates pass `user=nil` to layout | `internal/web/templates/magiclink.templ` | ✅ (covered by N9) | (Phase 2) |
 | N32  | reports.templ "Databases" tile counts all targets | `internal/web/templates/reports.templ` | ✅ | (Phase 5) |
 | N33  | `mfaChallengeSubmit` doesn't clean prior `mfa_pending` rows | `internal/web/handlers/auth.go` | ✅ | (Phase 5) |
 | N34  | `TrialActive` fail-open when `trial_ends_at IS NULL` | `internal/account/trial.go` | ✅ | (Phase 5) |
 | N35  | No retries on Fly API calls | `internal/fly/fly.go` | ✅ | (Phase 5) |
-| N36  | Postgres image not pinned by digest | `internal/runner/fly_machine.go` | ✅ | (Phase 5) |
+| N36  | Postgres image not pinned by digest | `internal/runner/fly_machine.go` | 🟡 ACCEPTED — operational | docs only |
 | N37  | `WaitStarted` server timeout 60s vs HTTP client 30s | `internal/fly/fly.go` | ✅ | (Phase 5) |
 | N38  | `reportsExport` ignores csv Writer errors | `internal/web/handlers/reports.go` | ✅ | (Phase 5) |
 | N39  | No stripe_events poison-pill handling | `internal/web/handlers/billing.go` | ✅ | (Phase 5) (covered by N2) |
@@ -82,8 +82,10 @@ Tracking the 40 findings from the deep-scan audit run on 2026-05-23, plus
 - **Critical fixed:** 7 / 7
 - **High fixed:** 13 / 13
 - **Medium fixed:** 10 / 10
-- **Low fixed:** 10 / 10
-- **Accepted:** 0
+- **Low fixed:** 9 / 10
+- **Accepted (operational, not code):** 1 — N36 (digest-pin the sandbox
+  Postgres image via `FLY_POSTGRES_IMAGE=postgres:16-alpine@sha256:...`
+  in production; doc-only change, no code fix.)
 
 Work delivered in 5 phases:
 

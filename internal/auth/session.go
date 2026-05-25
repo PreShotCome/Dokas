@@ -76,7 +76,16 @@ func (s *Store) Create(ctx context.Context, w http.ResponseWriter, userID, curre
 // CreatePending issues a session that has passed the password check but still
 // owes an MFA code. It does not authenticate app requests until CompleteMFA
 // promotes it.
+//
+// Before minting the new pending row, prior mfa_pending sessions for the
+// same user are deleted — without this, a phished or replayed pending
+// cookie from an earlier attempt would race the legitimate user at
+// /login/mfa.
 func (s *Store) CreatePending(ctx context.Context, w http.ResponseWriter, userID uuid.UUID) error {
+	if _, err := s.pool.Exec(ctx,
+		`DELETE FROM sessions WHERE user_id = $1 AND mfa_pending = TRUE`, userID); err != nil {
+		return err
+	}
 	return s.create(ctx, w, userID, uuid.Nil, true)
 }
 

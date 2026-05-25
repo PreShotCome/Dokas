@@ -8,16 +8,23 @@ import "time"
 const TrialDuration = 14 * 24 * time.Hour
 
 // TrialActive reports whether a trial-plan account is still inside its
-// full-access window. A trial account with no end date is treated as active
-// so missing data never locks anyone out.
+// full-access window. A trial account with no end date is now treated as
+// lapsed (fail-closed) — the trial backfill migration always sets a date,
+// so a missing value is a bug we'd rather catch as a paywall than silently
+// extend access forever.
 func TrialActive(a Account) bool {
-	return a.Plan == PlanTrial && (a.TrialEndsAt == nil || time.Now().Before(*a.TrialEndsAt))
+	return a.Plan == PlanTrial && a.TrialEndsAt != nil && time.Now().Before(*a.TrialEndsAt)
 }
 
 // TrialLapsed reports whether a trial account's window has closed without it
-// subscribing. Writes should be blocked for a lapsed account.
+// subscribing. Writes should be blocked for a lapsed account. A trial
+// account with NO end date counts as lapsed for the same fail-closed
+// reason.
 func TrialLapsed(a Account) bool {
-	return a.Plan == PlanTrial && a.TrialEndsAt != nil && time.Now().After(*a.TrialEndsAt)
+	if a.Plan != PlanTrial {
+		return false
+	}
+	return a.TrialEndsAt == nil || time.Now().After(*a.TrialEndsAt)
 }
 
 // TrialDaysLeft is the whole days remaining in the trial, rounded up and

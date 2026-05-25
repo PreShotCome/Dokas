@@ -99,7 +99,7 @@ func Reports(v ReportsView) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = reportTile("Databases", strconv.Itoa(len(v.Databases))).Render(ctx, templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = reportTile("Databases drilled", strconv.Itoa(countDrilledDatabases(v.Databases))).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -467,6 +467,20 @@ func reportLastDrill(t *time.Time) string {
 		return "never"
 	}
 	return t.UTC().Format("2006-01-02")
+}
+
+// countDrilledDatabases returns the number of database targets that had at
+// least one drill in the reporting window — the headline alongside the
+// other window-scoped counters, not the raw target count (which would
+// include never-drilled databases and be misleading).
+func countDrilledDatabases(dbs []drill.DatabaseStat) int {
+	n := 0
+	for _, d := range dbs {
+		if d.Total > 0 {
+			n++
+		}
+	}
+	return n
 }
 
 var _ = templruntime.GeneratedTemplate
