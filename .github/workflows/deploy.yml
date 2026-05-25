@@ -1,26 +1,27 @@
 name: deploy
 
-# Deploy to Fly.io automatically once CI passes on main. The deploy job
-# runs only when (a) the `ci` workflow for the same commit succeeded AND
-# (b) the repo opt-in variable DEPLOY_ENABLED is set to "true".
+# Deploy to Fly.io — MANUAL ONLY pre-launch.
 #
-# Pre-launch the variable is unset, so this workflow no-ops on every
-# push — keeping the Actions tab clean while Fly isn't provisioned yet.
-# To flip it on:
-#   1) fly apps create soteria  (and fly volumes create ..., per docs/runbooks/go-live.md)
-#   2) fly tokens create deploy  → paste as repo secret FLY_API_TOKEN
+# The workflow_run auto-deploy trigger is commented out below to keep
+# the Actions tab quiet (every push to main was firing a skipped
+# deploy run, which still counts as a workflow run in the UI). With
+# only workflow_dispatch enabled, this workflow runs only when you
+# manually click "Run workflow" in the Actions tab.
+#
+# When you're ready to flip on auto-deploy on launch day:
+#   1) fly apps create soteria  (+ fly volumes create ..., per docs/runbooks/go-live.md)
+#   2) fly tokens create deploy → paste as repo secret FLY_API_TOKEN
 #      (Settings → Secrets and variables → Actions → Secrets tab)
-#   3) Set repo variable DEPLOY_ENABLED=true
-#      (Settings → Secrets and variables → Actions → Variables tab)
+#   3) Uncomment the workflow_run block below; comment workflow_dispatch out.
 on:
-  workflow_run:
-    workflows: ["ci"]
-    types: [completed]
-    branches: [main]
+  workflow_dispatch:
+  # workflow_run:
+  #   workflows: ["ci"]
+  #   types: [completed]
+  #   branches: [main]
 
 jobs:
   deploy:
-    if: github.event.workflow_run.conclusion == 'success' && vars.DEPLOY_ENABLED == 'true'
     runs-on: ubuntu-latest
     # Never let two deploys overlap; let an in-flight one finish.
     concurrency:
@@ -28,8 +29,6 @@ jobs:
       cancel-in-progress: false
     steps:
       - uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event.workflow_run.head_sha }}
       - uses: superfly/flyctl-actions/setup-flyctl@master
       - name: Deploy
         run: flyctl deploy --remote-only
