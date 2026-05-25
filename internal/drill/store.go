@@ -245,6 +245,14 @@ func (s *Store) SetTargetSchedule(ctx context.Context, accountID, targetID uuid.
 
 // DueTargets returns every scheduled target whose next drill is due. Used by
 // the scheduler worker.
+//
+// The query takes a row-level lock with SKIP LOCKED so a second concurrent
+// scheduler (a crash-loop restart, or a deliberately-scaled pool) processes
+// a disjoint slice of the queue instead of racing with the first one. The
+// lock is released when the caller's transaction commits — here we run on
+// the pool's auto-transaction, so the lock lives only for the query's
+// duration; that's enough to prevent two workers from picking up the same
+// row in the same instant.
 func (s *Store) DueTargets(ctx context.Context) ([]Target, error) {
 	rows, err := s.pool.Query(ctx, `
 		SELECT t.id, t.account_id, t.created_by_user_id, t.name, t.source_kind, t.source_uri,
@@ -258,6 +266,7 @@ func (s *Store) DueTargets(ctx context.Context) ([]Target, error) {
 		   AND t.next_drill_at <= now()
 		   -- A lapsed trial is read-only: the scheduler stops drilling it.
 		   AND NOT (a.plan = 'trial' AND a.trial_ends_at IS NOT NULL AND a.trial_ends_at < now())
+		 FOR UPDATE OF t SKIP LOCKED
 	`)
 	if err != nil {
 		return nil, err

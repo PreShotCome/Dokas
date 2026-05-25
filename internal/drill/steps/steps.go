@@ -213,7 +213,14 @@ func (w *ProvisionWorker) Work(ctx context.Context, job *river.Job[drill.Provisi
 		return w.D.failAndCleanup(ctx, drillID, drill.StepProvision, err.Error())
 	}
 	if err := w.D.Store.SetSandboxDB(ctx, drillID, sb.Name); err != nil {
-		return err // transient store write — let River retry (Provision is idempotent)
+		// Persisting the sandbox name failed — without it, a River retry
+		// of this job would call Provision again and spawn a second
+		// machine, leaving the first one running forever. Tear the just-
+		// provisioned sandbox down before bubbling the transient error.
+		cleanupCtx, cancel := context.WithTimeout(context.WithoutCancel(ctx), 30*time.Second)
+		_ = w.D.Runner.Teardown(cleanupCtx, sb)
+		cancel()
+		return err
 	}
 	if err := w.D.Store.MarkStepSucceeded(ctx, drillID, drill.StepProvision); err != nil {
 		return err

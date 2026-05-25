@@ -64,9 +64,17 @@ func (w *SchedulerWorker) Work(ctx context.Context, _ *river.Job[SchedulerArgs])
 				continue
 			}
 		}
-		// Resume from now, skipping any slots missed while the scheduler was
-		// down — better than firing a burst of catch-up drills.
-		if err := w.Store.AdvanceTargetSchedule(ctx, t.ID, time.Now().UTC().Add(interval)); err != nil {
+		// Advance to the next slot boundary, not to now+interval — using
+		// now would drift the schedule forward by however late this tick
+		// fired (a daily 02:00 drill that fired at 02:04 would next fire
+		// at 02:04 the following day, then later, then later). Compute
+		// the smallest scheduled boundary that is still in the future.
+		next := t.NextDrillAt.Add(interval)
+		now := time.Now().UTC()
+		for !next.After(now) {
+			next = next.Add(interval)
+		}
+		if err := w.Store.AdvanceTargetSchedule(ctx, t.ID, next); err != nil {
 			w.logErr("advance schedule", t.ID, err)
 		}
 	}

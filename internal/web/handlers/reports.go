@@ -19,7 +19,12 @@ func (h *Handlers) reports(w http.ResponseWriter, r *http.Request) {
 	if isPro {
 		months = 12
 	}
-	since := time.Now().UTC().AddDate(0, -months, 0)
+	// Snap to the first day of the (months-ago) calendar month — so a
+	// 3-month window always returns exactly 3 month buckets, regardless of
+	// the day-of-month the request fires on. AddDate(0,-N,0) from a wall
+	// clock can return partial months on either edge (Feb-24 → May-24
+	// yields four buckets, two of which are partial and incomparable).
+	since := monthsAgoUTC(time.Now(), months)
 
 	monthly, _ := h.drills.MonthlyStats(r.Context(), lc.Account.ID, since)
 	dbs, _ := h.drills.DatabaseStats(r.Context(), lc.Account.ID, since)
@@ -46,7 +51,7 @@ func (h *Handlers) reportsExport(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "CSV export is a Pro-plan feature", http.StatusForbidden)
 		return
 	}
-	since := time.Now().UTC().AddDate(0, -12, 0)
+	since := monthsAgoUTC(time.Now(), 12)
 	monthly, err := h.drills.MonthlyStats(r.Context(), lc.Account.ID, since)
 	if err != nil {
 		http.Error(w, "report unavailable", http.StatusInternalServerError)
@@ -66,4 +71,13 @@ func (h *Handlers) reportsExport(w http.ResponseWriter, r *http.Request) {
 		})
 	}
 	cw.Flush()
+}
+
+// monthsAgoUTC returns the first UTC instant of the calendar month that is
+// `months` before `now`'s month. It is the deterministic lower bound for a
+// rolling N-month report: a 3-month window always yields exactly 3 month
+// buckets, with no partial-month edges to distort month-over-month deltas.
+func monthsAgoUTC(now time.Time, months int) time.Time {
+	t := now.UTC()
+	return time.Date(t.Year(), t.Month()-time.Month(months), 1, 0, 0, 0, 0, time.UTC)
 }

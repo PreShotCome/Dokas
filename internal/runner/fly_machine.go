@@ -3,11 +3,16 @@ package runner
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/google/uuid"
 
 	"github.com/preshotcome/anything/internal/fly"
 )
+
+// flyCleanupTimeout is how long we allow a machine-destroy call to run on
+// the cleanup path, regardless of how the original job context ended.
+const flyCleanupTimeout = 30 * time.Second
 
 // FlyMachineRunner runs each drill in a dedicated, ephemeral Fly Machine — a
 // per-drill Postgres VM, isolated from the app and from other drills.
@@ -63,7 +68,13 @@ func (r *FlyMachineRunner) Provision(ctx context.Context, drillID uuid.UUID) (*S
 		return nil, fmt.Errorf("fly: provision machine: %w", err)
 	}
 	if err := r.fly.WaitStarted(ctx, m.ID); err != nil {
-		_ = r.fly.Destroy(ctx, m.ID) // never orphan a machine
+		// Use a fresh context for cleanup: if the job timed out or was
+		// cancelled, the inherited ctx is already done and Destroy would
+		// return instantly, leaking the machine. context.WithoutCancel
+		// (Go 1.21+) inherits values but not cancellation.
+		cleanupCtx, cancel := context.WithTimeout(context.WithoutCancel(ctx), flyCleanupTimeout)
+		_ = r.fly.Destroy(cleanupCtx, m.ID) // never orphan a machine
+		cancel()
 		return nil, fmt.Errorf("fly: machine %s never started: %w", m.ID, err)
 	}
 	return &Sandbox{DrillID: drillID, Name: m.ID, DSN: r.dsn(m.ID)}, nil
