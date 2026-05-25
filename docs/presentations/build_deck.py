@@ -108,7 +108,7 @@ def page_chrome(slide, eyebrow, title, slide_num, total):
             'SOTERIA  ·  Backup verification you can prove', size=9, color=ZINC_400)
 
 
-TOTAL = 10
+TOTAL = 11
 
 
 # =========================================================================
@@ -240,11 +240,72 @@ textbox(s, Inches(0.9), Inches(6.05), Inches(11.6), Inches(0.55),
 
 
 # =========================================================================
-# Slide 4 — How a drill works (in detail) — already shown on slide 3
-# Use slide 4 for: Product — what's built
+# Slide 4 — Onboarding (signup → first signed PDF in 15 min)
 # =========================================================================
 s = add_slide()
-page_chrome(s, 'Product', 'What we have built.', 4, TOTAL)
+page_chrome(s, 'Onboarding', 'From signup to first signed PDF in 15 minutes.', 4, TOTAL)
+
+# 4-step onboarding pipeline
+ob_top    = Inches(1.85)
+ob_h      = Inches(2.6)
+ob_gap    = Inches(0.15)
+ob_arrow  = Inches(0.35)
+ob_total  = prs.slide_width - Inches(1.2)
+ob_box_w  = (ob_total - ob_arrow*3 - ob_gap*6) / 4
+ob_steps = [
+    ('1', 'Sign up', '~ 2 min',
+     'Email + password.\nThe 14-day free trial starts automatically.\nStripe customer record created in the background.'),
+    ('2', 'Connect AWS', '~ 3 min',
+     'Click "Connect AWS" in the dashboard.\nA pre-filled CloudFormation template opens\nin the customer\'s AWS console — they\nclick "Create stack". No keys to copy.'),
+    ('3', 'Define checks', '~ 5 min',
+     'Pick from SQL assertion templates —\nrow-count floors, freshness windows,\nNOT NULL checks. Set a daily schedule.'),
+    ('4', 'First drill', '~ 5 min',
+     'Runs while you watch.\nA signed PDF lands in the evidence vault.\nThat moment IS the sales close.'),
+]
+ob_x = Inches(0.6)
+for i, (n, title, time_label, body) in enumerate(ob_steps):
+    rounded(s, ob_x, ob_top, ob_box_w, ob_h, WHITE, line=ZINC_200, radius=0.06)
+    cx, cy = ob_x + Inches(0.25), ob_top + Inches(0.25)
+    rounded(s, cx, cy, Inches(0.45), Inches(0.45), BRAND_700, radius=0.5)
+    textbox(s, cx, cy, Inches(0.45), Inches(0.45),
+            n, size=16, bold=True, color=WHITE, align=PP_ALIGN.CENTER, anchor=MSO_ANCHOR.MIDDLE)
+    textbox(s, ob_x + Inches(0.85), ob_top + Inches(0.25), ob_box_w - Inches(0.95), Inches(0.35),
+            title, size=15, bold=True, color=ZINC_900)
+    textbox(s, ob_x + Inches(0.85), ob_top + Inches(0.6), ob_box_w - Inches(0.95), Inches(0.3),
+            time_label, size=10, bold=True, color=BRAND_500)
+    textbox(s, ob_x + Inches(0.3), ob_top + Inches(1.1), ob_box_w - Inches(0.5), ob_h - Inches(1.2),
+            body, size=10, color=ZINC_700)
+    ob_x += ob_box_w
+    if i < 3:
+        ar = s.shapes.add_shape(MSO_SHAPE.RIGHT_ARROW, ob_x + ob_gap, ob_top + Inches(1.05), ob_arrow, Inches(0.35))
+        ar.fill.solid(); ar.fill.fore_color.rgb = BRAND_300
+        ar.line.fill.background()
+        ob_x += ob_arrow + ob_gap*2
+
+# Brand callout: how the first 10 customers experience this
+strip1_top = Inches(4.7)
+rounded(s, Inches(0.6), strip1_top, Inches(12.2), Inches(1.15), BRAND_50, line=BRAND_100, radius=0.06)
+textbox(s, Inches(0.9), strip1_top + Inches(0.15), Inches(11.6), Inches(0.35),
+        'FIRST 10 DESIGN PARTNERS', size=10, bold=True, color=BRAND_700)
+textbox(s, Inches(0.9), strip1_top + Inches(0.45), Inches(11.6), Inches(0.65),
+        '15-minute white-glove Zoom — you screen-share through the CloudFormation step. The first signed PDF lands while you\'re still on the call: that moment IS the sales close.',
+        size=13, color=ZINC_700)
+
+# Emerald callout: the trust line for the security review question
+strip2_top = Inches(6.0)
+rounded(s, Inches(0.6), strip2_top, Inches(12.2), Inches(0.95), EMERALD_50, line=EMERALD, radius=0.06)
+textbox(s, Inches(0.9), strip2_top + Inches(0.15), Inches(11.6), Inches(0.3),
+        'WHAT THE CUSTOMER\'S SECURITY TEAM SEES', size=10, bold=True, color=EMERALD_700)
+textbox(s, Inches(0.9), strip2_top + Inches(0.4), Inches(11.6), Inches(0.5),
+        'Same pattern as Datadog, Snowflake, Vanta, Drata: a read-only IAM role scoped to one bucket. No agent install. No production-DB access. Revocable in one click.',
+        size=12, color=ZINC_900)
+
+
+# =========================================================================
+# Slide 5 — Product (what's built)
+# =========================================================================
+s = add_slide()
+page_chrome(s, 'Product', 'What we have built.', 5, TOTAL)
 
 # Left: live mock of the drill detail screen
 mock_left = Inches(0.6)
@@ -334,10 +395,10 @@ for title, desc in features:
 
 
 # =========================================================================
-# Slide 5 — Failed vs Successful drill
+# Slide 6 — Failed vs Successful drill
 # =========================================================================
 s = add_slide()
-page_chrome(s, 'Comparison', 'A failed drill vs a successful one.', 5, TOTAL)
+page_chrome(s, 'Comparison', 'A failed drill vs a successful one.', 6, TOTAL)
 
 RED_100 = RGBColor(0xFE, 0xE2, 0xE2)
 RED_50  = RGBColor(0xFE, 0xF2, 0xF2)
@@ -448,10 +509,10 @@ textbox(s, Inches(0.6), Inches(6.75), Inches(12.2), Inches(0.4),
 
 
 # =========================================================================
-# Slide 6 — Market & business model
+# Slide 7 — Market & business model
 # =========================================================================
 s = add_slide()
-page_chrome(s, 'Market', 'Every regulated B2B company is a buyer.', 6, TOTAL)
+page_chrome(s, 'Market', 'Every regulated B2B company is a buyer.', 7, TOTAL)
 
 # Three buyer columns
 col_top = Inches(1.7)
@@ -497,10 +558,10 @@ textbox(s, Inches(0.6), Inches(6.6), Inches(12.2), Inches(0.4),
 
 
 # =========================================================================
-# Slide 7 — Pricing
+# Slide 8 — Pricing
 # =========================================================================
 s = add_slide()
-page_chrome(s, 'Pricing', 'Pricing by how often you verify.', 7, TOTAL)
+page_chrome(s, 'Pricing', 'Pricing by how often you verify.', 8, TOTAL)
 
 # Three pricing cards
 def pricing_card(slide, left, top, w, h, name, price, period, cadence_label, cadence_value,
@@ -565,10 +626,10 @@ textbox(s, Inches(0.6), Inches(7.05), Inches(12), Inches(0.3),
 
 
 # =========================================================================
-# Slide 8 — Where we stand today
+# Slide 9 — Where we stand today
 # =========================================================================
 s = add_slide()
-page_chrome(s, 'Status', 'Where we stand today.', 8, TOTAL)
+page_chrome(s, 'Status', 'Where we stand today.', 9, TOTAL)
 
 # Status pills row
 def status_pill(slide, left, top, w, h, status, label, color_bg, color_fg):
@@ -626,10 +687,10 @@ section_card(s, Inches(6.75), Inches(3.05), Inches(6.05), Inches(4.0),
 
 
 # =========================================================================
-# Slide 9 — Roadmap / what's next
+# Slide 10 — Roadmap / what's next
 # =========================================================================
 s = add_slide()
-page_chrome(s, 'Plan', 'The next 90 days.', 9, TOTAL)
+page_chrome(s, 'Plan', 'The next 90 days.', 10, TOTAL)
 
 # Timeline boxes — 30/60/90
 def timeline_card(slide, left, top, w, h, when, title, items, color):
@@ -666,7 +727,7 @@ timeline_card(s, tl_left + (tl_w + tl_gap) * 2, tl_top, tl_w, tl_h, '60 – 90 D
 
 
 # =========================================================================
-# Slide 10 — Contact / Q&A
+# Slide 11 — Contact / Q&A
 # =========================================================================
 s = add_slide()
 rect(s, Inches(0), Inches(0), prs.slide_width, prs.slide_height, BRAND_900)
