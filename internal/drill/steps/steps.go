@@ -269,9 +269,15 @@ func (w *FetchWorker) Work(ctx context.Context, job *river.Job[drill.FetchArgs])
 		return err // transient store read — let River retry
 	}
 
-	localPath, err := w.D.Runner.Fetch(ctx, sb, target.SourceURI)
+	localPath, sourceHash, err := w.D.Runner.Fetch(ctx, sb, target.SourceURI)
 	if err != nil {
 		return w.D.failAndCleanup(ctx, drillID, drill.StepFetch, err.Error())
+	}
+	// Persist the input anchor of the evidence chain. A SetSourceHash
+	// failure here is transient (DB blip); River will retry the whole
+	// fetch step — which is safe because Fetch + hashDump are pure.
+	if err := w.D.Store.SetSourceHash(ctx, drillID, sourceHash); err != nil {
+		return err
 	}
 
 	if err := w.D.Store.MarkStepSucceeded(ctx, drillID, drill.StepFetch); err != nil {
@@ -293,7 +299,7 @@ func (w *FetchWorker) chainAlreadyFetched(ctx context.Context, drillID uuid.UUID
 	if err != nil {
 		return err
 	}
-	localPath, err := w.D.Runner.Fetch(ctx, sb, target.SourceURI)
+	localPath, _, err := w.D.Runner.Fetch(ctx, sb, target.SourceURI)
 	if err != nil {
 		return err
 	}

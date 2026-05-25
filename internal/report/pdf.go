@@ -53,6 +53,7 @@ func Render(out io.Writer, d Data) error {
 		{"Drill ID", d.Drill.ID.String()},
 		{"Target", d.Target.Name},
 		{"Source", d.Target.SourceKind + ": " + d.Target.SourceURI},
+		{"Source SHA-256", sourceHashOrDash(d.Drill.SourceHash)},
 		{"Status", string(d.Drill.Status)},
 		{"Started", fmtTime(d.Drill.StartedAt)},
 		{"Completed", fmtTime(d.Drill.CompletedAt)},
@@ -195,6 +196,18 @@ func fmtTime(t *time.Time) string {
 		return "-"
 	}
 	return t.UTC().Format(time.RFC3339)
+}
+
+// sourceHashOrDash renders the input-anchor SHA-256 verbatim, or a "—"
+// for legacy drills that ran before the source_hash column existed. The
+// hex string is what a holder of the dump re-computes (`shasum -a 256`
+// on a plain dump, or per the directory-dump rule in runner.hashDump)
+// to prove they hold the exact bytes we drilled.
+func sourceHashOrDash(h *string) string {
+	if h == nil || *h == "" {
+		return "—  (not recorded; drill predates source_hash)"
+	}
+	return *h
 }
 
 func duration(start, end *time.Time) string {

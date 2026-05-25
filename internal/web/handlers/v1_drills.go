@@ -23,7 +23,11 @@ type apiDrill struct {
 	CompletedAt *time.Time `json:"completed_at"`
 	Error       *string    `json:"error"`
 	HasEvidence bool       `json:"has_evidence"`
-	CreatedAt   time.Time  `json:"created_at"`
+	// SourceHash is the hex SHA-256 of the dump we fetched and drilled.
+	// Echoes the value embedded in the signed evidence PDF — a customer
+	// re-hashing the dump they hold proves it's the exact bytes we ran.
+	SourceHash *string   `json:"source_hash"`
+	CreatedAt  time.Time `json:"created_at"`
 }
 
 func toAPIDrill(d drill.Drill) apiDrill {
@@ -35,6 +39,7 @@ func toAPIDrill(d drill.Drill) apiDrill {
 		CompletedAt: d.CompletedAt,
 		Error:       d.Error,
 		HasEvidence: d.EvidencePath != nil && *d.EvidencePath != "",
+		SourceHash:  d.SourceHash,
 		CreatedAt:   d.CreatedAt,
 	}
 }

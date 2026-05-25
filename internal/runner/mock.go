@@ -2,6 +2,8 @@ package runner
 
 import (
 	"context"
+	"crypto/sha256"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"io"
@@ -9,6 +11,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"sort"
 	"strings"
 
 	"github.com/google/uuid"
@@ -55,31 +58,83 @@ func (r *LocalRunner) Provision(ctx context.Context, drillID uuid.UUID) (*Sandbo
 	return &Sandbox{DrillID: drillID, DSN: dsn, Name: dbName}, nil
 }
 
-// Fetch for postgres_dump_local validates the dump source and returns its
-// absolute path. A plain file or a pg_dump -Fd directory (identified by its
-// toc.dat) is accepted; later runners will copy from object storage.
-func (r *LocalRunner) Fetch(_ context.Context, _ *Sandbox, sourceURI string) (string, error) {
+// Fetch for postgres_dump_local validates the dump source and returns
+// its absolute path AND a SHA-256 hash of its contents.
+func (r *LocalRunner) Fetch(_ context.Context, _ *Sandbox, sourceURI string) (string, string, error) {
 	return fetchDump(sourceURI)
 }
 
-// fetchDump resolves and validates a dump source path. Shared by the local
-// and Fly runners — both restore by running pg_restore/psql from the app
-// against the sandbox DSN, so both just need the dump readable on disk.
-func fetchDump(sourceURI string) (string, error) {
+// fetchDump resolves and validates a dump source path, then streams it
+// through SHA-256 to produce the hash that anchors the evidence chain.
+// A plain file is hashed directly; a pg_dump -Fd directory is hashed
+// over the concatenation of its files in sorted name order so the same
+// dump always produces the same hash.
+func fetchDump(sourceURI string) (string, string, error) {
 	abs, err := filepath.Abs(sourceURI)
 	if err != nil {
-		return "", fmt.Errorf("resolve source path: %w", err)
+		return "", "", fmt.Errorf("resolve source path: %w", err)
 	}
 	st, err := os.Stat(abs)
 	if err != nil {
-		return "", fmt.Errorf("stat dump: %w", err)
+		return "", "", fmt.Errorf("stat dump: %w", err)
 	}
 	if st.IsDir() {
 		if _, err := os.Stat(filepath.Join(abs, "toc.dat")); err != nil {
-			return "", fmt.Errorf("source directory is not a pg_dump -Fd archive (no toc.dat): %s", abs)
+			return "", "", fmt.Errorf("source directory is not a pg_dump -Fd archive (no toc.dat): %s", abs)
 		}
 	}
-	return abs, nil
+	hash, err := hashDump(abs)
+	if err != nil {
+		return "", "", fmt.Errorf("hash dump: %w", err)
+	}
+	return abs, hash, nil
+}
+
+// hashDump returns the hex SHA-256 of a dump. For a plain file the hash
+// is over the file's bytes. For a pg_dump -Fd directory the hash is
+// over the concatenation of regular-file contents in sorted-name order
+// — stable across copies and operating systems.
+func hashDump(absPath string) (string, error) {
+	st, err := os.Stat(absPath)
+	if err != nil {
+		return "", err
+	}
+	h := sha256.New()
+	if !st.IsDir() {
+		f, err := os.Open(absPath)
+		if err != nil {
+			return "", err
+		}
+		defer f.Close()
+		if _, err := io.Copy(h, f); err != nil {
+			return "", err
+		}
+		return hex.EncodeToString(h.Sum(nil)), nil
+	}
+	// Directory: hash each regular file's bytes in sorted name order.
+	entries, err := os.ReadDir(absPath)
+	if err != nil {
+		return "", err
+	}
+	names := make([]string, 0, len(entries))
+	for _, e := range entries {
+		if e.Type().IsRegular() {
+			names = append(names, e.Name())
+		}
+	}
+	sort.Strings(names)
+	for _, name := range names {
+		f, err := os.Open(filepath.Join(absPath, name))
+		if err != nil {
+			return "", err
+		}
+		if _, err := io.Copy(h, f); err != nil {
+			_ = f.Close()
+			return "", err
+		}
+		_ = f.Close()
+	}
+	return hex.EncodeToString(h.Sum(nil)), nil
 }
 
 // dumpFormat is how a fetched dump should be restored.

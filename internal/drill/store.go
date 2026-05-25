@@ -80,7 +80,12 @@ type Drill struct {
 	Error           *string
 	EvidencePath    *string
 	SandboxDB       *string
-	CreatedAt       time.Time
+	// SourceHash is the hex SHA-256 of the dump bytes fetched for this
+	// drill. The input anchor of the evidence chain — a customer who
+	// re-hashes the dump they hold can prove it's the exact file we
+	// drilled. NULL for drills that ran before this column existed.
+	SourceHash *string
+	CreatedAt  time.Time
 }
 
 type Step struct {
@@ -188,7 +193,7 @@ func (s *Store) ListTargetsPage(ctx context.Context, accountID uuid.UUID, afterA
 func (s *Store) ListDrillsPage(ctx context.Context, accountID uuid.UUID, afterAt *time.Time, afterID *uuid.UUID, limit int) ([]Drill, error) {
 	rows, err := s.pool.Query(ctx, `
 		SELECT id, target_id, account_id, created_by_user_id, status, started_at, completed_at,
-		       error, evidence_path, sandbox_db, created_at
+		       error, evidence_path, sandbox_db, source_hash, created_at
 		  FROM drills
 		 WHERE account_id = $1
 		   AND ($2::timestamptz IS NULL OR (created_at, id) < ($2, $3))
@@ -203,7 +208,7 @@ func (s *Store) ListDrillsPage(ctx context.Context, accountID uuid.UUID, afterAt
 	for rows.Next() {
 		var d Drill
 		if err := rows.Scan(&d.ID, &d.TargetID, &d.AccountID, &d.CreatedByUserID, &d.Status,
-			&d.StartedAt, &d.CompletedAt, &d.Error, &d.EvidencePath, &d.SandboxDB, &d.CreatedAt); err != nil {
+			&d.StartedAt, &d.CompletedAt, &d.Error, &d.EvidencePath, &d.SandboxDB, &d.SourceHash, &d.CreatedAt); err != nil {
 			return nil, err
 		}
 		out = append(out, d)
@@ -298,11 +303,11 @@ func (s *Store) GetDrill(ctx context.Context, accountID, drillID uuid.UUID) (Dri
 	var d Drill
 	err := s.pool.QueryRow(ctx, `
 		SELECT id, target_id, account_id, created_by_user_id, status, started_at, completed_at,
-		       error, evidence_path, sandbox_db, created_at
+		       error, evidence_path, sandbox_db, source_hash, created_at
 		  FROM drills
 		 WHERE id = $1 AND account_id = $2
 	`, drillID, accountID).Scan(&d.ID, &d.TargetID, &d.AccountID, &d.CreatedByUserID, &d.Status,
-		&d.StartedAt, &d.CompletedAt, &d.Error, &d.EvidencePath, &d.SandboxDB, &d.CreatedAt)
+		&d.StartedAt, &d.CompletedAt, &d.Error, &d.EvidencePath, &d.SandboxDB, &d.SourceHash, &d.CreatedAt)
 	if errors.Is(err, pgx.ErrNoRows) {
 		return Drill{}, ErrNotFound
 	}
@@ -314,11 +319,11 @@ func (s *Store) GetDrillByID(ctx context.Context, drillID uuid.UUID) (Drill, err
 	var d Drill
 	err := s.pool.QueryRow(ctx, `
 		SELECT id, target_id, account_id, created_by_user_id, status, started_at, completed_at,
-		       error, evidence_path, sandbox_db, created_at
+		       error, evidence_path, sandbox_db, source_hash, created_at
 		  FROM drills
 		 WHERE id = $1
 	`, drillID).Scan(&d.ID, &d.TargetID, &d.AccountID, &d.CreatedByUserID, &d.Status,
-		&d.StartedAt, &d.CompletedAt, &d.Error, &d.EvidencePath, &d.SandboxDB, &d.CreatedAt)
+		&d.StartedAt, &d.CompletedAt, &d.Error, &d.EvidencePath, &d.SandboxDB, &d.SourceHash, &d.CreatedAt)
 	if errors.Is(err, pgx.ErrNoRows) {
 		return Drill{}, ErrNotFound
 	}
@@ -422,7 +427,7 @@ func (s *Store) DeleteAssertion(ctx context.Context, accountID, assertionID uuid
 func (s *Store) ListDrillsByCreator(ctx context.Context, userID uuid.UUID, limit int) ([]Drill, error) {
 	rows, err := s.pool.Query(ctx, `
 		SELECT id, target_id, account_id, created_by_user_id, status, started_at, completed_at,
-		       error, evidence_path, sandbox_db, created_at
+		       error, evidence_path, sandbox_db, source_hash, created_at
 		  FROM drills
 		 WHERE created_by_user_id = $1
 		 ORDER BY created_at DESC
@@ -436,7 +441,7 @@ func (s *Store) ListDrillsByCreator(ctx context.Context, userID uuid.UUID, limit
 	for rows.Next() {
 		var d Drill
 		if err := rows.Scan(&d.ID, &d.TargetID, &d.AccountID, &d.CreatedByUserID, &d.Status,
-			&d.StartedAt, &d.CompletedAt, &d.Error, &d.EvidencePath, &d.SandboxDB, &d.CreatedAt); err != nil {
+			&d.StartedAt, &d.CompletedAt, &d.Error, &d.EvidencePath, &d.SandboxDB, &d.SourceHash, &d.CreatedAt); err != nil {
 			return nil, err
 		}
 		out = append(out, d)
@@ -447,7 +452,7 @@ func (s *Store) ListDrillsByCreator(ctx context.Context, userID uuid.UUID, limit
 func (s *Store) ListDrills(ctx context.Context, accountID uuid.UUID, limit int) ([]Drill, error) {
 	rows, err := s.pool.Query(ctx, `
 		SELECT id, target_id, account_id, created_by_user_id, status, started_at, completed_at,
-		       error, evidence_path, sandbox_db, created_at
+		       error, evidence_path, sandbox_db, source_hash, created_at
 		  FROM drills
 		 WHERE account_id = $1
 		 ORDER BY created_at DESC
@@ -461,7 +466,7 @@ func (s *Store) ListDrills(ctx context.Context, accountID uuid.UUID, limit int) 
 	for rows.Next() {
 		var d Drill
 		if err := rows.Scan(&d.ID, &d.TargetID, &d.AccountID, &d.CreatedByUserID, &d.Status,
-			&d.StartedAt, &d.CompletedAt, &d.Error, &d.EvidencePath, &d.SandboxDB, &d.CreatedAt); err != nil {
+			&d.StartedAt, &d.CompletedAt, &d.Error, &d.EvidencePath, &d.SandboxDB, &d.SourceHash, &d.CreatedAt); err != nil {
 			return nil, err
 		}
 		out = append(out, d)
@@ -503,6 +508,14 @@ func (s *Store) MarkDrillFailed(ctx context.Context, drillID uuid.UUID, reason s
 
 func (s *Store) SetSandboxDB(ctx context.Context, drillID uuid.UUID, name string) error {
 	_, err := s.pool.Exec(ctx, `UPDATE drills SET sandbox_db = $2 WHERE id = $1`, drillID, name)
+	return err
+}
+
+// SetSourceHash records the SHA-256 of the dump fetched for the drill.
+// Called from the fetch step. Idempotent — a re-fetch (e.g. River retry
+// after a Postgres blip) records the same value.
+func (s *Store) SetSourceHash(ctx context.Context, drillID uuid.UUID, hash string) error {
+	_, err := s.pool.Exec(ctx, `UPDATE drills SET source_hash = $2 WHERE id = $1`, drillID, hash)
 	return err
 }
 
