@@ -23,7 +23,11 @@ type apiDrill struct {
 	CompletedAt *time.Time `json:"completed_at"`
 	Error       *string    `json:"error"`
 	HasEvidence bool       `json:"has_evidence"`
-	CreatedAt   time.Time  `json:"created_at"`
+	// SourceHash is the hex SHA-256 of the dump we fetched and drilled.
+	// Echoes the value embedded in the signed evidence PDF — a customer
+	// re-hashing the dump they hold proves it's the exact bytes we ran.
+	SourceHash *string   `json:"source_hash"`
+	CreatedAt  time.Time `json:"created_at"`
 }
 
 func toAPIDrill(d drill.Drill) apiDrill {
@@ -35,6 +39,7 @@ func toAPIDrill(d drill.Drill) apiDrill {
 		CompletedAt: d.CompletedAt,
 		Error:       d.Error,
 		HasEvidence: d.EvidencePath != nil && *d.EvidencePath != "",
+		SourceHash:  d.SourceHash,
 		CreatedAt:   d.CreatedAt,
 	}
 }
@@ -52,6 +57,16 @@ type apiStep struct {
 	StartedAt   *time.Time `json:"started_at"`
 	CompletedAt *time.Time `json:"completed_at"`
 	Error       *string    `json:"error"`
+}
+
+// apiStepLog is one row of GET /v1/drills/{id}/logs — the captured
+// stdout+stderr of a step's subprocess (today: only restore).
+type apiStepLog struct {
+	Step         string  `json:"step"`
+	Snippet      *string `json:"snippet"`
+	SHA256       *string `json:"sha256"`         // hash of the FULL output, not the snippet
+	Truncated    *bool   `json:"truncated"`      // true when snippet < full output
+	SnippetBytes int     `json:"snippet_bytes"`
 }
 
 type apiAssertionResult struct {
@@ -197,4 +212,91 @@ func (h *Handlers) v1GetEvidence(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/pdf")
 	w.Header().Set("Content-Disposition", `attachment; filename="soteria-`+d.ID.String()+`.pdf"`)
 	_, _ = w.Write(body)
+}
+
+// apiSignature is the detached signature shape served over the API: the
+// fields a third-party verifier (soteria-verify) needs to re-prove the
+// PDF, plus a retention horizon so the customer knows the window.
+type apiSignature struct {
+	Algorithm   string    `json:"algorithm"`
+	PublicKeyID string    `json:"public_key_id"`
+	Value       string    `json:"value"`        // base64 Ed25519 signature
+	PDFSHA256   string    `json:"pdf_sha256"`   // hex digest the signature covers
+	SignedAt    time.Time `json:"signed_at"`
+	RetainUntil time.Time `json:"retain_until"`
+}
+
+// v1GetLogs returns the captured subprocess output for each step of a
+// drill — today only the restore step produces output. Each row carries
+// a snippet, the SHA-256 of the FULL output (not the snippet), and a
+// truncated flag. The hash lets an auditor re-run the same tool against
+// the same dump and verify the snippet is a true prefix.
+func (h *Handlers) v1GetLogs(w http.ResponseWriter, r *http.Request) {
+	acct, _ := auth.CurrentAccountFromContext(r.Context())
+	id, err := uuid.Parse(chi.URLParam(r, "id"))
+	if err != nil {
+		writeAPIError(w, http.StatusNotFound, "not_found", "drill not found")
+		return
+	}
+	if _, err := h.drills.GetDrill(r.Context(), acct.ID, id); err != nil {
+		writeAPIError(w, http.StatusNotFound, "not_found", "drill not found")
+		return
+	}
+	steps, err := h.drills.ListSteps(r.Context(), id)
+	if err != nil {
+		writeAPIError(w, http.StatusInternalServerError, "internal", "could not load steps")
+		return
+	}
+	logs := make([]apiStepLog, 0, len(steps))
+	for _, s := range steps {
+		if s.OutputSnippet == nil && s.OutputSHA256 == nil {
+			continue
+		}
+		entry := apiStepLog{
+			Step:      string(s.Name),
+			Snippet:   s.OutputSnippet,
+			SHA256:    s.OutputSHA256,
+			Truncated: s.OutputTruncated,
+		}
+		if s.OutputSnippet != nil {
+			entry.SnippetBytes = len(*s.OutputSnippet)
+		}
+		logs = append(logs, entry)
+	}
+	writeData(w, http.StatusOK, logs, nil)
+}
+
+// v1GetSignature returns the detached signature record for a drill as
+// JSON. Pair the bytes with the evidence PDF (/drills/{id}/evidence)
+// and feed both to `soteria-verify` along with the published public
+// key — the verifier needs no Soteria-specific code.
+func (h *Handlers) v1GetSignature(w http.ResponseWriter, r *http.Request) {
+	acct, _ := auth.CurrentAccountFromContext(r.Context())
+	id, err := uuid.Parse(chi.URLParam(r, "id"))
+	if err != nil {
+		writeAPIError(w, http.StatusNotFound, "not_found", "drill not found")
+		return
+	}
+	// Authorize: drill must belong to the authenticated account.
+	if _, err := h.drills.GetDrill(r.Context(), acct.ID, id); err != nil {
+		writeAPIError(w, http.StatusNotFound, "not_found", "drill not found")
+		return
+	}
+	rec, err := h.evidence.GetSignature(r.Context(), id)
+	if errors.Is(err, evidence.ErrNoSignature) {
+		writeAPIError(w, http.StatusNotFound, "no_signature", "signature not yet recorded for this drill")
+		return
+	}
+	if err != nil {
+		writeAPIError(w, http.StatusInternalServerError, "internal", "could not load signature")
+		return
+	}
+	writeData(w, http.StatusOK, apiSignature{
+		Algorithm:   rec.Algorithm,
+		PublicKeyID: rec.PublicKeyID,
+		Value:       rec.Value,
+		PDFSHA256:   rec.PDFSHA256,
+		SignedAt:    rec.SignedAt,
+		RetainUntil: rec.RetainUntil,
+	}, nil)
 }

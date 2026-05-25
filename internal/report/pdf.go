@@ -53,6 +53,7 @@ func Render(out io.Writer, d Data) error {
 		{"Drill ID", d.Drill.ID.String()},
 		{"Target", d.Target.Name},
 		{"Source", d.Target.SourceKind + ": " + d.Target.SourceURI},
+		{"Source SHA-256", sourceHashOrDash(d.Drill.SourceHash)},
 		{"Status", string(d.Drill.Status)},
 		{"Started", fmtTime(d.Drill.StartedAt)},
 		{"Completed", fmtTime(d.Drill.CompletedAt)},
@@ -169,11 +170,30 @@ func stepsTable(pdf *fpdf.Fpdf, steps []drill.Step) {
 			string(s.Name), string(s.Status),
 			fmtTime(s.StartedAt), fmtTime(s.CompletedAt),
 			duration(s.StartedAt, s.CompletedAt),
+			outputDigest(s.OutputSHA256, s.OutputTruncated),
 		})
 	}
-	table(pdf, []float64{45, 25, 40, 40, 30},
-		[]string{"Name", "Status", "Started", "Completed", "Duration"},
+	table(pdf, []float64{32, 22, 38, 38, 22, 28},
+		[]string{"Name", "Status", "Started", "Completed", "Duration", "Output SHA-256"},
 		rows, "(no steps recorded)")
+}
+
+// outputDigest renders the first 12 hex chars of the captured-output
+// hash (plus a "…" + a "truncated" mark when the snippet was clipped),
+// or a dash when the step produced no output. Full hash is available via
+// GET /v1/drills/{id}/logs — the PDF column is intentionally a glance.
+func outputDigest(sha *string, truncated *bool) string {
+	if sha == nil || *sha == "" {
+		return "—"
+	}
+	short := *sha
+	if len(short) > 12 {
+		short = short[:12] + "…"
+	}
+	if truncated != nil && *truncated {
+		return short + " (snippet truncated)"
+	}
+	return short
 }
 
 func assertionsTable(pdf *fpdf.Fpdf, ars []drill.AssertionResult) {
@@ -195,6 +215,18 @@ func fmtTime(t *time.Time) string {
 		return "-"
 	}
 	return t.UTC().Format(time.RFC3339)
+}
+
+// sourceHashOrDash renders the input-anchor SHA-256 verbatim, or a "—"
+// for legacy drills that ran before the source_hash column existed. The
+// hex string is what a holder of the dump re-computes (`shasum -a 256`
+// on a plain dump, or per the directory-dump rule in runner.hashDump)
+// to prove they hold the exact bytes we drilled.
+func sourceHashOrDash(h *string) string {
+	if h == nil || *h == "" {
+		return "—  (not recorded; drill predates source_hash)"
+	}
+	return *h
 }
 
 func duration(start, end *time.Time) string {

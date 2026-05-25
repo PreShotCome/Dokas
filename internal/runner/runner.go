@@ -32,15 +32,29 @@ type Runner interface {
 	// Fetch retrieves the dump pointed at by sourceURI into a location
 	// reachable by Restore. For the local-file runner this is a no-op that
 	// just validates the file exists; later runners will copy from R2/S3.
-	// Returns the local path Restore should consume.
-	Fetch(ctx context.Context, sb *Sandbox, sourceURI string) (localPath string, err error)
+	//
+	// Returns the local path Restore should consume AND the SHA-256 hash
+	// of the dump bytes (hex). The hash is the *input* side of the
+	// evidence chain — embedded in the signed PDF so a holder of the dump
+	// can independently prove it's the exact bytes Soteria drilled.
+	// pg_dump -Fd directory dumps are hashed over the concatenation of
+	// their files in sorted order, so the same directory always produces
+	// the same hash.
+	Fetch(ctx context.Context, sb *Sandbox, sourceURI string) (localPath, sourceHash string, err error)
 
 	// Restore applies the dump at localPath into the sandbox database.
+	//
+	// Returns the combined stdout+stderr of the subprocess (pg_restore /
+	// psql) so the step worker can capture it as evidence. The bytes are
+	// persisted with a SHA-256 hash so the snippet that lives in the
+	// signed PDF is tamper-evident even when truncated. An err that is
+	// not nil means the restore failed; the output still contains
+	// whatever the tool wrote before the failure.
 	//
 	// Assertions are *not* part of the Runner contract: the assert step dials
 	// Sandbox.DSN directly and runs each configured check via the assertions
 	// package, so the runner stays a pure provision/restore/teardown surface.
-	Restore(ctx context.Context, sb *Sandbox, localPath string) error
+	Restore(ctx context.Context, sb *Sandbox, localPath string) (output []byte, err error)
 
 	// Rehydrate reconstructs a Sandbox handle from a drill ID and the bare
 	// sandbox database name persisted on the drill row — used by step workers

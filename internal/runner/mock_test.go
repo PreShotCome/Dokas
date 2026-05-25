@@ -51,11 +51,14 @@ func TestRestoreFormats(t *testing.T) {
 			}
 			defer func() { _ = r.Teardown(ctx, sb) }()
 
-			path, err := r.Fetch(ctx, sb, fixture(name))
+			path, srcHash, err := r.Fetch(ctx, sb, fixture(name))
 			if err != nil {
 				t.Fatalf("fetch: %v", err)
 			}
-			if err := r.Restore(ctx, sb, path); err != nil {
+			if len(srcHash) != 64 {
+				t.Fatalf("expected 64-char hex SHA-256, got %q", srcHash)
+			}
+			if _, err := r.Restore(ctx, sb, path); err != nil {
 				t.Fatalf("restore: %v", err)
 			}
 

@@ -19,13 +19,45 @@ func (r scanRow) Scan(dest ...any) error {
 	return nil
 }
 
-type fakeQuerier struct{ val any }
+type fakeQuerier struct {
+	val  any
+	rows Rows // optional, for sql_query
+}
 
 func (q fakeQuerier) QueryRow(_ context.Context, _ string, _ ...any) interface {
 	Scan(dest ...any) error
 } {
 	return scanRow{val: q.val}
 }
+
+func (q fakeQuerier) Query(_ context.Context, _ string, _ ...any) (Rows, error) {
+	return q.rows, nil
+}
+
+// fakeRows feeds sql_query a fixed sequence of values.
+type fakeRows struct {
+	cols  []string
+	data  [][]any
+	idx   int
+}
+
+func (r *fakeRows) Next() bool {
+	if r.idx >= len(r.data) {
+		return false
+	}
+	r.idx++
+	return true
+}
+func (r *fakeRows) Values() ([]any, error) { return r.data[r.idx-1], nil }
+func (r *fakeRows) FieldDescriptions() []FieldDescription {
+	out := make([]FieldDescription, len(r.cols))
+	for i, c := range r.cols {
+		out[i] = FieldDescription{Name: c}
+	}
+	return out
+}
+func (r *fakeRows) Err() error { return nil }
+func (r *fakeRows) Close()     {}
 
 func TestRunKinds(t *testing.T) {
 	cases := []struct {
@@ -73,6 +105,69 @@ func TestRunRejectsBadInput(t *testing.T) {
 		Spec{Kind: KindRowCount, Config: map[string]any{"table": "drop table foo"}}); err == nil {
 		t.Fatal("invalid table identifier should error")
 	}
+}
+
+func TestRunSQLQueryCapturesRows(t *testing.T) {
+	q := fakeQuerier{rows: &fakeRows{
+		cols: []string{"id", "email"},
+		data: [][]any{
+			{int64(1), "alice@example.com"},
+			{int64(2), "bob@example.com"},
+		},
+	}}
+	spec := Spec{Kind: KindSQLQuery, Config: map[string]any{
+		"query":         "SELECT id, email FROM users",
+		"expected_rows": 2,
+	}}
+	out, err := Run(context.Background(), q, spec)
+	if err != nil {
+		t.Fatalf("Run: %v", err)
+	}
+	if !out.Passed {
+		t.Fatalf("expected pass, got fail; actual=%s", out.Actual)
+	}
+	// Evidence must capture the query AND the actual rows.
+	if !contains(string(out.Expected), "SELECT id, email FROM users") {
+		t.Fatalf("Expected missing the query: %s", out.Expected)
+	}
+	if !contains(string(out.Actual), "alice@example.com") {
+		t.Fatalf("Actual missing the captured row: %s", out.Actual)
+	}
+}
+
+func TestSQLQueryRejectsMutations(t *testing.T) {
+	rejected := []string{
+		"DELETE FROM users",
+		"UPDATE users SET email = 'x'",
+		"INSERT INTO users VALUES (1)",
+		"DROP TABLE users",
+		"SELECT 1; DELETE FROM users",
+		"WITH x AS (DELETE FROM users RETURNING id) SELECT * FROM x",
+	}
+	for _, q := range rejected {
+		if err := ValidateConfig(KindSQLQuery, map[string]any{"query": q}); err == nil {
+			t.Errorf("ValidateConfig should reject %q", q)
+		}
+	}
+	accepted := []string{
+		"SELECT count(*) FROM users",
+		"select * from orders;",
+		"WITH recent AS (SELECT * FROM orders WHERE created_at > now() - interval '1 day') SELECT count(*) FROM recent",
+	}
+	for _, q := range accepted {
+		if err := ValidateConfig(KindSQLQuery, map[string]any{"query": q}); err != nil {
+			t.Errorf("ValidateConfig should accept %q: %v", q, err)
+		}
+	}
+}
+
+func contains(s, sub string) bool {
+	for i := 0; i+len(sub) <= len(s); i++ {
+		if s[i:i+len(sub)] == sub {
+			return true
+		}
+	}
+	return false
 }
 
 func TestValidIdent(t *testing.T) {

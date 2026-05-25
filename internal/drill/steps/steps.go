@@ -269,9 +269,15 @@ func (w *FetchWorker) Work(ctx context.Context, job *river.Job[drill.FetchArgs])
 		return err // transient store read — let River retry
 	}
 
-	localPath, err := w.D.Runner.Fetch(ctx, sb, target.SourceURI)
+	localPath, sourceHash, err := w.D.Runner.Fetch(ctx, sb, target.SourceURI)
 	if err != nil {
 		return w.D.failAndCleanup(ctx, drillID, drill.StepFetch, err.Error())
+	}
+	// Persist the input anchor of the evidence chain. A SetSourceHash
+	// failure here is transient (DB blip); River will retry the whole
+	// fetch step — which is safe because Fetch + hashDump are pure.
+	if err := w.D.Store.SetSourceHash(ctx, drillID, sourceHash); err != nil {
+		return err
 	}
 
 	if err := w.D.Store.MarkStepSucceeded(ctx, drillID, drill.StepFetch); err != nil {
@@ -293,7 +299,7 @@ func (w *FetchWorker) chainAlreadyFetched(ctx context.Context, drillID uuid.UUID
 	if err != nil {
 		return err
 	}
-	localPath, err := w.D.Runner.Fetch(ctx, sb, target.SourceURI)
+	localPath, _, err := w.D.Runner.Fetch(ctx, sb, target.SourceURI)
 	if err != nil {
 		return err
 	}
@@ -331,8 +337,16 @@ func (w *RestoreWorker) Work(ctx context.Context, job *river.Job[drill.RestoreAr
 	if err != nil {
 		return err // transient store read — let River retry
 	}
-	if err := w.D.Runner.Restore(ctx, sb, job.Args.FilePath); err != nil {
-		return w.D.failAndCleanup(ctx, drillID, drill.StepRestore, err.Error())
+	output, restoreErr := w.D.Runner.Restore(ctx, sb, job.Args.FilePath)
+	// Persist the captured output regardless of pass/fail — a failed
+	// restore's output is the most important evidence of WHY it failed.
+	if logErr := w.D.Store.SetStepOutput(ctx, drillID, drill.StepRestore, output); logErr != nil {
+		// Best-effort; don't fail the step on a logging blip.
+		// The signed PDF will simply omit the snippet.
+		_ = logErr
+	}
+	if restoreErr != nil {
+		return w.D.failAndCleanup(ctx, drillID, drill.StepRestore, restoreErr.Error())
 	}
 
 	if err := w.D.Store.MarkStepSucceeded(ctx, drillID, drill.StepRestore); err != nil {
@@ -435,6 +449,30 @@ func (q pgxQuerier) QueryRow(ctx context.Context, sql string, args ...any) inter
 	Scan(dest ...any) error
 } {
 	return q.conn.QueryRow(ctx, sql, args...)
+}
+
+func (q pgxQuerier) Query(ctx context.Context, sql string, args ...any) (assertions.Rows, error) {
+	rows, err := q.conn.Query(ctx, sql, args...)
+	if err != nil {
+		return nil, err
+	}
+	return pgxRows{rows: rows}, nil
+}
+
+// pgxRows narrows pgx.Rows to the minimal surface assertions.Rows needs.
+type pgxRows struct{ rows pgx.Rows }
+
+func (r pgxRows) Next() bool                  { return r.rows.Next() }
+func (r pgxRows) Values() ([]any, error)      { return r.rows.Values() }
+func (r pgxRows) Err() error                  { return r.rows.Err() }
+func (r pgxRows) Close()                      { r.rows.Close() }
+func (r pgxRows) FieldDescriptions() []assertions.FieldDescription {
+	fds := r.rows.FieldDescriptions()
+	out := make([]assertions.FieldDescription, len(fds))
+	for i, f := range fds {
+		out[i] = assertions.FieldDescription{Name: string(f.Name)}
+	}
+	return out
 }
 
 func (w *AssertWorker) Timeout(*river.Job[drill.AssertArgs]) time.Duration {

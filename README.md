@@ -1,40 +1,87 @@
 # Soteria
 
-Backup verification as a service. We periodically restore your database
-dumps in an isolated sandbox, run assertions, and produce auditor-grade
-evidence that your backups are actually restorable.
+**Backup verification you can independently prove.** Soteria periodically
+restores your database dumps into an isolated sandbox, runs assertions
+against the restored data, and produces evidence anyone can verify
+without trusting us.
 
-This repo contains the application (Go monolith) at `app.soteria.io`.
-The marketing site lives in a separate repo.
+## Why you can trust the evidence
+
+Most backup-verification tools hand you a green checkbox. Soteria gives
+you a four-link chain that a third party can walk end-to-end. Break any
+link and verification fails loudly.
+
+1. **Hashed input.** Before a drill restores anything, the dump file is
+   streamed through SHA-256. The hex digest is stored on the drill row
+   and rendered in the signed PDF. You re-hash the dump you hold (or
+   that your auditor holds) with one shell command — `shasum -a 256
+   dump.tar` — and prove it is byte-for-byte the file we drilled.
+2. **In-sandbox restore + receipts.** The drill restores into a
+   per-drill ephemeral Postgres on Fly Machines (or a temp DB on the
+   local runner for dev). The signed PDF records every assertion's
+   **kind, expected, actual, and pass/fail** — not just a verdict.
+   `row_count`, `table_exists`, `column_exists`, `no_nulls` today;
+   `sql_query` is on the roadmap so you can write the SQL yourself.
+3. **Detached Ed25519 signature.** Every PDF is signed offline by the
+   active Soteria key. The signature attests `sha256(pdf) ‖
+   signedAt(RFC3339Nano UTC)` — so a forgery has to match both the PDF
+   bytes and the recorded timestamp, not one or the other. Past keys
+   are kept as verification-only so evidence signed before a key
+   rotation still verifies.
+4. **Open-source verifier.** [`cmd/soteria-verify`](cmd/soteria-verify)
+   is a single Go file that depends on `crypto/ed25519` and nothing of
+   ours. Build it from this source, point it at the PDF, the signature
+   JSON, and our published public key, and exit code 0 means the chain
+   holds. Anyone with the three files can prove the result; the path
+   does not go through Soteria's servers, and there is no Soteria SDK
+   you are asked to trust.
+
+```sh
+# Independently verify a drill:
+curl -H "Authorization: Bearer $KEY" https://app.soteria.io/v1/drills/$ID/evidence  > drill.pdf
+curl -H "Authorization: Bearer $KEY" https://app.soteria.io/v1/drills/$ID/signature > sig.json
+curl https://soteria.io/.well-known/evidence-signing-keys.pem > soteria.pem
+go run ./cmd/soteria-verify --pdf=drill.pdf --sig=sig.json --pubkey=soteria.pem
+# OK  key=9f2c4b…a17b  signed_at=2026-05-25T04:11:02Z  retain_until=2033-05-25T04:11:02Z
+```
+
+That's the differentiator. The rest of the README is the implementation
+detail.
+
+## What's in the repo
+
+This repo contains the application (Go monolith) deployed at
+`app.soteria.io`. The marketing site lives in a separate repo. The
+verifier CLI ships here so the chain stays in one auditable place.
 
 ## Status
 
-All 11 rubric layers are built. Latest: the versioned `/v1` JSON API —
-API-key auth, the `{data, meta, errors}` envelope, `Idempotency-Key` on
-writes, cursor pagination, per-account rate limits, and an OpenAPI doc.
+All 11 rubric layers are built. Latest: hashed input + the
+`soteria-verify` CLI close the verifiability chain end-to-end.
 
 Implemented:
 - Chi + Templ + HTMX + Tailwind monolith
 - Postgres sessions (Argon2id), audit log, security headers, signup/login
 - River-backed drill orchestrator: `provision → fetch → restore → assert → report → teardown`
 - LocalRunner sandbox: temp Postgres database per drill on the host cluster
-- FlyMachineRunner stub for the production sandbox driver
-- `row_count` assertion
-- Unsigned PDF reports via `github.com/go-pdf/fpdf`
+- FlyMachineRunner: per-drill Fly Machine running an ephemeral Postgres
+- Assertion kinds: `row_count`, `table_exists`, `column_exists`, `no_nulls`
+- SHA-256 hash of the dump bytes (input anchor of the evidence chain)
+- Ed25519-signed evidence PDFs via `github.com/go-pdf/fpdf`
+- `cmd/soteria-verify` — stdlib-only third-party verifier
 - Idempotency on `POST /drills` (per-account, per-key)
 - Multi-tenant accounts + memberships; signup auto-creates a personal account
 - RBAC (`owner`/`admin`/`member`/`viewer`) via a single `Authorize` matrix
 - Email invitations (dev: link logged to stdout), account switcher
-- Stripe billing skeleton — degrades to a no-op without `STRIPE_SECRET_KEY`
+- Stripe billing — Checkout, Customer Portal, signed-webhook plan sync
 - CSRF double-submit-cookie protection on every unsafe verb
 - In-process token-bucket rate limiting (per-IP on auth, per-account elsewhere)
 - Login brute-force throttle (lockout after repeated failures)
 - HMAC-SHA256-signed webhooks with River-backed retry, delivery log, replay
-- Detached Ed25519 signatures on evidence PDFs, with a live tamper-check
+- Per-account envelope encryption (AES-256-GCM, AAD-bound DEK)
 - Evidence store abstraction (local filesystem; S3 Object Lock stubbed)
 - Retention sweeper (River periodic job) — evidence/audit 7y, login attempts 30d
 - GDPR/CCPA: JSON data export + account soft-delete → hard-delete (crypto-shred)
-- Placeholder legal pages (Terms / Privacy / DPA)
 - Structured JSON request logs with trace_id / account_id correlation
 - Prometheus metrics at `/metrics` (HTTP, drills, webhooks, queue depth)
 - OpenTelemetry tracing — HTTP + drill-step spans (OTLP / stdout / noop)
@@ -44,16 +91,15 @@ Implemented:
 - Email suppression list fed by a Postmark bounce/complaint webhook
 - Product analytics (PostHog seam) on signup / invite / drill events
 - Feature flags (env-driven) — `self_serve_signup` gates the signup route
-- `robots.txt`; "Verified by Soteria" referral footer on evidence PDFs
-- Legal pages: Terms, Privacy, DPA, Sub-processors, Cookie Policy
-- WCAG 2.2 AA pass — skip link, focus indicators, ARIA labels, landmarks —
-  with an automated structural a11y test (`golang.org/x/net/html`)
+- TOTP MFA with replay protection + single-use recovery codes
+- Magic-link sign-in with per-recipient throttling
+- OAuth: Google + GitHub (PKCE, hardened against session-fixation)
 - Staff admin panel — user lookup, safe (reason-logged) impersonation,
   drill replay, evidence regeneration
-- In-app `/help` FAQ page; incident + on-call + secret-rotation runbooks
 - Versioned `/v1` JSON API — API keys, `{data,meta,errors}` envelope,
   `Idempotency-Key` writes, cursor pagination, per-account rate limit,
   OpenAPI doc at `/openapi.json` + a `/docs` reference
+- WCAG 2.2 AA pass — skip link, focus indicators, ARIA labels, landmarks
 
 ## Local development
 
@@ -73,7 +119,8 @@ To exercise a drill end-to-end:
    assertion table, `1` as the minimum row count.
 4. Go to `/drills`, pick the target, click **Run drill**, watch the steps
    tick through (HTMX polls every 2 s until terminal).
-5. Download the PDF.
+5. Download the PDF, fetch the signature JSON from `/v1/drills/{id}/signature`,
+   and verify with `go run ./cmd/soteria-verify`.
 
 ## Tests
 
@@ -91,13 +138,14 @@ skips.
 ```
 cmd/server               HTTP + River worker entrypoint
 cmd/migrate              goose + River migration CLI
-internal/auth            sessions, password hashing, RBAC, login throttle
+cmd/soteria-verify       stdlib-only third-party evidence verifier
+internal/auth            sessions, password hashing, RBAC, MFA, magic-link
 internal/apikey          /v1 API-key issuance + verification
-internal/account         accounts, memberships, invitations
-internal/billing         Stripe customer wrapper (+ noop fallback)
+internal/account         accounts, memberships, invitations, trial window
+internal/billing         Stripe customer + Checkout + webhook (dedup, ordering)
 internal/ratelimit       token-bucket limiter + middleware
 internal/webhooks        signed webhook endpoints, delivery worker, dispatch
-internal/evidence        evidence store + Ed25519 signing + retention
+internal/evidence        evidence store + Ed25519 signing + AES-GCM cipher
 internal/compliance      GDPR export, account purge, retention sweeper
 internal/obs             logging, metrics, tracing, error reporting
 internal/email           transactional email + suppression list
@@ -106,17 +154,21 @@ internal/flags           feature-flag evaluation
 internal/db              pgx pool, transaction helpers
 internal/drill           drill domain (targets, drills, steps, results)
 internal/drill/steps     River workers for each pipeline step
-internal/runner          Runner interface + LocalRunner + FlyMachineRunner stub
-internal/assertions      assertion kinds (Phase 2: row_count)
+internal/runner          Runner interface + LocalRunner + FlyMachineRunner
+internal/assertions      assertion kinds
 internal/report          PDF rendering
 internal/web             handlers + Templ templates
 internal/web/csrf        CSRF double-submit middleware
+internal/oauth           OAuth provider registry (Google, GitHub) with PKCE
 migrations               goose SQL migrations
-runbooks                 operational runbooks
+docs/runbooks            operational runbooks
 dashboards               Grafana dashboard + Prometheus alert rules
 testdata/fixtures        seeded pg_dump used by local dev + CI
-assets                   Tailwind input, static files (HTMX, app.css)
+assets                   Tailwind input, static files (HTMX, app.css, favicons)
+branding                 logo SVGs + brand assets
 ```
 
-See [`docs/plan.md`](docs/plan.md) for the full plan against the
-11-layer rubric, including the active phase brief.
+See [`docs/plan.md`](docs/plan.md) for the full plan against the rubric,
+[`docs/backlog.md`](docs/backlog.md) for deferred items, and
+[`docs/security-audit-2026-05.md`](docs/security-audit-2026-05.md) for
+the most recent third-party-style audit + fixes.

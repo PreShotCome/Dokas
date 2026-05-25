@@ -84,11 +84,11 @@ func (r *FlyMachineRunner) Provision(ctx context.Context, drillID uuid.UUID) (*S
 	return &Sandbox{DrillID: drillID, Name: m.ID, DSN: r.dsn(m.ID)}, nil
 }
 
-func (r *FlyMachineRunner) Fetch(_ context.Context, _ *Sandbox, sourceURI string) (string, error) {
+func (r *FlyMachineRunner) Fetch(_ context.Context, _ *Sandbox, sourceURI string) (string, string, error) {
 	return fetchDump(sourceURI)
 }
 
-func (r *FlyMachineRunner) Restore(ctx context.Context, sb *Sandbox, localPath string) error {
+func (r *FlyMachineRunner) Restore(ctx context.Context, sb *Sandbox, localPath string) ([]byte, error) {
 	return restoreDump(ctx, sb.DSN, localPath)
 }
 

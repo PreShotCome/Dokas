@@ -78,6 +78,8 @@ func (h *Handlers) v1Router() http.Handler {
 		r.Get("/drills", h.v1ListDrills)
 		r.Get("/drills/{id}", h.v1GetDrill)
 		r.Get("/drills/{id}/evidence", h.v1GetEvidence)
+		r.Get("/drills/{id}/signature", h.v1GetSignature)
+		r.Get("/drills/{id}/logs", h.v1GetLogs)
 	})
 
 	// State-changing endpoints require an Idempotency-Key. The scope check
