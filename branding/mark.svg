@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Soteria — primary mark, iteration 3.
+
+  Composition: narrow vertical flame at the base; phoenix wings that
+  spread wide AND scoop UPWARD, framing a single 4-point star. The
+  wings have real mass — closed shapes, not strokes — so they survive
+  the squint test at small sizes and read as "wings" not "lines".
+
+  Vector. Single amber gradient + a star. Transparent background.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320" role="img" aria-label="Soteria">
+  <defs>
+    <linearGradient id="ambr" x1="0.5" y1="1" x2="0.5" y2="0">
+      <stop offset="0%"   stop-color="#7c2d12"/>
+      <stop offset="22%"  stop-color="#c2410c"/>
+      <stop offset="55%"  stop-color="#f59e0b"/>
+      <stop offset="100%" stop-color="#fde68a"/>
+    </linearGradient>
+    <radialGradient id="halo" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0%"   stop-color="#fffbeb" stop-opacity="0.55"/>
+      <stop offset="55%"  stop-color="#fbbf24" stop-opacity="0.12"/>
+      <stop offset="100%" stop-color="#fbbf24" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <!-- Halo behind the star. -->
+  <circle cx="160" cy="60" r="46" fill="url(#halo)"/>
+
+  <!--
+    LEFT WING: closed crescent with mass.
+    Outer edge sweeps from the flame's shoulder out and UP to a curled
+    tip near the star. Inner edge returns along a tighter arc, leaving
+    the wing bulky in the middle and tapered at the tip.
+  -->
+  <path d="
+    M 148 196
+    C 120 184,  90 168,  60 134
+    C  44 112,  38  92,  46  74
+    C  56  92,  74 110,  98 130
+    C 122 148, 140 168, 152 192
+    Z
+  " fill="url(#ambr)"/>
+
+  <!-- LEFT WING — secondary feather, slightly inset for depth at large sizes. -->
+  <path d="
+    M 152 196
+    C 132 186, 110 174,  90 158
+    C 106 178, 130 192, 150 198
+    Z
+  " fill="url(#ambr)" opacity="0.6"/>
+
+  <!-- RIGHT WING (mirror). -->
+  <path d="
+    M 172 196
+    C 200 184, 230 168, 260 134
+    C 276 112, 282  92, 274  74
+    C 264  92, 246 110, 222 130
+    C 198 148, 180 168, 168 192
+    Z
+  " fill="url(#ambr)"/>
+
+  <path d="
+    M 168 196
+    C 188 186, 210 174, 230 158
+    C 214 178, 190 192, 170 198
+    Z
+  " fill="url(#ambr)" opacity="0.6"/>
+
+  <!--
+    FLAME TONGUE — narrow, vertical, candle-like. Asymmetric tip for
+    organic motion. Sits centered between the wings.
+  -->
+  <path d="
+    M 160 110
+    C 150 134, 142 162, 144 196
+    C 146 224, 152 254, 156 280
+    C 158 290, 159 298, 160 304
+    C 161 298, 162 290, 164 280
+    C 168 254, 174 224, 176 196
+    C 178 162, 170 134, 160 110
+    Z
+  " fill="url(#ambr)"/>
+
+  <!-- Star — 4-point sparkle, slightly elongated vertical. -->
+  <path d="
+    M 160 22
+    L 164 52
+    L 196 60
+    L 164 68
+    L 160 100
+    L 156 68
+    L 124 60
+    L 156 52
+    Z
+  " fill="#fef3c7"/>
+
+  <!-- Star core pinprick. -->
+  <circle cx="160" cy="60" r="2.5" fill="#ffffff"/>
+</svg>
