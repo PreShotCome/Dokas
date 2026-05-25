@@ -17,16 +17,16 @@
         },
         colors: {
           brand: {
-            50:  '#eef2f8',
-            100: '#d6e0ee',
-            200: '#b0c4dd',
-            300: '#84a0c6',
-            400: '#5b7cab',
-            500: '#3f5e8d',
-            600: '#314a73',
-            700: '#283c5d',
-            800: '#21304a',
-            900: '#18233a',
+            50:  '#fffbeb',
+            100: '#fef3c7',
+            200: '#fde68a',
+            300: '#fcd34d',
+            400: '#fbbf24',
+            500: '#f59e0b',
+            600: '#d97706',
+            700: '#b45309',
+            800: '#92400e',
+            900: '#78350f',
           },
         },
       },
@@ -81,11 +81,20 @@
 <header class="border-b border-zinc-200/70 dark:border-zinc-800/70 backdrop-blur sticky top-0 z-40 bg-white/70 dark:bg-zinc-950/40">
   <div class="max-w-6xl mx-auto px-6 h-14 flex items-center justify-between">
     <div class="flex items-center gap-2">
-      <span class="inline-flex h-7 w-7 items-center justify-center rounded-md bg-brand-700 text-white">
-        <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M12 2 4 6v6c0 5 3.5 9 8 10 4.5-1 8-5 8-10V6l-8-4z"/>
-        </svg>
-      </span>
+      <svg viewBox="0 0 320 320" class="h-8 w-8 shrink-0" aria-hidden="true">
+        <defs>
+          <linearGradient id="nav-ambr" x1="0.5" y1="1" x2="0.5" y2="0">
+            <stop offset="0%" stop-color="#7c2d12"/>
+            <stop offset="22%" stop-color="#c2410c"/>
+            <stop offset="55%" stop-color="#f59e0b"/>
+            <stop offset="100%" stop-color="#fde68a"/>
+          </linearGradient>
+        </defs>
+        <path d="M 148 196 C 120 184, 90 168, 60 134 C 44 112, 38 92, 46 74 C 56 92, 74 110, 98 130 C 122 148, 140 168, 152 192 Z" fill="url(#nav-ambr)"/>
+        <path d="M 172 196 C 200 184, 230 168, 260 134 C 276 112, 282 92, 274 74 C 264 92, 246 110, 222 130 C 198 148, 180 168, 168 192 Z" fill="url(#nav-ambr)"/>
+        <path d="M 160 110 C 150 134, 142 162, 144 196 C 146 224, 152 254, 156 280 C 158 290, 159 298, 160 304 C 161 298, 162 290, 164 280 C 168 254, 174 224, 176 196 C 178 162, 170 134, 160 110 Z" fill="url(#nav-ambr)"/>
+        <path d="M 160 22 L 164 52 L 196 60 L 164 68 L 160 100 L 156 68 L 124 60 L 156 52 Z" fill="#fef3c7"/>
+      </svg>
       <span class="font-semibold tracking-tight">Soteria</span>
       <span class="ml-2 hidden sm:inline text-xs text-zinc-500">/ Drilling primer</span>
     </div>
@@ -674,9 +683,20 @@
           <div class="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-6 shadow-xl">
             <div class="flex items-center justify-between border-b border-dashed border-zinc-200 dark:border-zinc-800 pb-4">
               <div class="flex items-center gap-2">
-                <span class="inline-flex h-6 w-6 items-center justify-center rounded-md bg-brand-700 text-white">
-                  <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 4 6v6c0 5 3.5 9 8 10 4.5-1 8-5 8-10V6l-8-4z"/></svg>
-                </span>
+                <svg viewBox="0 0 320 320" class="h-7 w-7 shrink-0" aria-hidden="true">
+                  <defs>
+                    <linearGradient id="ev-ambr" x1="0.5" y1="1" x2="0.5" y2="0">
+                      <stop offset="0%" stop-color="#7c2d12"/>
+                      <stop offset="22%" stop-color="#c2410c"/>
+                      <stop offset="55%" stop-color="#f59e0b"/>
+                      <stop offset="100%" stop-color="#fde68a"/>
+                    </linearGradient>
+                  </defs>
+                  <path d="M 148 196 C 120 184, 90 168, 60 134 C 44 112, 38 92, 46 74 C 56 92, 74 110, 98 130 C 122 148, 140 168, 152 192 Z" fill="url(#ev-ambr)"/>
+                  <path d="M 172 196 C 200 184, 230 168, 260 134 C 276 112, 282 92, 274 74 C 264 92, 246 110, 222 130 C 198 148, 180 168, 168 192 Z" fill="url(#ev-ambr)"/>
+                  <path d="M 160 110 C 150 134, 142 162, 144 196 C 146 224, 152 254, 156 280 C 158 290, 159 298, 160 304 C 161 298, 162 290, 164 280 C 168 254, 174 224, 176 196 C 178 162, 170 134, 160 110 Z" fill="url(#ev-ambr)"/>
+                  <path d="M 160 22 L 164 52 L 196 60 L 164 68 L 160 100 L 156 68 L 124 60 L 156 52 Z" fill="#fef3c7"/>
+                </svg>
                 <span class="font-semibold">Soteria</span>
               </div>
               <span class="inline-flex items-center gap-1.5 rounded-full bg-emerald-100 dark:bg-emerald-900/40 px-2.5 py-1 text-xs font-medium text-emerald-800 dark:text-emerald-300">
