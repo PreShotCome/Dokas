@@ -10,10 +10,15 @@ import (
 )
 
 type Config struct {
-	Addr           string
-	DatabaseURL    string
-	SessionKey     []byte
-	Environment    string
+	Addr        string
+	DatabaseURL string
+	SessionKey  []byte
+	Environment string
+	// BaseURL is the canonical public origin (scheme + host, no path) of
+	// this app. Outbound URLs in emails and OAuth redirect URIs are built
+	// from it — never from the request's Host or X-Forwarded-Proto, which
+	// an upstream proxy may not pin. Required outside dev.
+	BaseURL        string
 	IdleTimeout    time.Duration
 	AbsoluteMaxAge time.Duration
 	EvidenceDir    string
@@ -77,6 +82,7 @@ func Load() (Config, error) {
 		Addr:                     getenv("ADDR", ":8080"),
 		DatabaseURL:              os.Getenv("DATABASE_URL"),
 		Environment:              getenv("ENV", "dev"),
+		BaseURL:                  strings.TrimRight(os.Getenv("BASE_URL"), "/"),
 		IdleTimeout:              14 * 24 * time.Hour,
 		AbsoluteMaxAge:           30 * 24 * time.Hour,
 		EvidenceDir:              getenv("EVIDENCE_DIR", "tmp/evidence"),
@@ -122,6 +128,14 @@ func Load() (Config, error) {
 
 	if c.DatabaseURL == "" {
 		return c, errors.New("DATABASE_URL is required")
+	}
+
+	// BASE_URL must be set in any non-dev environment — without it the
+	// outbound URLs in emails and OAuth redirect URIs fall back to the
+	// request's Host header, which an attacker can forge to exfiltrate
+	// magic-link tokens.
+	if c.Environment != "dev" && c.BaseURL == "" {
+		return c, errors.New("BASE_URL is required outside dev (e.g. https://app.soteria.io)")
 	}
 
 	key := os.Getenv("SESSION_KEY")

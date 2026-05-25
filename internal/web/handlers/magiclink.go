@@ -38,6 +38,18 @@ func (h *Handlers) magicLinkRequest(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Per-recipient throttle: the IP-keyed authLimiter on the route alone
+	// lets a botnet distribute requests across many source IPs and inbox-
+	// bomb a single victim (Postmark cost / spam reports / DoS). Consume a
+	// token keyed on the email too. We still always render the same
+	// "check your inbox" page so a throttle hit doesn't leak whether the
+	// address is registered.
+	emailKey := "magiclink:" + email
+	if ok, _ := h.authLimiter.Allow(emailKey); !ok {
+		render(w, r, templates.MagicLinkSent(email))
+		return
+	}
+
 	var userID uuid.UUID
 	err := h.pool.QueryRow(r.Context(), `
 		SELECT id FROM users WHERE email = $1 AND deleted_at IS NULL
@@ -46,7 +58,7 @@ func (h *Handlers) magicLinkRequest(w http.ResponseWriter, r *http.Request) {
 		if token, tErr := h.sessions.CreateMagicLinkToken(r.Context(), userID); tErr != nil {
 			h.logger().Warn("magic link token failed", "user_id", userID, "err", tErr)
 		} else {
-			link := absoluteURL(r, "/login/magic/"+token)
+			link := h.absoluteURL(r, "/login/magic/"+token)
 			if mErr := h.mailer.Send(r.Context(), mail.MagicLinkMessage(email, link)); mErr != nil &&
 				!errors.Is(mErr, mail.ErrSuppressed) {
 				h.logger().Warn("magic link email failed", "to", email, "err", mErr)
@@ -60,6 +72,14 @@ func (h *Handlers) magicLinkRequest(w http.ResponseWriter, r *http.Request) {
 // magicLinkConsume signs a user in from a magic-link URL. MFA, when enabled,
 // still applies — the link replaces the password, not the second factor.
 func (h *Handlers) magicLinkConsume(w http.ResponseWriter, r *http.Request) {
+	// Already signed in? Don't consume the token — a logged-in admin who
+	// clicks a leaked link would otherwise be silently switched to that
+	// other identity. Bounce to the dashboard and leave the token alive
+	// for its legitimate recipient.
+	if _, ok := auth.FromContext(r.Context()); ok {
+		http.Redirect(w, r, "/dashboard", http.StatusSeeOther)
+		return
+	}
 	userID, err := h.sessions.ConsumeMagicLink(r.Context(), chi.URLParam(r, "token"))
 	if err != nil {
 		msg := "This sign-in link is invalid."

@@ -41,7 +41,8 @@ func (h *Handlers) mfaEnable(w http.ResponseWriter, r *http.Request) {
 	secret := strings.TrimSpace(r.PostFormValue("secret"))
 	code := strings.TrimSpace(r.PostFormValue("code"))
 
-	if secret == "" || !auth.VerifyTOTP(secret, code, time.Now()) {
+	confirmCounter, ok := auth.VerifyTOTPWithCounter(secret, code, time.Now())
+	if secret == "" || !ok {
 		w.WriteHeader(http.StatusBadRequest)
 		render(w, r, templates.MFASetup(lc, secret, auth.TOTPURI(secret, lc.User.Email),
 			"That code didn't match. Check your authenticator app and try again."))
@@ -57,7 +58,7 @@ func (h *Handlers) mfaEnable(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "could not store recovery codes", http.StatusInternalServerError)
 		return
 	}
-	if err := h.sessions.EnableMFA(r.Context(), lc.User.ID, secret); err != nil {
+	if err := h.sessions.EnableMFA(r.Context(), lc.User.ID, secret, confirmCounter); err != nil {
 		http.Error(w, "could not enable MFA", http.StatusInternalServerError)
 		return
 	}

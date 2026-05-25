@@ -18,10 +18,17 @@ import (
 const recoveryCodeCount = 10
 
 // EnableMFA stores a confirmed TOTP secret and turns MFA on for the user.
-func (s *Store) EnableMFA(ctx context.Context, userID uuid.UUID, secret string) error {
+// confirmCounter is the TOTP time-step the enrollment code matched at — it
+// is written to totp_last_used_counter so the same code cannot be replayed
+// at /login/mfa within its ~90s validity window.
+func (s *Store) EnableMFA(ctx context.Context, userID uuid.UUID, secret string, confirmCounter int64) error {
 	_, err := s.pool.Exec(ctx, `
-		UPDATE users SET totp_secret = $2, mfa_enabled = TRUE WHERE id = $1
-	`, userID, secret)
+		UPDATE users
+		   SET totp_secret = $2,
+		       mfa_enabled = TRUE,
+		       totp_last_used_counter = $3
+		 WHERE id = $1
+	`, userID, secret, confirmCounter)
 	return err
 }
 

@@ -237,6 +237,7 @@ func main() {
 		SecureCookies:        cfg.IsProduction(),
 		PriceStarterLabel:    cfg.PriceStarterLabel,
 		PriceProLabel:        cfg.PriceProLabel,
+		BaseURL:              cfg.BaseURL,
 	})
 
 	// Sample River queue depth into the metrics gauge every 15s.

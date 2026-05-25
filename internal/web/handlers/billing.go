@@ -52,7 +52,7 @@ func (h *Handlers) billingCheckout(w http.ResponseWriter, r *http.Request) {
 				http.StatusInternalServerError)
 			return
 		}
-		portalURL, err := h.billing.Portal(r.Context(), *lc.Account.StripeCustomerID, absoluteURL(r, "/account"))
+		portalURL, err := h.billing.Portal(r.Context(), *lc.Account.StripeCustomerID, h.absoluteURL(r, "/account"))
 		if err != nil {
 			http.Error(w, "billing: "+err.Error(), http.StatusInternalServerError)
 			return
@@ -69,8 +69,8 @@ func (h *Handlers) billingCheckout(w http.ResponseWriter, r *http.Request) {
 	url, err := h.billing.Checkout(r.Context(), billing.CheckoutInput{
 		CustomerID: customerID,
 		PriceID:    priceID,
-		SuccessURL: absoluteURL(r, "/account?billing=success"),
-		CancelURL:  absoluteURL(r, "/account"),
+		SuccessURL: h.absoluteURL(r, "/account?billing=success"),
+		CancelURL:  h.absoluteURL(r, "/account"),
 	})
 	if err != nil {
 		http.Error(w, "billing: "+err.Error(), http.StatusInternalServerError)
@@ -92,7 +92,7 @@ func (h *Handlers) billingPortal(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "no billing account yet — subscribe to a plan first", http.StatusBadRequest)
 		return
 	}
-	url, err := h.billing.Portal(r.Context(), *lc.Account.StripeCustomerID, absoluteURL(r, "/account"))
+	url, err := h.billing.Portal(r.Context(), *lc.Account.StripeCustomerID, h.absoluteURL(r, "/account"))
 	if err != nil {
 		http.Error(w, "billing: "+err.Error(), http.StatusInternalServerError)
 		return

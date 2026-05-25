@@ -241,7 +241,7 @@ func (h *Handlers) signupSubmit(w http.ResponseWriter, r *http.Request) {
 	if token, err := h.sessions.CreateVerificationToken(r.Context(), id); err != nil {
 		h.logger().Warn("verification token failed", "user_id", id, "err", err)
 	} else {
-		link := absoluteURL(r, "/verify-email/"+token)
+		link := h.absoluteURL(r, "/verify-email/"+token)
 		if err := h.mailer.Send(r.Context(), mail.VerifyEmailMessage(email, link)); err != nil &&
 			!errors.Is(err, mail.ErrSuppressed) {
 			h.logger().Warn("verification email failed", "to", email, "err", err)

@@ -14,6 +14,7 @@ import (
 	"github.com/preshotcome/anything/internal/analytics"
 	"github.com/preshotcome/anything/internal/audit"
 	"github.com/preshotcome/anything/internal/auth"
+	"github.com/preshotcome/anything/internal/flags"
 	"github.com/preshotcome/anything/internal/oauth"
 )
 
@@ -84,9 +85,23 @@ func (h *Handlers) oauthCallback(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// If someone is already signed in, do not swap their session for a
+	// different identity — bounce them to the dashboard with no token
+	// consumption. A normal sign-in starts from a signed-out browser.
+	if _, alreadyIn := auth.FromContext(r.Context()); alreadyIn {
+		http.Redirect(w, r, "/dashboard", http.StatusSeeOther)
+		return
+	}
+
 	userID, mfaEnabled, err := h.findOrCreateOAuthUser(r.Context(),
-		strings.ToLower(strings.TrimSpace(id.Email)))
+		strings.ToLower(strings.TrimSpace(id.Email)),
+		h.flags.Enabled(r.Context(), flags.SelfServeSignup, clientIPKey(r)))
 	if err != nil {
+		if errors.Is(err, errSignupDisabled) {
+			http.Error(w, "sign-ups are disabled — contact us to request an account",
+				http.StatusForbidden)
+			return
+		}
 		h.logger().Error("oauth sign-in failed", "provider", provName, "err", err)
 		http.Error(w, "could not sign you in", http.StatusInternalServerError)
 		return
@@ -115,7 +130,7 @@ func (h *Handlers) oauthCallback(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handlers) oauthCallbackURL(r *http.Request, provName string) string {
-	return absoluteURL(r, "/auth/"+provName+"/callback")
+	return h.absoluteURL(r, "/auth/"+provName+"/callback")
 }
 
 // completeStaffSSO finishes an admin-panel step-up. The SSO identity must
@@ -141,10 +156,16 @@ func (h *Handlers) completeStaffSSO(w http.ResponseWriter, r *http.Request, prov
 	http.Redirect(w, r, "/admin", http.StatusSeeOther)
 }
 
+// errSignupDisabled is returned by findOrCreateOAuthUser when the caller's
+// email doesn't match an existing user and the self-serve-signup flag is
+// off. Mirrors the gate on /signup so the OAuth path can't be a back door.
+var errSignupDisabled = errors.New("signup disabled")
+
 // findOrCreateOAuthUser resolves an OAuth email to a user, provisioning a new
 // user + personal account on first sign-in. The email is provider-verified,
-// so a new user starts email-verified.
-func (h *Handlers) findOrCreateOAuthUser(ctx context.Context, email string) (uuid.UUID, bool, error) {
+// so a new user starts email-verified. signupAllowed must be true (per the
+// self_serve_signup flag) for a brand-new user to be created.
+func (h *Handlers) findOrCreateOAuthUser(ctx context.Context, email string, signupAllowed bool) (uuid.UUID, bool, error) {
 	var (
 		id         uuid.UUID
 		mfaEnabled bool
@@ -157,6 +178,9 @@ func (h *Handlers) findOrCreateOAuthUser(ctx context.Context, email string) (uui
 	}
 	if !errors.Is(err, pgx.ErrNoRows) {
 		return uuid.Nil, false, err
+	}
+	if !signupAllowed {
+		return uuid.Nil, false, errSignupDisabled
 	}
 
 	// First sign-in: create the user with an unusable random password — they

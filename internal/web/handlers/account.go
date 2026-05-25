@@ -61,7 +61,7 @@ func (h *Handlers) inviteCreate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	link := absoluteURL(r, "/invitations/"+rawToken)
+	link := h.absoluteURL(r, "/invitations/"+rawToken)
 	// Send the invitation email. With LogMailer (no POSTMARK_TOKEN) this
 	// logs the rendered message — including the link — so local dev can
 	// still copy-paste it, exactly as the Phase 3 stdout log did.
@@ -262,6 +262,10 @@ func (h *Handlers) accountSwitch(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, redirectTarget(safeNext(r.PostFormValue("next"))), http.StatusSeeOther)
 }
 
+// absoluteURL is the package-level fallback used when no Handlers instance
+// is in scope. Prefer (h *Handlers).absoluteURL, which uses the configured
+// BASE_URL when set so an attacker-controlled Host header cannot exfiltrate
+// magic-link tokens.
 func absoluteURL(r *http.Request, path string) string {
 	scheme := "http"
 	if r.TLS != nil || strings.EqualFold(r.Header.Get("X-Forwarded-Proto"), "https") {
@@ -269,4 +273,14 @@ func absoluteURL(r *http.Request, path string) string {
 	}
 	host := r.Host
 	return scheme + "://" + host + path
+}
+
+// absoluteURL prefers the configured BASE_URL — pinning scheme + host so a
+// forged Host header cannot redirect outbound links to an attacker's
+// domain. Outside dev BASE_URL is required (enforced in config.Load).
+func (h *Handlers) absoluteURL(r *http.Request, path string) string {
+	if h != nil && h.baseURL != "" {
+		return h.baseURL + path
+	}
+	return h.absoluteURL(r, path)
 }

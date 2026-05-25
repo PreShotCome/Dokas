@@ -27,7 +27,7 @@ func TestMFAEnableDisable(t *testing.T) {
 	store := NewStore(pool, 14*24*time.Hour, 30*24*time.Hour, false)
 
 	secret, _ := GenerateTOTPSecret()
-	if err := store.EnableMFA(ctx, userID, secret); err != nil {
+	if err := store.EnableMFA(ctx, userID, secret, 0); err != nil {
 		t.Fatalf("EnableMFA: %v", err)
 	}
 	// Confirm the secret round-tripped by verifying a code against it.
@@ -82,7 +82,7 @@ func TestVerifyAndConsumeTOTPRejectsReplay(t *testing.T) {
 	store := NewStore(pool, 14*24*time.Hour, 30*24*time.Hour, false)
 
 	secret, _ := GenerateTOTPSecret()
-	if err := store.EnableMFA(ctx, userID, secret); err != nil {
+	if err := store.EnableMFA(ctx, userID, secret, 0); err != nil {
 		t.Fatalf("EnableMFA: %v", err)
 	}
 	code, _ := TOTPCode(secret, time.Now())
@@ -93,6 +93,42 @@ func TestVerifyAndConsumeTOTPRejectsReplay(t *testing.T) {
 	// The same code is still inside its ~90s window, but replaying it must fail.
 	if ok, err := store.VerifyAndConsumeTOTP(ctx, userID, code); err != nil || ok {
 		t.Fatalf("replayed code = %v, %v; want false", ok, err)
+	}
+}
+
+// N11: the TOTP code used to confirm enrollment must NOT be reusable as the
+// first /login/mfa code, even though it's still inside its validity window.
+// EnableMFA seeds totp_last_used_counter with the confirm code's counter so
+// VerifyAndConsumeTOTP rejects it on replay.
+func TestEnableMFASealsConfirmCounter(t *testing.T) {
+	dsn := os.Getenv("DATABASE_URL")
+	if dsn == "" {
+		t.Skip("DATABASE_URL not set")
+	}
+	ctx := context.Background()
+	pool, err := pgxpool.New(ctx, dsn)
+	if err != nil {
+		t.Fatalf("pool: %v", err)
+	}
+	defer pool.Close()
+
+	userID := seedAuthUser(t, ctx, pool, false)
+	store := NewStore(pool, 14*24*time.Hour, 30*24*time.Hour, false)
+
+	secret, _ := GenerateTOTPSecret()
+	now := time.Now()
+	code, _ := TOTPCode(secret, now)
+	counter, ok := VerifyTOTPWithCounter(secret, code, now)
+	if !ok {
+		t.Fatal("VerifyTOTPWithCounter on a freshly-minted code should succeed")
+	}
+	if err := store.EnableMFA(ctx, userID, secret, counter); err != nil {
+		t.Fatalf("EnableMFA: %v", err)
+	}
+	// The same code is still inside its window — but the confirmation
+	// counter is sealed, so replaying it at /login/mfa must fail.
+	if ok, err := store.VerifyAndConsumeTOTP(ctx, userID, code); err != nil || ok {
+		t.Fatalf("enrollment code replayed: got ok=%v err=%v, want false/nil", ok, err)
 	}
 }
 

@@ -51,7 +51,7 @@ func (h *Handlers) verifyEmailResend(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "could not create verification token", http.StatusInternalServerError)
 		return
 	}
-	link := absoluteURL(r, "/verify-email/"+token)
+	link := h.absoluteURL(r, "/verify-email/"+token)
 	if err := h.mailer.Send(r.Context(), mail.VerifyEmailMessage(lc.User.Email, link)); err != nil &&
 		!errors.Is(err, mail.ErrSuppressed) {
 		h.logger().Warn("verification email failed", "to", lc.User.Email, "err", err)
