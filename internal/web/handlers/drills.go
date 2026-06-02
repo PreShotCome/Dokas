@@ -418,7 +418,7 @@ func (h *Handlers) drillEvidence(w http.ResponseWriter, r *http.Request) {
 	})
 
 	w.Header().Set("Content-Type", "application/pdf")
-	w.Header().Set("Content-Disposition", `attachment; filename="soteria-`+dr.ID.String()+`.pdf"`)
+	w.Header().Set("Content-Disposition", `attachment; filename="selket-`+dr.ID.String()+`.pdf"`)
 	http.ServeContent(w, r, "", time.Time{}, bytes.NewReader(body))
 }
 

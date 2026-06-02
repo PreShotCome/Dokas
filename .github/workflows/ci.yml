@@ -12,17 +12,17 @@ jobs:
       postgres:
         image: postgres:16-alpine
         env:
-          POSTGRES_USER: soteria
-          POSTGRES_PASSWORD: soteria
-          POSTGRES_DB: soteria
+          POSTGRES_USER: selket
+          POSTGRES_PASSWORD: selket
+          POSTGRES_DB: selket
         ports: ["5432:5432"]
         options: >-
-          --health-cmd="pg_isready -U soteria"
+          --health-cmd="pg_isready -U selket"
           --health-interval=2s
           --health-timeout=5s
           --health-retries=20
     env:
-      DATABASE_URL: postgres://soteria:soteria@localhost:5432/soteria?sslmode=disable
+      DATABASE_URL: postgres://selket:selket@localhost:5432/selket?sslmode=disable
     steps:
       - uses: actions/checkout@v4
 

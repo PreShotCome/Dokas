@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  Soteria — horizontal lockup: mark + wordmark. The mark sits at 1.4×
+  Selket — horizontal lockup: mark + wordmark. The mark sits at 1.4×
   the cap-height of the wordmark, with a half-x optical gap between
   them. Use this in headers, email signatures, slide footers.
 -->
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 200" role="img" aria-label="Soteria">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 200" role="img" aria-label="Selket">
   <defs>
     <linearGradient id="ambr" x1="0.5" y1="1" x2="0.5" y2="0">
       <stop offset="0%"   stop-color="#7c2d12"/>
@@ -37,5 +37,5 @@
   <text x="220" y="128"
         font-family="ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif"
         font-size="92" font-weight="600" letter-spacing="6"
-        fill="#fef3c7">SOTERIA</text>
+        fill="#fef3c7">SELKET</text>
 </svg>

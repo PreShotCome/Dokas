@@ -1,4 +1,4 @@
-# Fly.io deployment manifest for the Soteria app server.
+# Fly.io deployment manifest for the Selket app server.
 #
 # Secrets are NOT set here — run `fly secrets set KEY=value` for each of:
 #   DATABASE_URL, SESSION_KEY, STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET,
@@ -6,6 +6,12 @@
 #   EVIDENCE_ENCRYPTION_KEY, POSTMARK_TOKEN, and any other configured seam.
 # See docs/runbooks/ for each integration.
 
+# The Fly app and volume names below intentionally remain "soteria" /
+# "soteria_evidence": the brand renamed (Soteria → Selket), but the
+# deployed Fly app + its attached evidence volume keep their original
+# identifiers. Renaming them requires creating a new Fly app + migrating
+# the volume — tracked separately. The displayed product name is Selket
+# everywhere user-facing.
 app = "soteria"
 # sea (Seattle) — close to the Neon database in AWS us-west-2 (Oregon).
 primary_region = "sea"

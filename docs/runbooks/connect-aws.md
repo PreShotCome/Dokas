@@ -1,39 +1,39 @@
-# Connect AWS — read-only access for Soteria
+# Connect AWS — read-only access for Selket
 
-Soteria drills your existing backup dumps; it never touches your production
+Selket drills your existing backup dumps; it never touches your production
 database. To do that we need **read-only** access to the S3 bucket your
 backup job writes to. This page is the doc you can hand your devops or
 security team to deploy that access in ~3 minutes.
 
 The mechanism is the same one used by Datadog, Snowflake, Vanta, and Drata:
-a **cross-account IAM role** in your AWS account that Soteria's account is
+a **cross-account IAM role** in your AWS account that Selket's account is
 allowed to assume. No long-lived access keys leave your account. Access is
 revocable in one click (delete the CloudFormation stack).
 
-## What Soteria can do with this role
+## What Selket can do with this role
 
 - `s3:GetObject` on the bucket and prefix you specify (read your backup dumps).
 - `s3:ListBucket` + `s3:GetBucketLocation` on that bucket (find new dumps).
 
-## What Soteria cannot do
+## What Selket cannot do
 
 - Read any other bucket.
 - Write, modify, or delete anything in your AWS account.
 - Connect to any of your databases.
-- Use this role from anywhere except Soteria's AWS account, and only when
-  it presents the `ExternalId` Soteria generated for your tenant (defeats
+- Use this role from anywhere except Selket's AWS account, and only when
+  it presents the `ExternalId` Selket generated for your tenant (defeats
   the confused-deputy class of attacks).
 
 ## The CloudFormation template
 
-Save this as `soteria-connect.yaml`, or use the in-app "Connect AWS"
+Save this as `selket-connect.yaml`, or use the in-app "Connect AWS"
 button which links to a hosted copy with your `ExternalId` pre-filled.
 
 ```yaml
 AWSTemplateFormatVersion: '2010-09-09'
 Description: >
-  Soteria backup-drilling read access. Creates a cross-account IAM role
-  Soteria can assume to fetch backup dumps from one S3 bucket/prefix.
+  Selket backup-drilling read access. Creates a cross-account IAM role
+  Selket can assume to fetch backup dumps from one S3 bucket/prefix.
 
 Parameters:
   BackupBucket:
@@ -45,32 +45,32 @@ Parameters:
     Description: Optional path prefix; leave empty to allow the whole bucket.
   ExternalId:
     Type: String
-    Description: The external ID Soteria gave you when you clicked "Connect AWS".
+    Description: The external ID Selket gave you when you clicked "Connect AWS".
     NoEcho: true
-  SoteriaAccountId:
+  SelketAccountId:
     Type: String
-    Default: "REPLACE_WITH_SOTERIA_ACCOUNT_ID"
-    Description: The AWS account ID Soteria runs in. Comes pre-filled from the dashboard.
+    Default: "REPLACE_WITH_SELKET_ACCOUNT_ID"
+    Description: The AWS account ID Selket runs in. Comes pre-filled from the dashboard.
 
 Resources:
-  SoteriaReadRole:
+  SelketReadRole:
     Type: AWS::IAM::Role
     Properties:
-      RoleName: SoteriaBackupRead
-      Description: Read-only access for Soteria to drill backups in one S3 bucket.
+      RoleName: SelketBackupRead
+      Description: Read-only access for Selket to drill backups in one S3 bucket.
       MaxSessionDuration: 3600
       AssumeRolePolicyDocument:
         Version: '2012-10-17'
         Statement:
           - Effect: Allow
             Principal:
-              AWS: !Sub "arn:aws:iam::${SoteriaAccountId}:root"
+              AWS: !Sub "arn:aws:iam::${SelketAccountId}:root"
             Action: sts:AssumeRole
             Condition:
               StringEquals:
                 sts:ExternalId: !Ref ExternalId
       Policies:
-        - PolicyName: SoteriaBackupRead
+        - PolicyName: SelketBackupRead
           PolicyDocument:
             Version: '2012-10-17'
             Statement:
@@ -94,14 +94,14 @@ Resources:
 
 Outputs:
   RoleArn:
-    Description: Paste this ARN into the Soteria dashboard to finish the connection.
-    Value: !GetAtt SoteriaReadRole.Arn
+    Description: Paste this ARN into the Selket dashboard to finish the connection.
+    Value: !GetAtt SelketReadRole.Arn
 ```
 
 ## Deploy it — step by step
 
-1. In the Soteria dashboard, go to **Databases → Add database → Connect AWS**.
-   Soteria displays your **ExternalId** (a per-tenant secret) and a
+1. In the Selket dashboard, go to **Databases → Add database → Connect AWS**.
+   Selket displays your **ExternalId** (a per-tenant secret) and a
    pre-filled "Launch Stack" link.
 2. Click **Launch Stack**. AWS opens the CloudFormation **Create stack**
    wizard in your browser, on the right account/region, with the template
@@ -115,7 +115,7 @@ Outputs:
    resources with custom names**, then **Create stack**.
 5. Wait ~30 seconds for the stack to reach `CREATE_COMPLETE`.
 6. Open the stack's **Outputs** tab and copy `RoleArn`.
-7. Paste the role ARN back into the Soteria dashboard. Soteria
+7. Paste the role ARN back into the Selket dashboard. Selket
    immediately runs a connectivity probe (an `sts:AssumeRole` round-trip
    and a `HeadObject` against the bucket) and shows green when it works.
 
@@ -128,19 +128,19 @@ diagnosing a mistyped bucket name or revoked role is one read.
 ## Revoking access
 
 Delete the CloudFormation stack. The role goes with it, and any future
-Soteria assume-role attempt receives `AccessDenied` instantly. Existing
+Selket assume-role attempt receives `AccessDenied` instantly. Existing
 evidence already in our vault remains accessible to you in the dashboard;
 no new drills will run for the affected database.
 
 ## For your security review
 
-**Authentication.** Soteria's account is the only `Principal` allowed to
+**Authentication.** Selket's account is the only `Principal` allowed to
 assume the role, and only with the matching `ExternalId`. We do not store
 your AWS credentials; we mint a fresh STS session per drill (≤ 1 hour
 lifetime).
 
 **Data egress.** During a drill the dump file is streamed into a fresh,
-isolated Postgres instance on Soteria's runner, restored, asserted against,
+isolated Postgres instance on Selket's runner, restored, asserted against,
 and deleted with the runner VM at teardown. The signed PDF and a hash
 fingerprint of the dump are retained in our evidence vault — the dump
 itself is not.
@@ -151,10 +151,10 @@ master key. Deleting your account crypto-shreds the key and renders all
 your evidence permanently unrecoverable, even from backups.
 
 **Audit log.** Every assume-role event lands in your CloudTrail. Every
-drill, evidence download, and account action lands in Soteria's
+drill, evidence download, and account action lands in Selket's
 tamper-evident audit log (hash-chained, retained 7 years).
 
-**Compliance.** Soteria's own SOC 2 Type I work is in progress; the
+**Compliance.** Selket's own SOC 2 Type I work is in progress; the
 deployment runs on Fly.io (SOC 2 Type 2, ISO 27001) and Neon (SOC 2 Type
 2). Subprocessor list available on request.
 
@@ -194,6 +194,6 @@ within the bucket. You can also add KMS-key conditions if your bucket
 uses CMK encryption; ask us for the additional `kms:Decrypt` statement.
 
 **What if my devops team isn't comfortable with CloudFormation?**
-We have an equivalent **Terraform module** (`soteria_aws_connect`) on
+We have an equivalent **Terraform module** (`selket_aws_connect`) on
 request, and the underlying IAM is plain enough that a security engineer
 can hand-roll it from this doc in five minutes.

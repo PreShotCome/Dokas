@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  Soteria — primary mark, iteration 3.
+  Selket — primary mark, iteration 3.
 
   Composition: narrow vertical flame at the base; phoenix wings that
   spread wide AND scoop UPWARD, framing a single 4-point star. The
@@ -9,7 +9,7 @@
 
   Vector. Single amber gradient + a star. Transparent background.
 -->
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320" role="img" aria-label="Soteria">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320" role="img" aria-label="Selket">
   <defs>
     <linearGradient id="ambr" x1="0.5" y1="1" x2="0.5" y2="0">
       <stop offset="0%"   stop-color="#7c2d12"/>

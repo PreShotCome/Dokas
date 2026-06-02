@@ -2,15 +2,15 @@ services:
   postgres:
     image: postgres:16-alpine
     environment:
-      POSTGRES_USER: soteria
-      POSTGRES_PASSWORD: soteria
-      POSTGRES_DB: soteria
+      POSTGRES_USER: selket
+      POSTGRES_PASSWORD: selket
+      POSTGRES_DB: selket
     ports:
       - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U soteria"]
+      test: ["CMD-SHELL", "pg_isready -U selket"]
       interval: 2s
       timeout: 5s
       retries: 20

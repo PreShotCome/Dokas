@@ -227,7 +227,7 @@ func (h *Handlers) Router(staticFS http.FileSystem) http.Handler {
 	// Public pricing page — self-serve subscribers start here.
 	r.Get("/pricing", h.pricingPage)
 
-	// Public explainer — what backup drilling is and how Soteria helps.
+	// Public explainer — what backup drilling is and how Selket helps.
 	r.Get("/how-it-works", h.howItWorks)
 
 	r.Handle("/static/*", http.StripPrefix("/static/", http.FileServer(staticFS)))

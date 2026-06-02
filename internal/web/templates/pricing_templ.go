@@ -52,7 +52,7 @@ func Pricing(lc LayoutCtx, starterLabel, proLabel string, stripeEnabled bool) te
 				}()
 			}
 			ctx = templ.InitializeContext(ctx)
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"mx-auto max-w-4xl\"><div class=\"mb-10 text-center\"><h1 class=\"text-3xl font-semibold tracking-tight\">Pricing by how often you verify</h1><p class=\"mx-auto mt-3 max-w-2xl text-zinc-600 dark:text-zinc-400\">Every plan includes signed PDF evidence, the full assertion suite, the versioned JSON API, and webhooks. Plans differ by how often Soteria drills your databases — the more critical your data, the more frequently you verify it.</p></div><div class=\"grid gap-6 sm:grid-cols-3\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"mx-auto max-w-4xl\"><div class=\"mb-10 text-center\"><h1 class=\"text-3xl font-semibold tracking-tight\">Pricing by how often you verify</h1><p class=\"mx-auto mt-3 max-w-2xl text-zinc-600 dark:text-zinc-400\">Every plan includes signed PDF evidence, the full assertion suite, the versioned JSON API, and webhooks. Plans differ by how often Selket drills your databases — the more critical your data, the more frequently you verify it.</p></div><div class=\"grid gap-6 sm:grid-cols-3\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

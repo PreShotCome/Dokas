@@ -68,7 +68,7 @@ func (h *Handlers) reportsExport(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.Header().Set("Content-Type", "text/csv; charset=utf-8")
-	w.Header().Set("Content-Disposition", `attachment; filename="soteria-drill-report.csv"`)
+	w.Header().Set("Content-Disposition", `attachment; filename="selket-drill-report.csv"`)
 	cw := csv.NewWriter(w)
 	if err := cw.Write([]string{"month", "total_drills", "succeeded", "failed", "avg_duration_seconds"}); err != nil {
 		h.logger().Error("csv header write failed", "err", err, "account_id", lc.Account.ID)

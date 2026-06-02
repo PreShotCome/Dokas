@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  Soteria — monochrome mark. Single solid colour, for stamps, embossing,
+  Selket — monochrome mark. Single solid colour, for stamps, embossing,
   letterhead, single-colour print, dark-mode UI, and any context where
   the gradient would not survive (favicon at very small size, fax,
   laser-engraved metal, etc.). Pair this with `currentColor` in HTML.
 -->
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320" fill="currentColor" role="img" aria-label="Soteria">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320" fill="currentColor" role="img" aria-label="Selket">
   <path d="M 148 196 C 120 184,  90 168,  60 134 C  44 112,  38  92,  46  74 C  56  92,  74 110,  98 130 C 122 148, 140 168, 152 192 Z"/>
   <path d="M 172 196 C 200 184, 230 168, 260 134 C 276 112, 282  92, 274  74 C 264  92, 246 110, 222 130 C 198 148, 180 168, 168 192 Z"/>
   <path d="M 160 110 C 150 134, 142 162, 144 196 C 146 224, 152 254, 156 280 C 158 290, 159 298, 160 304 C 161 298, 162 290, 164 280 C 168 254, 174 224, 176 196 C 178 162, 170 134, 160 110 Z"/>
