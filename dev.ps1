@@ -35,9 +35,15 @@ Require-Command go      'https://go.dev/dl/'
 Require-Command node    'https://nodejs.org/'
 Require-Command npx     'https://nodejs.org/'
 
-# Docker is optional: if DATABASE_URL is already set the user is on
-# Neon / managed Postgres and we don't need a local docker daemon.
-$useDocker = -not $env:DATABASE_URL
+# Docker is optional: only skip local postgres if DATABASE_URL points
+# at a non-localhost host (Neon, Supabase, RDS, etc.). A localhost
+# DATABASE_URL left over from a prior PowerShell session must NOT cause
+# us to skip starting the container - that container is what serves the
+# URL.
+$useDocker = $true
+if ($env:DATABASE_URL -and $env:DATABASE_URL -notmatch '(localhost|127\.0\.0\.1|\[::1\])') {
+    $useDocker = $false
+}
 if ($useDocker) {
     Require-Command docker 'https://www.docker.com/products/docker-desktop/'
 }
@@ -67,9 +73,14 @@ if ($useDocker) {
         Write-Host "  postgres did not come up in 30s. Check 'docker compose logs postgres'." -ForegroundColor Red
         exit 1
     }
-    $env:DATABASE_URL = "postgres://selket:selket@localhost:5432/selket?sslmode=disable"
+    # Only set DATABASE_URL if the caller didn't pre-set it (a leftover
+    # localhost URL from a prior session is fine - it points at the
+    # container we just started).
+    if (-not $env:DATABASE_URL) {
+        $env:DATABASE_URL = "postgres://selket:selket@localhost:5432/selket?sslmode=disable"
+    }
 } else {
-    Write-Host "==> DATABASE_URL is set externally - skipping local postgres" -ForegroundColor Cyan
+    Write-Host "==> DATABASE_URL points to a non-localhost host - skipping local postgres" -ForegroundColor Cyan
 }
 
 Write-Host "==> evidence dir + htmx..." -ForegroundColor Cyan
