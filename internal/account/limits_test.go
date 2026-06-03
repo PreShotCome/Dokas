@@ -55,9 +55,11 @@ func TestCadenceGating(t *testing.T) {
 		{PlanTrial, "off", true},
 		{PlanTrial, "daily", true},
 		{PlanTrial, "hourly", false},
-		{PlanStarter, "daily", true},
+		{PlanStarter, "weekly", true},
+		{PlanStarter, "daily", false},
 		{PlanStarter, "hourly", false},
-		{PlanPro, "hourly", true},
+		{PlanPro, "daily", true},
+		{PlanPro, "hourly", false},
 		{Plan("garbage"), "daily", false},
 	}
 	for _, tc := range tests {
@@ -68,8 +70,11 @@ func TestCadenceGating(t *testing.T) {
 	if got := TopCadence(PlanTrial); got != "daily" {
 		t.Errorf("TopCadence(trial) = %q, want daily", got)
 	}
-	if got := TopCadence(PlanPro); got != "hourly" {
-		t.Errorf("TopCadence(pro) = %q, want hourly", got)
+	if got := TopCadence(PlanStarter); got != "weekly" {
+		t.Errorf("TopCadence(starter) = %q, want weekly", got)
+	}
+	if got := TopCadence(PlanPro); got != "daily" {
+		t.Errorf("TopCadence(pro) = %q, want daily", got)
 	}
 }
 

@@ -1,6 +1,7 @@
 """Generate Selket_Investor_Deck.pptx — a tight 9-slide investor brief.
 
-Matches the Selket brand (navy + emerald). Run once; commit the output.
+Matches the Selket brand (amber/gold flame + emerald). Run once; commit
+the output.
 """
 
 from pptx import Presentation
@@ -10,14 +11,15 @@ from pptx.enum.shapes import MSO_SHAPE
 from pptx.enum.text import PP_ALIGN, MSO_ANCHOR
 from pathlib import Path
 
-# Brand palette mirrors tailwind.config.js.
-BRAND_900 = RGBColor(0x18, 0x23, 0x3A)
-BRAND_800 = RGBColor(0x21, 0x30, 0x4A)
-BRAND_700 = RGBColor(0x28, 0x3C, 0x5D)
-BRAND_500 = RGBColor(0x3F, 0x5E, 0x8D)
-BRAND_300 = RGBColor(0x84, 0xA0, 0xC6)
-BRAND_100 = RGBColor(0xD6, 0xE0, 0xEE)
-BRAND_50  = RGBColor(0xEE, 0xF2, 0xF8)
+# Brand palette mirrors tailwind.config.js — warm amber/gold (the phoenix
+# flame). Emerald stays reserved for the verified/passed state.
+BRAND_900 = RGBColor(0x78, 0x35, 0x0F)
+BRAND_800 = RGBColor(0x92, 0x40, 0x0E)
+BRAND_700 = RGBColor(0xB4, 0x53, 0x09)
+BRAND_500 = RGBColor(0xF5, 0x9E, 0x0B)
+BRAND_300 = RGBColor(0xFC, 0xD3, 0x4D)
+BRAND_100 = RGBColor(0xFE, 0xF3, 0xC7)
+BRAND_50  = RGBColor(0xFF, 0xFB, 0xEB)
 
 EMERALD     = RGBColor(0x10, 0xB9, 0x81)
 EMERALD_700 = RGBColor(0x04, 0x78, 0x57)
@@ -609,15 +611,15 @@ pricing_card(s, left0, card_top, card_w, card_h,
               'API & webhooks', 'Community support'])
 
 pricing_card(s, left0 + card_w + card_gap, card_top, card_w, card_h,
-             'Starter', '$99', '/mo', 'DRILL FREQUENCY', 'Daily',
+             'Standard', '$99', '/mo', 'DRILL FREQUENCY', 'Weekly',
              ['10 databases', '10 team seats', 'Signed PDF evidence', '7-year retention',
-              'API & webhooks · Slack alerts', 'Email support'],
-             popular=True)
+              'API & webhooks · Slack alerts', 'Email support'])
 
 pricing_card(s, left0 + (card_w + card_gap) * 2, card_top, card_w, card_h,
-             'Pro', '$299', '/mo', 'DRILL FREQUENCY', 'Hourly',
+             'VIP', '$299', '/mo', 'DRILL FREQUENCY', 'Daily',
              ['Unlimited databases', 'Unlimited team seats', 'Signed PDF evidence',
-              '7-year retention', 'API & webhooks · Slack', 'SSO/SAML · Priority support · SLA'])
+              '7-year retention', 'API & webhooks · Slack', 'SSO/SAML · Priority support · SLA'],
+             popular=True)
 
 # Footer note about Enterprise
 textbox(s, Inches(0.6), Inches(7.05), Inches(12), Inches(0.3),

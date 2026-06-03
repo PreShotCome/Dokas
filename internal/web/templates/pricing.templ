@@ -8,7 +8,10 @@ import (
 )
 
 // Pricing is the public pricing page. starterLabel / proLabel are the
-// headline monthly prices (display-only — Stripe holds the real amount).
+// headline monthly prices (display-only — Stripe holds the real amount)
+// for the Standard and VIP tiers respectively. The internal plan IDs
+// remain "starter" and "pro" so existing Stripe products / DB values
+// keep working; only the user-facing names change.
 // stripeEnabled is false when no Stripe keys are configured, in which case
 // the subscribe action is replaced with a notice.
 templ Pricing(lc LayoutCtx, starterLabel, proLabel string, stripeEnabled bool) {
@@ -26,9 +29,9 @@ templ Pricing(lc LayoutCtx, starterLabel, proLabel string, stripeEnabled bool) {
 			<div class="grid gap-6 sm:grid-cols-3">
 				@pricingCard(lc, "trial", "Trial", "Free", "", stripeEnabled,
 					account.LimitsFor(account.PlanTrial))
-				@pricingCard(lc, "starter", "Starter", starterLabel, "/mo", stripeEnabled,
+				@pricingCard(lc, "starter", "Standard", starterLabel, "/mo", stripeEnabled,
 					account.LimitsFor(account.PlanStarter))
-				@pricingCard(lc, "pro", "Pro", proLabel, "/mo", stripeEnabled,
+				@pricingCard(lc, "pro", "VIP", proLabel, "/mo", stripeEnabled,
 					account.LimitsFor(account.PlanPro))
 			</div>
 			<p class="mt-8 text-center text-xs text-zinc-500">
@@ -113,7 +116,7 @@ templ pricingCTA(lc LayoutCtx, plan string, stripeEnabled bool) {
 }
 
 // limitText renders a resource cap: "1 database", "10 databases", or
-// "Unlimited databases" for an uncapped (Pro) tier.
+// "Unlimited databases" for an uncapped (VIP) tier.
 func limitText(n int, singular string) string {
 	switch {
 	case n == account.Unlimited:

@@ -16,7 +16,10 @@ import (
 )
 
 // Pricing is the public pricing page. starterLabel / proLabel are the
-// headline monthly prices (display-only — Stripe holds the real amount).
+// headline monthly prices (display-only — Stripe holds the real amount)
+// for the Standard and VIP tiers respectively. The internal plan IDs
+// remain "starter" and "pro" so existing Stripe products / DB values
+// keep working; only the user-facing names change.
 // stripeEnabled is false when no Stripe keys are configured, in which case
 // the subscribe action is replaced with a notice.
 func Pricing(lc LayoutCtx, starterLabel, proLabel string, stripeEnabled bool) templ.Component {
@@ -61,12 +64,12 @@ func Pricing(lc LayoutCtx, starterLabel, proLabel string, stripeEnabled bool) te
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = pricingCard(lc, "starter", "Starter", starterLabel, "/mo", stripeEnabled,
+			templ_7745c5c3_Err = pricingCard(lc, "starter", "Standard", starterLabel, "/mo", stripeEnabled,
 				account.LimitsFor(account.PlanStarter)).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = pricingCard(lc, "pro", "Pro", proLabel, "/mo", stripeEnabled,
+			templ_7745c5c3_Err = pricingCard(lc, "pro", "VIP", proLabel, "/mo", stripeEnabled,
 				account.LimitsFor(account.PlanPro)).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
@@ -115,7 +118,7 @@ func pricingCard(lc LayoutCtx, plan, name, price, period string, stripeEnabled b
 		var templ_7745c5c3_Var4 string
 		templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(name)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/templates/pricing.templ`, Line: 47, Col: 43}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/templates/pricing.templ`, Line: 50, Col: 43}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 		if templ_7745c5c3_Err != nil {
@@ -128,7 +131,7 @@ func pricingCard(lc LayoutCtx, plan, name, price, period string, stripeEnabled b
 		var templ_7745c5c3_Var5 string
 		templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(price)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/templates/pricing.templ`, Line: 49, Col: 63}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/templates/pricing.templ`, Line: 52, Col: 63}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
 		if templ_7745c5c3_Err != nil {
@@ -146,7 +149,7 @@ func pricingCard(lc LayoutCtx, plan, name, price, period string, stripeEnabled b
 			var templ_7745c5c3_Var6 string
 			templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(period)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/templates/pricing.templ`, Line: 51, Col: 49}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/templates/pricing.templ`, Line: 54, Col: 49}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
 			if templ_7745c5c3_Err != nil {
@@ -174,7 +177,7 @@ func pricingCard(lc LayoutCtx, plan, name, price, period string, stripeEnabled b
 			var templ_7745c5c3_Var7 string
 			templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinStringErrs(cadenceLabel(account.TopCadence(account.Plan(plan))))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/templates/pricing.templ`, Line: 62, Col: 59}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/templates/pricing.templ`, Line: 65, Col: 59}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var7))
 			if templ_7745c5c3_Err != nil {
@@ -261,7 +264,7 @@ func pricingFeature(text string) templ.Component {
 		var templ_7745c5c3_Var9 string
 		templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs(text)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/templates/pricing.templ`, Line: 82, Col: 14}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/templates/pricing.templ`, Line: 85, Col: 14}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var9))
 		if templ_7745c5c3_Err != nil {
@@ -338,7 +341,7 @@ func pricingCTA(lc LayoutCtx, plan string, stripeEnabled bool) templ.Component {
 				var templ_7745c5c3_Var11 string
 				templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.ResolveAttributeValue(plan)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/templates/pricing.templ`, Line: 104, Col: 49}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/templates/pricing.templ`, Line: 107, Col: 49}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var11)
 				if templ_7745c5c3_Err != nil {
@@ -365,7 +368,7 @@ func pricingCTA(lc LayoutCtx, plan string, stripeEnabled bool) templ.Component {
 }
 
 // limitText renders a resource cap: "1 database", "10 databases", or
-// "Unlimited databases" for an uncapped (Pro) tier.
+// "Unlimited databases" for an uncapped (VIP) tier.
 func limitText(n int, singular string) string {
 	switch {
 	case n == account.Unlimited:
