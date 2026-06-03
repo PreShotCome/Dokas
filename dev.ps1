@@ -80,6 +80,11 @@ if (-not (Test-Path assets\static\htmx.min.js)) {
         -OutFile assets\static\htmx.min.js
 }
 
+if (-not (Test-Path node_modules)) {
+    Write-Host "==> npm install (one-time)..." -ForegroundColor Cyan
+    npm install
+}
+
 Write-Host "==> templ generate..." -ForegroundColor Cyan
 templ generate
 
