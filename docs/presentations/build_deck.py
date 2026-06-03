@@ -1,6 +1,6 @@
-"""Generate Soteria_Investor_Deck.pptx — a tight 9-slide investor brief.
+"""Generate Selket_Investor_Deck.pptx — a tight 9-slide investor brief.
 
-Matches the Soteria brand (navy + emerald). Run once; commit the output.
+Matches the Selket brand (navy + emerald). Run once; commit the output.
 """
 
 from pptx import Presentation
@@ -105,7 +105,7 @@ def page_chrome(slide, eyebrow, title, slide_num, total):
             f'{slide_num} / {total}', size=9, color=ZINC_400, align=PP_ALIGN.RIGHT)
     # Footer brand mark
     textbox(slide, Inches(0.6), Inches(7.05), Inches(6), Inches(0.3),
-            'SOTERIA  ·  Backup verification you can prove', size=9, color=ZINC_400)
+            'SELKET  ·  Backup verification you can prove', size=9, color=ZINC_400)
 
 
 TOTAL = 11
@@ -125,7 +125,7 @@ rounded(s, Inches(0.9), Inches(0.9), Inches(0.6), Inches(0.6), WHITE, radius=0.2
 textbox(s, Inches(0.95), Inches(0.96), Inches(0.5), Inches(0.5),
         'S', size=22, bold=True, color=BRAND_700, align=PP_ALIGN.CENTER)
 textbox(s, Inches(1.65), Inches(1.0), Inches(5), Inches(0.4),
-        'SOTERIA', size=14, bold=True, color=WHITE)
+        'SELKET', size=14, bold=True, color=WHITE)
 
 # Status pill
 rounded(s, Inches(0.9), Inches(2.6), Inches(2.6), Inches(0.35), BRAND_700, radius=0.5)
@@ -192,7 +192,7 @@ page_chrome(s, 'The solution', 'A drill is a controlled restore — daily, autom
 rounded(s, Inches(0.6), Inches(1.7), Inches(12.2), Inches(1.2), BRAND_50, line=BRAND_100, radius=0.05)
 rect(s, Inches(0.6), Inches(1.7), Inches(0.06), Inches(1.2), BRAND_700)
 textbox(s, Inches(0.9), Inches(1.85), Inches(11.6), Inches(0.95),
-        'Soteria pulls your latest backup into a clean sandbox, runs your assertions, and produces a\n'
+        'Selket pulls your latest backup into a clean sandbox, runs your assertions, and produces a\n'
         'cryptographically signed PDF. Run it every day. Catch the broken backup on a Tuesday.',
         size=16, color=ZINC_900, bold=True)
 
@@ -321,7 +321,7 @@ for i, c in enumerate([RGBColor(0xEF, 0x44, 0x44), RGBColor(0xF5, 0x9E, 0x0B), E
                              Inches(0.13), Inches(0.13))
     dot.fill.solid(); dot.fill.fore_color.rgb = c; dot.line.fill.background()
 textbox(s, mock_left + Inches(0.95), mock_top + Inches(0.12), Inches(5), Inches(0.25),
-        'app.soteria.io/drills/a1f9c2', size=9, color=ZINC_400, font='Consolas')
+        'app.selket.io/drills/a1f9c2', size=9, color=ZINC_400, font='Consolas')
 
 # Content
 textbox(s, mock_left + Inches(0.3), mock_top + Inches(0.7), Inches(4), Inches(0.35),
@@ -417,7 +417,7 @@ def drill_card(slide, left, top, w, h, *, status, pill_bg, pill_fg, stats, steps
                                      Inches(0.12), Inches(0.12))
         dot.fill.solid(); dot.fill.fore_color.rgb = c; dot.line.fill.background()
     textbox(slide, left + Inches(0.85), top + Inches(0.1), Inches(5), Inches(0.25),
-            'app.soteria.io/drills/...', size=9, color=ZINC_400, font='Consolas')
+            'app.selket.io/drills/...', size=9, color=ZINC_400, font='Consolas')
     # header
     textbox(slide, left + Inches(0.3), top + Inches(0.6), Inches(3.5), Inches(0.3),
             'production-primary', size=13, bold=True, color=ZINC_900)
@@ -740,7 +740,7 @@ textbox(s, Inches(0.9), Inches(2.2), Inches(11.5), Inches(1.5),
         'Let’s build the proof layer\nfor every backup.', size=48, bold=True, color=WHITE)
 
 textbox(s, Inches(0.9), Inches(4.5), Inches(11.5), Inches(0.6),
-        'Soteria — backup verification you can prove.', size=18, color=BRAND_100)
+        'Selket — backup verification you can prove.', size=18, color=BRAND_100)
 
 # Contact card
 rounded(s, Inches(0.9), Inches(5.6), Inches(6.5), Inches(1.4), BRAND_700, radius=0.06)
@@ -753,6 +753,6 @@ textbox(s, Inches(1.1), Inches(6.45), Inches(6), Inches(0.4),
 
 
 # ---- save ----
-out = Path(__file__).parent / 'Soteria_Investor_Deck.pptx'
+out = Path(__file__).parent / 'Selket_Investor_Deck.pptx'
 prs.save(out)
 print(f'Wrote {out}')
