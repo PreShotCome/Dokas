@@ -16,7 +16,7 @@
 
 $ErrorActionPreference = 'Stop'
 
-# Anchor to the script's directory — this is the only protection against
+# Anchor to the script's directory - this is the only protection against
 # accidentally running the script from somewhere that has no go.mod, no
 # docker-compose.yml, and no package.json.
 Set-Location -Path $PSScriptRoot
@@ -69,7 +69,7 @@ if ($useDocker) {
     }
     $env:DATABASE_URL = "postgres://selket:selket@localhost:5432/selket?sslmode=disable"
 } else {
-    Write-Host "==> DATABASE_URL is set externally — skipping local postgres" -ForegroundColor Cyan
+    Write-Host "==> DATABASE_URL is set externally - skipping local postgres" -ForegroundColor Cyan
 }
 
 Write-Host "==> evidence dir + htmx..." -ForegroundColor Cyan
