@@ -94,5 +94,9 @@ npx --yes tailwindcss -i assets/css/input.css -o assets/static/app.css --minify
 Write-Host "==> migrations..." -ForegroundColor Cyan
 go run ./cmd/migrate up
 
-Write-Host "==> server listening at http://localhost:8080" -ForegroundColor Green
+# Default port: 5173. Override by setting $env:ADDR before running.
+if (-not $env:ADDR) { $env:ADDR = ':5173' }
+$port = $env:ADDR.TrimStart(':')
+
+Write-Host "==> server listening at http://localhost:$port" -ForegroundColor Green
 go run ./cmd/server
