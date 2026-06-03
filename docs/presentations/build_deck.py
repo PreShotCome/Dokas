@@ -1,7 +1,7 @@
 """Generate Selket_Investor_Deck.pptx — a tight 9-slide investor brief.
 
-Matches the Selket brand (amber/gold flame + emerald). Run once; commit
-the output.
+Matches the Selket brand (deep ceremonial red + Egyptian gold, with
+lapis-blue touches). Run once; commit the output.
 """
 
 from pptx import Presentation
@@ -11,15 +11,24 @@ from pptx.enum.shapes import MSO_SHAPE
 from pptx.enum.text import PP_ALIGN, MSO_ANCHOR
 from pathlib import Path
 
-# Brand palette mirrors tailwind.config.js — warm amber/gold (the phoenix
-# flame). Emerald stays reserved for the verified/passed state.
-BRAND_900 = RGBColor(0x78, 0x35, 0x0F)
-BRAND_800 = RGBColor(0x92, 0x40, 0x0E)
-BRAND_700 = RGBColor(0xB4, 0x53, 0x09)
-BRAND_500 = RGBColor(0xF5, 0x9E, 0x0B)
-BRAND_300 = RGBColor(0xFC, 0xD3, 0x4D)
-BRAND_100 = RGBColor(0xFE, 0xF3, 0xC7)
-BRAND_50  = RGBColor(0xFF, 0xFB, 0xEB)
+# Brand palette mirrors tailwind.config.js — Selket red (primary) with
+# gold (secondary) and lapis (accent). Emerald stays reserved for the
+# verified/passed state.
+BRAND_900 = RGBColor(0x7F, 0x1D, 0x1D)
+BRAND_800 = RGBColor(0x99, 0x1B, 0x1B)
+BRAND_700 = RGBColor(0xB9, 0x1C, 0x1C)
+BRAND_500 = RGBColor(0xEF, 0x44, 0x44)
+BRAND_300 = RGBColor(0xFC, 0xA5, 0xA5)
+BRAND_100 = RGBColor(0xFE, 0xE2, 0xE2)
+BRAND_50  = RGBColor(0xFE, 0xF2, 0xF2)
+
+GOLD_700  = RGBColor(0xA1, 0x62, 0x07)
+GOLD_500  = RGBColor(0xEA, 0xB3, 0x08)
+GOLD_300  = RGBColor(0xFD, 0xE0, 0x47)
+GOLD_100  = RGBColor(0xFE, 0xF9, 0xC3)
+
+LAPIS_900 = RGBColor(0x1E, 0x3A, 0x8A)
+LAPIS_700 = RGBColor(0x1D, 0x4D, 0xD8)
 
 EMERALD     = RGBColor(0x10, 0xB9, 0x81)
 EMERALD_700 = RGBColor(0x04, 0x78, 0x57)
