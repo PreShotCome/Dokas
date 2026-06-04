@@ -523,9 +523,15 @@ func (w *ReportWorker) Work(ctx context.Context, job *river.Job[drill.ReportArgs
 		}
 	}
 	// Reflect verdict in the in-memory drill so the PDF header renders right.
-	if !verdictPass {
-		s := drill.StatusFailed
-		dr.Status = s
+	// dr.Status was last set to "running" by MarkDrillRunning; MarkDrillSucceeded
+	// doesn't fire until teardown, well after the PDF is rendered. Without this
+	// override the renderer's default-FAILED switch would stamp every passing
+	// drill's evidence PDF as "FAILED".
+	if verdictPass {
+		dr.Status = drill.StatusSucceeded
+		dr.Error = nil
+	} else {
+		dr.Status = drill.StatusFailed
 		msg := "one or more assertions failed"
 		dr.Error = &msg
 	}
