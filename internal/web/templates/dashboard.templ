@@ -76,5 +76,11 @@ templ DrillsEmpty(m *account.Membership) {
 		} else {
 			<p class="text-xs text-zinc-500">Ask an admin or member of this account to connect a database.</p>
 		}
+		if m != nil && auth.Allowed(m.Role, auth.ActionHeartbeatWrite) {
+			<p class="mt-2 text-xs text-zinc-500">
+				Or <a href="/heartbeats" class="underline">set up a backup check-in</a> to
+				be alerted the moment a backup job stops running.
+			</p>
+		}
 	</div>
 }

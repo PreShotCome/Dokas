@@ -74,6 +74,26 @@ func HelpPage(lc LayoutCtx) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
+			templ_7745c5c3_Err = faq("What is a backup check-in?",
+				"A check-in is a lightweight monitor for the backup job itself. "+
+					"Your job pings a unique URL each time it runs; if a ping "+
+					"doesn't arrive within the period and grace you set, Soteria "+
+					"marks the monitor down and alerts you by email and webhook. "+
+					"Drills prove a backup restores — check-ins prove the job ran "+
+					"at all.").Render(ctx, templ_7745c5c3_Buffer)
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = faq("How do I set up a check-in?",
+				"Go to Check-ins → New monitor and set how often you expect the "+
+					"job to run plus a grace window. Copy the ping URL and call it "+
+					"at the end of your backup script — e.g. add "+
+					"'curl -fsS https://app.soteria.io/ping/<token>' after a "+
+					"successful run. Send /fail instead to report a failure "+
+					"immediately, or /start to record that the job began.").Render(ctx, templ_7745c5c3_Buffer)
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
 			templ_7745c5c3_Err = faq("Who can do what in my account?",
 				"Owners and admins manage members, databases, and drills; members "+
 					"can run drills and manage databases; viewers have read-only "+
@@ -130,7 +150,7 @@ func faq(q string, a string) templ.Component {
 		var templ_7745c5c3_Var4 string
 		templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(q)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/templates/help.templ`, Line: 45, Col: 57}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/templates/help.templ`, Line: 59, Col: 57}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 		if templ_7745c5c3_Err != nil {
@@ -143,7 +163,7 @@ func faq(q string, a string) templ.Component {
 		var templ_7745c5c3_Var5 string
 		templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(a)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/templates/help.templ`, Line: 46, Col: 62}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/templates/help.templ`, Line: 60, Col: 62}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
 		if templ_7745c5c3_Err != nil {

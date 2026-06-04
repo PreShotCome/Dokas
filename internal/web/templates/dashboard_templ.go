@@ -162,7 +162,7 @@ func DrillsEmpty(m *account.Membership) templ.Component {
 			return templ_7745c5c3_Err
 		}
 		if m != nil && auth.Allowed(m.Role, auth.ActionTargetWrite) {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "<a href=\"/databases/new\" class=\"btn-primary mt-2\">Connect a database</a>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "<a href=\"/databases/new\" class=\"btn-primary mt-2\">Connect a database</a> ")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -172,7 +172,13 @@ func DrillsEmpty(m *account.Membership) templ.Component {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "</div>")
+		if m != nil && auth.Allowed(m.Role, auth.ActionHeartbeatWrite) {
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "<p class=\"mt-2 text-xs text-zinc-500\">Or <a href=\"/heartbeats\" class=\"underline\">set up a backup check-in</a> to be alerted the moment a backup job stops running.</p>")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, "</div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
