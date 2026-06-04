@@ -4,13 +4,16 @@ import (
 	"github.com/preshotcome/anything/internal/account"
 	"github.com/preshotcome/anything/internal/auth"
 	"github.com/preshotcome/anything/internal/drill"
+	"github.com/preshotcome/anything/internal/heartbeat"
 )
 
 // DashboardView is the dashboard's input bundle.
 type DashboardView struct {
-	Ctx     LayoutCtx
-	Targets []drill.Target
-	Drills  []drill.Drill
+	Ctx        LayoutCtx
+	Targets    []drill.Target
+	Drills     []drill.Drill
+	Heartbeats []heartbeat.Heartbeat
+	BaseURL    string
 }
 
 templ Dashboard(v DashboardView) {
@@ -21,7 +24,7 @@ templ Dashboard(v DashboardView) {
 				<a href="/databases/new" class="btn-primary">Connect a database</a>
 			}
 		</div>
-		if len(v.Targets) == 0 && len(v.Drills) == 0 {
+		if len(v.Targets) == 0 && len(v.Drills) == 0 && len(v.Heartbeats) == 0 {
 			@DrillsEmpty(v.Ctx.Membership)
 		} else {
 			<section class="mb-8">
@@ -43,6 +46,15 @@ templ Dashboard(v DashboardView) {
 					@DrillsTable(v.Drills)
 				}
 			</section>
+			if len(v.Heartbeats) > 0 {
+				<section class="mt-8">
+					<div class="mb-3 flex items-baseline justify-between">
+						<h2 class="text-lg font-semibold">Backup check-ins</h2>
+						<a href="/heartbeats" class="text-sm underline">All check-ins</a>
+					</div>
+					@HeartbeatsTable(v.Heartbeats, v.BaseURL)
+				</section>
+			}
 		}
 	}
 }

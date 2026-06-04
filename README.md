@@ -100,6 +100,27 @@ Implemented:
   `Idempotency-Key` writes, cursor pagination, per-account rate limit,
   OpenAPI doc at `/openapi.json` + a `/docs` reference
 - WCAG 2.2 AA pass — skip link, focus indicators, ARIA labels, landmarks
+- Backup check-ins (heartbeats) — a public ping endpoint + overdue sweeper
+  that alerts via webhooks when a backup job stops checking in
+
+## Backup check-ins (heartbeats)
+
+Drills *actively* restore-and-verify a dump; a heartbeat is the cheap, passive
+complement — it confirms the backup job even ran. You register a monitor with
+an expected period and a grace window, then have your backup script ping a
+unique URL on success:
+
+```sh
+# at the end of your nightly backup cron
+pg_dump … && curl -fsS https://app.soteria.io/ping/<token>
+```
+
+If a check-in is overdue, a once-a-minute River sweeper flips the monitor to
+**down**, fires the account's webhooks (`heartbeat.down`), and records an audit
+event; the next successful ping flips it back **up** (`heartbeat.up`). Append
+`/fail` to signal an explicit failure or `/start` to mark a long job's start.
+The ping endpoint is unauthenticated by design — the token in the path is the
+credential — CSRF-exempt and rate-limited per source IP.
 
 ## Local development
 

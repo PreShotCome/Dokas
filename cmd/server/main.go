@@ -31,6 +31,7 @@ import (
 	"github.com/preshotcome/anything/internal/evidence"
 	"github.com/preshotcome/anything/internal/flags"
 	"github.com/preshotcome/anything/internal/fly"
+	"github.com/preshotcome/anything/internal/heartbeat"
 	"github.com/preshotcome/anything/internal/oauth"
 	"github.com/preshotcome/anything/internal/obs"
 	"github.com/preshotcome/anything/internal/ratelimit"
@@ -77,6 +78,7 @@ func main() {
 	sessionStore := auth.NewStore(pool, cfg.IdleTimeout, cfg.AbsoluteMaxAge, cfg.IsProduction())
 	auditLog := audit.New(pool)
 	drillStore := drill.NewStore(pool)
+	heartbeatStore := heartbeat.NewStore(pool)
 	accountStore := account.NewStore(pool)
 	billingCustomers := billing.New(billing.Config{
 		SecretKey:     cfg.StripeSecretKey,
@@ -151,7 +153,8 @@ func main() {
 	evidenceService := evidence.NewService(evidenceStore, signer, evidenceCipher, pool)
 
 	loginThrottle := auth.NewLoginThrottle(pool, 5, 15*time.Minute)
-	sweeper := compliance.NewSweeper(pool, evidenceService, loginThrottle)
+	sweeper := compliance.NewSweeper(pool, evidenceService, loginThrottle).
+		WithPingPruner(heartbeatStore)
 	purger := compliance.NewPurger(pool, evidenceService, auditLog, compliance.DefaultGracePeriod)
 
 	workers := river.NewWorkers()
@@ -185,6 +188,12 @@ func main() {
 	river.AddWorker(workers, &compliance.PurgeWorker{Purger: purger})
 	river.AddWorker(workers, &compliance.RetentionWorker{Sweeper: sweeper, Logger: logger})
 	river.AddWorker(workers, &drill.SchedulerWorker{Store: drillStore, Orch: orch, Logger: logger})
+	river.AddWorker(workers, &heartbeat.SweeperWorker{
+		Store:    heartbeatStore,
+		Dispatch: webhookDispatch,
+		Audit:    auditLog,
+		Logger:   logger,
+	})
 
 	if err := riverClient.Start(rootCtx); err != nil {
 		logger.Error("river start", "err", err)
@@ -200,9 +209,11 @@ func main() {
 	authLimiter := ratelimit.New(20, 10)  // 20/min, burst 10 — login/signup
 	appLimiter := ratelimit.New(300, 100) // 300/min, burst 100 — authed traffic
 	v1Limiter := ratelimit.New(60, 60)    // 60/min — /v1 API, per account
+	pingLimiter := ratelimit.New(120, 60) // 120/min per IP — public ping ingest
 	authLimiter.StartSweeper(rootCtx.Done(), 5*time.Minute, 15*time.Minute)
 	appLimiter.StartSweeper(rootCtx.Done(), 5*time.Minute, 15*time.Minute)
 	v1Limiter.StartSweeper(rootCtx.Done(), 5*time.Minute, 15*time.Minute)
+	pingLimiter.StartSweeper(rootCtx.Done(), 5*time.Minute, 15*time.Minute)
 
 	h := handlers.New(handlers.Deps{
 		Pool:            pool,
@@ -210,12 +221,14 @@ func main() {
 		Audit:           auditLog,
 		Drills:          drillStore,
 		Orchestrator:    orch,
+		Heartbeats:      heartbeatStore,
+		PingLimiter:     pingLimiter,
 		Accounts:        accountStore,
 		Billing:         billingCustomers,
 		Throttle:        loginThrottle,
 		Webhooks:        webhookStore,
 		WebhookDispatch: webhookDispatch,
-		CSRF:            csrf.New(cfg.IsProduction(), "/webhooks/", "/v1/"),
+		CSRF:            csrf.New(cfg.IsProduction(), "/webhooks/", "/v1/", "/ping/"),
 		AuthLimiter:     authLimiter,
 		AppLimiter:      appLimiter,
 		Evidence:        evidenceService,
@@ -304,6 +317,7 @@ func newRiverClient(pool *pgxpool.Pool, workers *river.Workers) (*river.Client[p
 		PeriodicJobs: []*river.PeriodicJob{
 			compliance.PeriodicJob(),
 			drill.SchedulerPeriodicJob(),
+			heartbeat.SweeperPeriodicJob(),
 		},
 	})
 }

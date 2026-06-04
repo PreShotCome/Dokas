@@ -21,6 +21,7 @@ import (
 	"github.com/preshotcome/anything/internal/email"
 	"github.com/preshotcome/anything/internal/evidence"
 	"github.com/preshotcome/anything/internal/flags"
+	"github.com/preshotcome/anything/internal/heartbeat"
 	"github.com/preshotcome/anything/internal/oauth"
 	"github.com/preshotcome/anything/internal/obs"
 	"github.com/preshotcome/anything/internal/ratelimit"
@@ -35,6 +36,8 @@ type Handlers struct {
 	audit           *audit.Logger
 	drills          *drill.Store
 	orch            *drill.Orchestrator
+	heartbeats      *heartbeat.Store
+	pingLimiter     *ratelimit.Limiter
 	accounts        *account.Store
 	billing         billing.Service
 	throttle        *auth.LoginThrottle
@@ -71,6 +74,8 @@ type Deps struct {
 	Audit           *audit.Logger
 	Drills          *drill.Store
 	Orchestrator    *drill.Orchestrator
+	Heartbeats      *heartbeat.Store
+	PingLimiter     *ratelimit.Limiter
 	Accounts        *account.Store
 	Billing         billing.Service
 	Throttle        *auth.LoginThrottle
@@ -112,6 +117,8 @@ func New(d Deps) *Handlers {
 		audit:           d.Audit,
 		drills:          d.Drills,
 		orch:            d.Orchestrator,
+		heartbeats:      d.Heartbeats,
+		pingLimiter:     d.PingLimiter,
 		accounts:        d.Accounts,
 		billing:         d.Billing,
 		throttle:        d.Throttle,
@@ -215,6 +222,16 @@ func (h *Handlers) Router(staticFS http.FileSystem) http.Handler {
 	// Inbound Stripe webhook — authenticated by the Stripe-Signature header,
 	// CSRF-exempt (the /webhooks/ prefix is exempted in csrf.New).
 	r.Post("/webhooks/stripe", h.stripeWebhook)
+
+	// Public heartbeat ping ingest — the token in the path is the only
+	// credential. CSRF-exempt (the /ping/ prefix is exempted in csrf.New) and
+	// rate-limited per source IP. GET and POST both accepted so a bare curl
+	// works. Mounted at the top level, outside the session-gated group.
+	r.Group(func(r chi.Router) {
+		r.Use(h.pingLimiter.Middleware(clientIPKey))
+		r.HandleFunc("/ping/{token}", h.ping)
+		r.HandleFunc("/ping/{token}/{action}", h.ping)
+	})
 
 	// The versioned JSON API: API-key auth, no session/CSRF (csrf.New
 	// exempts the /v1/ prefix). Mounted at the top level so it's outside
@@ -338,6 +355,12 @@ func (h *Handlers) Router(staticFS http.FileSystem) http.Handler {
 			r.Get("/reports/export.csv", h.reportsExport)
 		})
 		r.Group(func(r chi.Router) {
+			r.Use(auth.RequireAction(auth.ActionHeartbeatRead))
+			r.Get("/heartbeats", h.heartbeatsList)
+			r.Get("/heartbeats/{id}", h.heartbeatDetail)
+			r.Get("/heartbeats/{id}/rows", h.heartbeatStatusPartial)
+		})
+		r.Group(func(r chi.Router) {
 			r.Use(auth.RequireAction(auth.ActionEvidenceRead))
 			r.Get("/drills/{id}/evidence", h.drillEvidence)
 		})
@@ -363,6 +386,15 @@ func (h *Handlers) Router(staticFS http.FileSystem) http.Handler {
 			r.Use(auth.RequireAction(auth.ActionDrillWrite))
 			r.Use(h.requireUnlapsedTrial)
 			r.Post("/drills", h.drillCreate)
+		})
+		r.Group(func(r chi.Router) {
+			r.Use(auth.RequireAction(auth.ActionHeartbeatWrite))
+			r.Use(h.requireUnlapsedTrial)
+			r.Get("/heartbeats/new", h.heartbeatNewPage)
+			r.Post("/heartbeats", h.heartbeatCreate)
+			r.Post("/heartbeats/{id}/pause", h.heartbeatPause)
+			r.Post("/heartbeats/{id}/resume", h.heartbeatResume)
+			r.Post("/heartbeats/{id}/delete", h.heartbeatDelete)
 		})
 		r.Group(func(r chi.Router) {
 			r.Use(auth.RequireAction(auth.ActionMemberWrite))

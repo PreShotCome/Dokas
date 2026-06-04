@@ -645,3 +645,60 @@ from struct tags (hand-authored); a JS API explorer (CSP).
 
 ### When you're done
 Commit on `claude/soteria-phase-2-vHjzy`. Push and stop — no PR.
+
+---
+
+## Backup check-ins (heartbeats)
+
+### Goal
+A passive complement to drills: customers register a monitor with an expected
+period + grace window and have their backup cron ping a unique URL after each
+run. An overdue check-in flips the monitor to "down", fires the account's
+webhooks, and writes an audit event — so a silently-failing backup job can't
+hide between drills. The proven Healthchecks.io / Cronitor model, made product-
+coherent ("did your backup job even run?") and a natural sellable add-on.
+
+### Locked decisions
+- **Public ingest:** `GET|POST /ping/{token}` (`/start`, `/fail` variants). The
+  token in the path is the only credential. CSRF-exempt (joins `/webhooks/`,
+  `/v1/`) and rate-limited per source IP by a dedicated limiter. Both verbs so a
+  bare `curl` works.
+- **Transitions fire once:** a ping re-arms the deadline and sets "up"; the
+  sweeper sets "down". A webhook/audit event is emitted only on a real up/down
+  edge, never on routine pings.
+- **Sweeper:** a River periodic job (every minute) runs a single atomic
+  `UPDATE … RETURNING` (`MarkOverdueDown`) so two concurrent sweepers can't
+  double-alert. Lapsed-trial and soft-deleted accounts are skipped, matching the
+  drill scheduler.
+- **Status hint:** the dashboard shows a monitor as down the instant its
+  deadline+grace passes (`effectiveStatus`), without waiting for the sweep.
+- **Reuse:** rides on accounts, the webhook dispatcher (events `heartbeat.up` /
+  `heartbeat.down`), the audit log, RBAC (`heartbeat.read` / `heartbeat.write`,
+  mirroring target permissions), and the retention sweeper (ping log pruned at
+  30 days; the transitions live in audit_events, kept 7y).
+
+### Data model (migration `…023_heartbeats.sql`)
+- `heartbeats(id, account_id, created_by_user_id, name, slug, ping_token UNIQUE,
+  period_seconds, grace_seconds, status[new|up|down|paused], last_ping_at,
+  expected_by, created_at, deleted_at)` — partial index over swept rows.
+- `heartbeat_pings(id, heartbeat_id, received_at, kind[ping|start|fail],
+  source_ip, user_agent)` — the rolling event log.
+
+### Deliverables
+- `internal/heartbeat`: `Store` (CRUD, `RecordPing`, `MarkOverdueDown`,
+  pause/resume/delete, ping log, prune) + `SweeperWorker` / `SweeperPeriodicJob`.
+- `internal/web/handlers/heartbeats.go`: dashboard CRUD + the public `ping`.
+- `internal/web/templates/heartbeats.templ`: list / new / detail (live-polled
+  status + the ping URL with a curl example) / status partial.
+- Nav link + a dashboard "Backup check-ins" card; a11y coverage for the pages.
+- Tests: ping transitions, overdue flip idempotency, paused-not-swept, cross-
+  account isolation, and the sweeper firing the down edge (fake dispatcher).
+
+### Out of scope (backlog)
+Per-plan monitor limits (heartbeats are uncounted for now); email/SMS alert
+channels beyond webhooks; flexible cron-expression schedules (period+grace
+only); SSRF hardening of webhook targets (already a noted webhook-layer item).
+
+### When you're done
+Developed on `claude/relaxed-gates-336fp` per this session's branch
+instructions (not the repo-default phase-2 branch). Push that branch; no PR.

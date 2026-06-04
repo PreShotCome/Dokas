@@ -53,11 +53,16 @@ func (d *Dispatcher) Dispatch(ctx context.Context, accountID uuid.UUID, event st
 	// keys; and a manual replay after River's uniqueness window expires
 	// gets a fresh key too, so the dedup table records both.
 	sourceID := ""
-	switch v := data["drill_id"].(type) {
-	case string:
-		sourceID = v
-	case uuid.UUID:
-		sourceID = v.String()
+	for _, k := range []string{"drill_id", "heartbeat_id"} {
+		switch v := data[k].(type) {
+		case string:
+			sourceID = v
+		case uuid.UUID:
+			sourceID = v.String()
+		}
+		if sourceID != "" {
+			break
+		}
 	}
 	if sourceID == "" {
 		sourceID = uuid.NewString()

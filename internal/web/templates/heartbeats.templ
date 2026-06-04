@@ -1,0 +1,332 @@
+package templates
+
+import (
+	"strconv"
+	"time"
+
+	"github.com/preshotcome/anything/internal/auth"
+	"github.com/preshotcome/anything/internal/heartbeat"
+)
+
+// HeartbeatFormValues preserves form input across a validation re-render.
+type HeartbeatFormValues struct {
+	Name        string
+	PeriodValue string
+	PeriodUnit  string
+	GraceValue  string
+	GraceUnit   string
+}
+
+templ HeartbeatsPage(lc LayoutCtx, hbs []heartbeat.Heartbeat, baseURL string) {
+	@LayoutWith("Check-ins", lc) {
+		<div class="mb-2 flex items-baseline justify-between">
+			<h1 class="text-2xl font-semibold tracking-tight">Backup check-ins</h1>
+			if lc.Membership != nil && auth.Allowed(lc.Membership.Role, auth.ActionHeartbeatWrite) {
+				<a href="/heartbeats/new" class="btn-primary">New monitor</a>
+			}
+		</div>
+		<p class="mb-6 max-w-2xl text-sm text-zinc-600 dark:text-zinc-400">
+			Have your backup job ping a unique URL after each run. If a check-in
+			is overdue, Soteria flips the monitor to <span class="font-medium">down</span>,
+			fires your webhooks, and records it — so a silently-failing cron can't
+			hide.
+		</p>
+		if len(hbs) == 0 {
+			<div class="card flex flex-col items-center justify-center gap-2 py-16 text-center">
+				<h2 class="text-lg font-semibold">No check-ins yet</h2>
+				<p class="max-w-md text-sm text-zinc-600 dark:text-zinc-400">
+					Create a monitor, then have your backup script curl its ping URL
+					on success.
+				</p>
+				if lc.Membership != nil && auth.Allowed(lc.Membership.Role, auth.ActionHeartbeatWrite) {
+					<a href="/heartbeats/new" class="btn-primary mt-2">New monitor</a>
+				}
+			</div>
+		} else {
+			@HeartbeatsTable(hbs, baseURL)
+		}
+	}
+}
+
+templ HeartbeatsTable(hbs []heartbeat.Heartbeat, baseURL string) {
+	<div class="card overflow-x-auto p-0">
+		<table class="min-w-full divide-y divide-zinc-200 text-sm dark:divide-zinc-800">
+			<thead class="bg-zinc-50 dark:bg-zinc-900/50">
+				<tr>
+					<th class="px-4 py-2 text-left font-medium">Name</th>
+					<th class="px-4 py-2 text-left font-medium">Status</th>
+					<th class="px-4 py-2 text-left font-medium">Period</th>
+					<th class="px-4 py-2 text-left font-medium">Last check-in</th>
+					<th class="px-4 py-2 text-right font-medium">Detail</th>
+				</tr>
+			</thead>
+			<tbody class="divide-y divide-zinc-200 dark:divide-zinc-800">
+				for _, h := range hbs {
+					<tr>
+						<td class="px-4 py-2 font-medium">
+							<a class="underline" href={ templ.SafeURL("/heartbeats/" + h.ID.String()) }>{ h.Name }</a>
+						</td>
+						<td class="px-4 py-2">@HBStatusBadge(effectiveStatus(h))</td>
+						<td class="px-4 py-2 text-xs">{ humanizeSeconds(h.PeriodSeconds) }</td>
+						<td class="px-4 py-2 text-xs text-zinc-600 dark:text-zinc-400">{ lastPing(h) }</td>
+						<td class="px-4 py-2 text-right">
+							<a href={ templ.SafeURL("/heartbeats/" + h.ID.String()) } class="text-sm underline">View</a>
+						</td>
+					</tr>
+				}
+			</tbody>
+		</table>
+	</div>
+}
+
+templ HeartbeatsError(lc LayoutCtx, msg string) {
+	@LayoutWith("Check-ins", lc) {
+		<div class="alert-error">{ msg }</div>
+	}
+}
+
+templ HeartbeatNewForm(lc LayoutCtx, v HeartbeatFormValues, errMsg string) {
+	@LayoutWith("New monitor", lc) {
+		<div class="mb-4 flex items-baseline justify-between">
+			<h1 class="text-2xl font-semibold tracking-tight">New check-in monitor</h1>
+			<a href="/heartbeats" class="text-sm underline">All monitors</a>
+		</div>
+		if errMsg != "" {
+			<div class="alert-error mb-4">{ errMsg }</div>
+		}
+		<form method="POST" action="/heartbeats" class="card flex flex-col gap-4">
+			@CSRFField()
+			<div>
+				<label class="mb-1 block text-sm font-medium" for="name">Name</label>
+				<input id="name" name="name" class="form-input" value={ v.Name } placeholder="Nightly Postgres backup" required/>
+				<p class="form-hint">A label you'll recognise — e.g. which job this watches.</p>
+			</div>
+			<div class="flex flex-wrap gap-4">
+				<div class="flex-1 min-w-[12rem]">
+					<label class="mb-1 block text-sm font-medium" for="period_value">Expected period</label>
+					<div class="flex gap-2">
+						<input id="period_value" name="period_value" type="number" min="1" class="form-input" value={ orDefault(v.PeriodValue, "1") } required/>
+						@unitSelect("period_unit", orDefault(v.PeriodUnit, "days"))
+					</div>
+					<p class="form-hint">How often you expect a check-in.</p>
+				</div>
+				<div class="flex-1 min-w-[12rem]">
+					<label class="mb-1 block text-sm font-medium" for="grace_value">Grace period</label>
+					<div class="flex gap-2">
+						<input id="grace_value" name="grace_value" type="number" min="0" class="form-input" value={ orDefault(v.GraceValue, "1") }/>
+						@unitSelect("grace_unit", orDefault(v.GraceUnit, "hours"))
+					</div>
+					<p class="form-hint">How late a check-in can be before we alert.</p>
+				</div>
+			</div>
+			<div>
+				<button type="submit" class="btn-primary">Create monitor</button>
+			</div>
+		</form>
+	}
+}
+
+templ unitSelect(name, selected string) {
+	<select name={ name } aria-label="Time unit" class="form-input w-32">
+		@unitOption("minutes", selected)
+		@unitOption("hours", selected)
+		@unitOption("days", selected)
+	</select>
+}
+
+templ unitOption(value, selected string) {
+	if value == selected {
+		<option value={ value } selected>{ value }</option>
+	} else {
+		<option value={ value }>{ value }</option>
+	}
+}
+
+templ HeartbeatDetail(lc LayoutCtx, h heartbeat.Heartbeat, pings []heartbeat.Ping, baseURL string) {
+	@LayoutWith(h.Name, lc) {
+		<div class="mb-4 flex items-baseline justify-between">
+			<h1 class="text-2xl font-semibold tracking-tight">{ h.Name }</h1>
+			<a href="/heartbeats" class="text-sm underline">All monitors</a>
+		</div>
+
+		<section
+			id="hb-status"
+			hx-get={ "/heartbeats/" + h.ID.String() + "/rows" }
+			hx-trigger="every 5s"
+			hx-swap="innerHTML"
+		>
+			@HeartbeatStatusCard(h)
+		</section>
+
+		<div class="card mb-6">
+			<h2 class="mb-2 text-base font-semibold">Ping URL</h2>
+			<p class="mb-2 text-sm text-zinc-600 dark:text-zinc-400">
+				Have your backup job request this URL on success. A
+				<code class="font-mono text-xs">GET</code> or
+				<code class="font-mono text-xs">POST</code> both work.
+			</p>
+			<pre class="overflow-x-auto rounded bg-zinc-100 p-3 font-mono text-xs dark:bg-zinc-900">{ pingURL(baseURL, h.PingToken, "") }</pre>
+			<dl class="mt-3 grid grid-cols-1 gap-x-4 gap-y-1 text-xs sm:grid-cols-2">
+				<dt class="text-zinc-500">Signal a failure</dt>
+				<dd class="font-mono">{ pingURL(baseURL, h.PingToken, "fail") }</dd>
+				<dt class="text-zinc-500">Signal job start</dt>
+				<dd class="font-mono">{ pingURL(baseURL, h.PingToken, "start") }</dd>
+			</dl>
+			<p class="mt-3 text-xs text-zinc-500">
+				Example: <code class="font-mono">{ curlExample(baseURL, h.PingToken) }</code>
+			</p>
+		</div>
+
+		if lc.Membership != nil && auth.Allowed(lc.Membership.Role, auth.ActionHeartbeatWrite) {
+			<div class="mb-6 flex flex-wrap gap-2">
+				if h.Status == heartbeat.StatusPaused {
+					<form method="POST" action={ templ.SafeURL("/heartbeats/" + h.ID.String() + "/resume") }>
+						@CSRFField()
+						<button type="submit" class="btn-ghost">Resume monitoring</button>
+					</form>
+				} else {
+					<form method="POST" action={ templ.SafeURL("/heartbeats/" + h.ID.String() + "/pause") }>
+						@CSRFField()
+						<button type="submit" class="btn-ghost">Pause monitoring</button>
+					</form>
+				}
+				<form method="POST" action={ templ.SafeURL("/heartbeats/" + h.ID.String() + "/delete") } onsubmit="return confirm('Delete this monitor? Its ping URL will stop working.');">
+					@CSRFField()
+					<button type="submit" class="btn-ghost text-rose-600 dark:text-rose-400">Delete</button>
+				</form>
+			</div>
+		}
+
+		<h2 class="mb-3 text-lg font-semibold">Recent check-ins</h2>
+		if len(pings) == 0 {
+			<p class="text-sm text-zinc-500">No check-ins received yet.</p>
+		} else {
+			<div class="card overflow-x-auto p-0">
+				<table class="min-w-full divide-y divide-zinc-200 text-sm dark:divide-zinc-800">
+					<thead class="bg-zinc-50 dark:bg-zinc-900/50">
+						<tr>
+							<th class="px-4 py-2 text-left font-medium">Received</th>
+							<th class="px-4 py-2 text-left font-medium">Kind</th>
+							<th class="px-4 py-2 text-left font-medium">Source IP</th>
+						</tr>
+					</thead>
+					<tbody class="divide-y divide-zinc-200 dark:divide-zinc-800">
+						for _, p := range pings {
+							<tr>
+								<td class="px-4 py-2 text-xs">{ p.ReceivedAt.UTC().Format(time.RFC3339) }</td>
+								<td class="px-4 py-2 text-xs">{ string(p.Kind) }</td>
+								<td class="px-4 py-2 font-mono text-xs text-zinc-600 dark:text-zinc-400">{ orDash(p.SourceIP) }</td>
+							</tr>
+						}
+					</tbody>
+				</table>
+			</div>
+		}
+	}
+}
+
+// HeartbeatStatusCard is the polled fragment: the live status, last check-in,
+// and next-due summary.
+templ HeartbeatStatusCard(h heartbeat.Heartbeat) {
+	<dl class="card mb-6 grid grid-cols-1 gap-x-4 gap-y-2 text-sm sm:grid-cols-2">
+		<dt class="font-medium">Status</dt>
+		<dd>@HBStatusBadge(effectiveStatus(h))</dd>
+		<dt class="font-medium">Expected period</dt>
+		<dd class="text-xs">{ humanizeSeconds(h.PeriodSeconds) }</dd>
+		<dt class="font-medium">Grace</dt>
+		<dd class="text-xs">{ humanizeSeconds(h.GraceSeconds) }</dd>
+		<dt class="font-medium">Last check-in</dt>
+		<dd class="text-xs">{ lastPing(h) }</dd>
+		<dt class="font-medium">Next due</dt>
+		<dd class="text-xs">{ nextDue(h) }</dd>
+	</dl>
+}
+
+templ HBStatusBadge(s heartbeat.Status) {
+	switch s {
+		case heartbeat.StatusUp:
+			<span class="inline-flex rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300">up</span>
+		case heartbeat.StatusDown:
+			<span class="inline-flex rounded-full bg-rose-100 px-2 py-0.5 text-xs font-medium text-rose-800 dark:bg-rose-900/40 dark:text-rose-300">down</span>
+		case heartbeat.StatusPaused:
+			<span class="inline-flex rounded-full bg-zinc-100 px-2 py-0.5 text-xs font-medium text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300">paused</span>
+		default:
+			<span class="inline-flex rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800 dark:bg-amber-900/40 dark:text-amber-300">awaiting first check-in</span>
+	}
+}
+
+// effectiveStatus shows a monitor as down the instant its deadline+grace has
+// passed, even before the once-a-minute sweeper commits the flip — so the
+// dashboard never lags reality by up to a minute.
+func effectiveStatus(h heartbeat.Heartbeat) heartbeat.Status {
+	if h.Overdue(time.Now().UTC()) {
+		return heartbeat.StatusDown
+	}
+	return h.Status
+}
+
+func lastPing(h heartbeat.Heartbeat) string {
+	if h.LastPingAt == nil {
+		return "never"
+	}
+	return h.LastPingAt.UTC().Format(time.RFC3339)
+}
+
+func nextDue(h heartbeat.Heartbeat) string {
+	if h.Status == heartbeat.StatusPaused || h.ExpectedBy == nil {
+		return "—"
+	}
+	return h.ExpectedBy.UTC().Format(time.RFC3339)
+}
+
+// pingURL builds the public ping URL. With an empty baseURL (dev) it falls
+// back to a host-relative path so the page is still usable.
+func pingURL(baseURL, token, action string) string {
+	u := baseURL + "/ping/" + token
+	if action != "" {
+		u += "/" + action
+	}
+	return u
+}
+
+func curlExample(baseURL, token string) string {
+	return "curl -fsS " + pingURL(baseURL, token, "")
+}
+
+func humanizeSeconds(secs int) string {
+	d := time.Duration(secs) * time.Second
+	switch {
+	case secs == 0:
+		return "none"
+	case secs%86400 == 0:
+		return plural(secs/86400, "day")
+	case secs%3600 == 0:
+		return plural(secs/3600, "hour")
+	case secs%60 == 0:
+		return plural(secs/60, "minute")
+	default:
+		return d.String()
+	}
+}
+
+func plural(n int, unit string) string {
+	s := strconv.Itoa(n) + " " + unit
+	if n != 1 {
+		s += "s"
+	}
+	return s
+}
+
+func orDefault(v, def string) string {
+	if v == "" {
+		return def
+	}
+	return v
+}
+
+func orDash(s string) string {
+	if s == "" {
+		return "—"
+	}
+	return s
+}

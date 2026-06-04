@@ -21,7 +21,18 @@ const (
 	AuditRetention          = 7 * 365 * 24 * time.Hour
 	LoginAttemptsRetention  = 30 * 24 * time.Hour
 	APIIdempotencyRetention = 24 * time.Hour
+	// HeartbeatPingsRetention bounds the per-monitor ping event log: it's an
+	// at-a-glance recent-activity feed, not auditor-grade evidence (the
+	// up/down transitions live in audit_events, kept 7 years).
+	HeartbeatPingsRetention = 30 * 24 * time.Hour
 )
+
+// PingPruner is the slice of the heartbeat store the sweeper needs — kept an
+// interface so compliance doesn't take a hard dependency on the heartbeat
+// package and tests can omit it.
+type PingPruner interface {
+	PrunePings(ctx context.Context, retention time.Duration) (int64, error)
+}
 
 // Sweeper enforces retention: it purges evidence past retain_until, old
 // audit events, and stale login attempts.
@@ -29,10 +40,18 @@ type Sweeper struct {
 	pool     *pgxpool.Pool
 	evidence *evidence.Service
 	throttle *auth.LoginThrottle
+	pings    PingPruner
 }
 
 func NewSweeper(pool *pgxpool.Pool, ev *evidence.Service, throttle *auth.LoginThrottle) *Sweeper {
 	return &Sweeper{pool: pool, evidence: ev, throttle: throttle}
+}
+
+// WithPingPruner attaches the heartbeat ping pruner. Optional: a Sweeper
+// without one simply skips ping pruning.
+func (s *Sweeper) WithPingPruner(p PingPruner) *Sweeper {
+	s.pings = p
+	return s
 }
 
 // SweepResult reports what a sweep removed.
@@ -43,6 +62,7 @@ type SweepResult struct {
 	IdempotencyPruned  int64
 	VerifyTokensPruned int64
 	MagicLinksPruned   int64
+	HeartbeatPings     int64
 }
 
 // Sweep runs one retention pass. Each step is independent: a failure in one
@@ -99,6 +119,15 @@ func (s *Sweeper) Sweep(ctx context.Context) (SweepResult, error) {
 		res.MagicLinksPruned = tag.RowsAffected()
 	}
 
+	// Heartbeat ping log — recent-activity feed, bounded to its window.
+	if s.pings != nil {
+		if n, err := s.pings.PrunePings(ctx, HeartbeatPingsRetention); err != nil {
+			errs = append(errs, fmt.Errorf("prune heartbeat_pings: %w", err))
+		} else {
+			res.HeartbeatPings = n
+		}
+	}
+
 	return res, errors.Join(errs...)
 }
 
@@ -128,6 +157,7 @@ func (w *RetentionWorker) Work(ctx context.Context, _ *river.Job[RetentionSweepA
 			"idempotency_pruned", res.IdempotencyPruned,
 			"verify_tokens_pruned", res.VerifyTokensPruned,
 			"magic_links_pruned", res.MagicLinksPruned,
+			"heartbeat_pings_pruned", res.HeartbeatPings,
 		)
 	}
 	return nil

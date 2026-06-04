@@ -7,7 +7,10 @@ import (
 	"testing"
 
 	"github.com/a-h/templ"
+	"github.com/google/uuid"
 	"golang.org/x/net/html"
+
+	"github.com/preshotcome/anything/internal/heartbeat"
 )
 
 // TestAccessibility renders representative pages and asserts the structural
@@ -27,6 +30,12 @@ func TestAccessibility(t *testing.T) {
 		"legal-subproc": LegalPage(LayoutCtx{}, "Sub-processors", LegalSubprocessors()),
 		"help":          HelpPage(LayoutCtx{}),
 		"admin-home":    AdminHome(LayoutCtx{}),
+		"heartbeats":    HeartbeatsPage(LayoutCtx{}, nil, "https://app.example"),
+		"heartbeat-new": HeartbeatNewForm(LayoutCtx{}, HeartbeatFormValues{}, ""),
+		"heartbeat-detail": HeartbeatDetail(LayoutCtx{}, heartbeat.Heartbeat{
+			ID: uuid.New(), Name: "nightly backup", PeriodSeconds: 86400,
+			GraceSeconds: 3600, Status: heartbeat.StatusUp,
+		}, nil, "https://app.example"),
 	}
 
 	for name, comp := range pages {

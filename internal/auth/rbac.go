@@ -29,6 +29,9 @@ const (
 	ActionDrillRead  Action = "drill.read"
 	ActionDrillWrite Action = "drill.write"
 
+	ActionHeartbeatRead  Action = "heartbeat.read"
+	ActionHeartbeatWrite Action = "heartbeat.write"
+
 	ActionEvidenceRead Action = "evidence.read"
 )
 
@@ -41,6 +44,7 @@ var roleMatrix = map[account.Role]map[Action]bool{
 		ActionBillingRead: true, ActionBillingWrite: true,
 		ActionTargetRead: true, ActionTargetWrite: true,
 		ActionDrillRead: true, ActionDrillWrite: true,
+		ActionHeartbeatRead: true, ActionHeartbeatWrite: true,
 		ActionEvidenceRead: true,
 	},
 	account.RoleAdmin: {
@@ -49,6 +53,7 @@ var roleMatrix = map[account.Role]map[Action]bool{
 		ActionBillingRead: true, ActionBillingWrite: false,
 		ActionTargetRead: true, ActionTargetWrite: true,
 		ActionDrillRead: true, ActionDrillWrite: true,
+		ActionHeartbeatRead: true, ActionHeartbeatWrite: true,
 		ActionEvidenceRead: true,
 	},
 	account.RoleMember: {
@@ -57,6 +62,7 @@ var roleMatrix = map[account.Role]map[Action]bool{
 		ActionBillingRead: true, ActionBillingWrite: false,
 		ActionTargetRead: true, ActionTargetWrite: true,
 		ActionDrillRead: true, ActionDrillWrite: true,
+		ActionHeartbeatRead: true, ActionHeartbeatWrite: true,
 		ActionEvidenceRead: true,
 	},
 	account.RoleViewer: {
@@ -65,6 +71,7 @@ var roleMatrix = map[account.Role]map[Action]bool{
 		ActionBillingRead: true, ActionBillingWrite: false,
 		ActionTargetRead: true, ActionTargetWrite: false,
 		ActionDrillRead: true, ActionDrillWrite: false,
+		ActionHeartbeatRead: true, ActionHeartbeatWrite: false,
 		ActionEvidenceRead: true,
 	},
 }

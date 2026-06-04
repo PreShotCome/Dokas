@@ -12,13 +12,16 @@ import (
 	"github.com/preshotcome/anything/internal/account"
 	"github.com/preshotcome/anything/internal/auth"
 	"github.com/preshotcome/anything/internal/drill"
+	"github.com/preshotcome/anything/internal/heartbeat"
 )
 
 // DashboardView is the dashboard's input bundle.
 type DashboardView struct {
-	Ctx     LayoutCtx
-	Targets []drill.Target
-	Drills  []drill.Drill
+	Ctx        LayoutCtx
+	Targets    []drill.Target
+	Drills     []drill.Drill
+	Heartbeats []heartbeat.Heartbeat
+	BaseURL    string
 }
 
 func Dashboard(v DashboardView) templ.Component {
@@ -68,7 +71,7 @@ func Dashboard(v DashboardView) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			if len(v.Targets) == 0 && len(v.Drills) == 0 {
+			if len(v.Targets) == 0 && len(v.Drills) == 0 && len(v.Heartbeats) == 0 {
 				templ_7745c5c3_Err = DrillsEmpty(v.Ctx.Membership).Render(ctx, templ_7745c5c3_Buffer)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
@@ -108,6 +111,20 @@ func Dashboard(v DashboardView) templ.Component {
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
+				if len(v.Heartbeats) > 0 {
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "<section class=\"mt-8\"><div class=\"mb-3 flex items-baseline justify-between\"><h2 class=\"text-lg font-semibold\">Backup check-ins</h2><a href=\"/heartbeats\" class=\"text-sm underline\">All check-ins</a></div>")
+					if templ_7745c5c3_Err != nil {
+						return templ_7745c5c3_Err
+					}
+					templ_7745c5c3_Err = HeartbeatsTable(v.Heartbeats, v.BaseURL).Render(ctx, templ_7745c5c3_Buffer)
+					if templ_7745c5c3_Err != nil {
+						return templ_7745c5c3_Err
+					}
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "</section>")
+					if templ_7745c5c3_Err != nil {
+						return templ_7745c5c3_Err
+					}
+				}
 			}
 			return nil
 		})
@@ -140,22 +157,22 @@ func DrillsEmpty(m *account.Membership) templ.Component {
 			templ_7745c5c3_Var3 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "<div class=\"card flex flex-col items-center justify-center gap-3 py-16 text-center\"><div class=\"rounded-full bg-zinc-100 p-3 dark:bg-zinc-800\"><svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" class=\"h-8 w-8 text-zinc-500\" aria-hidden=\"true\" focusable=\"false\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" d=\"M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z\"></path></svg></div><h2 class=\"text-lg font-semibold\">Your first drill runs in 3 minutes.</h2><p class=\"max-w-md text-sm text-zinc-600 dark:text-zinc-400\">Connect a Postgres backup source and we'll restore the latest dump in an isolated sandbox, run your assertions, and email you a signed PDF.</p>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "<div class=\"card flex flex-col items-center justify-center gap-3 py-16 text-center\"><div class=\"rounded-full bg-zinc-100 p-3 dark:bg-zinc-800\"><svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" class=\"h-8 w-8 text-zinc-500\" aria-hidden=\"true\" focusable=\"false\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" d=\"M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z\"></path></svg></div><h2 class=\"text-lg font-semibold\">Your first drill runs in 3 minutes.</h2><p class=\"max-w-md text-sm text-zinc-600 dark:text-zinc-400\">Connect a Postgres backup source and we'll restore the latest dump in an isolated sandbox, run your assertions, and email you a signed PDF.</p>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		if m != nil && auth.Allowed(m.Role, auth.ActionTargetWrite) {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "<a href=\"/databases/new\" class=\"btn-primary mt-2\">Connect a database</a>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "<a href=\"/databases/new\" class=\"btn-primary mt-2\">Connect a database</a>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 		} else {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "<p class=\"text-xs text-zinc-500\">Ask an admin or member of this account to connect a database.</p>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "<p class=\"text-xs text-zinc-500\">Ask an admin or member of this account to connect a database.</p>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "</div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "</div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
