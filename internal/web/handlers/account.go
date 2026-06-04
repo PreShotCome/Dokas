@@ -282,5 +282,5 @@ func (h *Handlers) absoluteURL(r *http.Request, path string) string {
 	if h != nil && h.baseURL != "" {
 		return h.baseURL + path
 	}
-	return h.absoluteURL(r, path)
+	return absoluteURL(r, path)
 }
