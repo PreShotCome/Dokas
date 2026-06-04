@@ -95,7 +95,7 @@ func (s *Store) Create(ctx context.Context, h Heartbeat) (Heartbeat, error) {
 		    (account_id, created_by_user_id, name, slug, ping_token,
 		     period_seconds, grace_seconds, status, expected_by)
 		VALUES ($1, $2, $3, $4, $5, $6, $7, 'new',
-		        now() + make_interval(secs => $6))
+		        now() + make_interval(secs => $6::int))
 		RETURNING id, status, expected_by, created_at
 	`, h.AccountID, h.CreatedByUserID, h.Name, h.Slug, h.PingToken,
 		h.PeriodSeconds, h.GraceSeconds).
