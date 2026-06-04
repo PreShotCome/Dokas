@@ -9,6 +9,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
 
+	"github.com/preshotcome/anything/internal/account"
 	"github.com/preshotcome/anything/internal/audit"
 	"github.com/preshotcome/anything/internal/heartbeat"
 	"github.com/preshotcome/anything/internal/web/templates"
@@ -32,6 +33,15 @@ func (h *Handlers) heartbeatNewPage(w http.ResponseWriter, r *http.Request) {
 
 func (h *Handlers) heartbeatCreate(w http.ResponseWriter, r *http.Request) {
 	lc := h.layoutCtx(r)
+
+	// Plan gate: the number of monitors is a paid axis. Trial/Starter get a
+	// generous allowance; Pro is uncapped.
+	existing, _ := h.heartbeats.List(r.Context(), lc.Account.ID)
+	if h.enforceLimit(w, r, lc, "check-ins", len(existing),
+		account.LimitsFor(lc.Account.Plan).Heartbeats) {
+		return
+	}
+
 	if err := r.ParseForm(); err != nil {
 		http.Error(w, "bad form", http.StatusBadRequest)
 		return

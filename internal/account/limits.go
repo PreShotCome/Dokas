@@ -7,10 +7,11 @@ const Unlimited = 0
 // Limits is the per-tier cap on the countable resources an account owns. A
 // field set to Unlimited is not enforced.
 type Limits struct {
-	Databases int
-	Seats     int // members + pending invitations
-	APIKeys   int // active (non-revoked) keys
-	Webhooks  int
+	Databases  int
+	Seats      int // members + pending invitations
+	APIKeys    int // active (non-revoked) keys
+	Webhooks   int
+	Heartbeats int // backup check-in monitors
 }
 
 // LimitsFor returns the resource caps for a plan tier. Pro is uncapped; the
@@ -21,9 +22,9 @@ func LimitsFor(p Plan) Limits {
 	case PlanPro:
 		return Limits{} // all Unlimited
 	case PlanStarter, PlanTrial:
-		return Limits{Databases: 10, Seats: 10, APIKeys: 5, Webhooks: 5}
+		return Limits{Databases: 10, Seats: 10, APIKeys: 5, Webhooks: 5, Heartbeats: 20}
 	default:
-		return Limits{Databases: 1, Seats: 2, APIKeys: 1, Webhooks: 1}
+		return Limits{Databases: 1, Seats: 2, APIKeys: 1, Webhooks: 1, Heartbeats: 1}
 	}
 }
 

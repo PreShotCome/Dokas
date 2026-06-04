@@ -34,10 +34,10 @@ func TestLimitsFor(t *testing.T) {
 		plan Plan
 		want Limits
 	}{
-		{PlanTrial, Limits{Databases: 10, Seats: 10, APIKeys: 5, Webhooks: 5}},
-		{PlanStarter, Limits{Databases: 10, Seats: 10, APIKeys: 5, Webhooks: 5}},
+		{PlanTrial, Limits{Databases: 10, Seats: 10, APIKeys: 5, Webhooks: 5, Heartbeats: 20}},
+		{PlanStarter, Limits{Databases: 10, Seats: 10, APIKeys: 5, Webhooks: 5, Heartbeats: 20}},
 		{PlanPro, Limits{}},
-		{Plan("garbage"), Limits{Databases: 1, Seats: 2, APIKeys: 1, Webhooks: 1}},
+		{Plan("garbage"), Limits{Databases: 1, Seats: 2, APIKeys: 1, Webhooks: 1, Heartbeats: 1}},
 	}
 	for _, tc := range tests {
 		if got := LimitsFor(tc.plan); got != tc.want {
