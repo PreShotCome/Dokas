@@ -337,9 +337,12 @@ func TestV1DatabasePlanLimit(t *testing.T) {
 	defer pool.Close()
 	srv, key, accountID, _, _ := v1TestServer(t, pool)
 
-	// v1TestServer seeds Pro; drop to trial — capped at ten databases.
+	// v1TestServer seeds Pro; drop to trial — capped at ten databases. Give it
+	// a live trial window: a trial with no end date is treated as lapsed
+	// (fail-closed), which the v1 middleware answers with 402 before any plan
+	// check, so without this the create calls below 402 instead of 201.
 	if _, err := pool.Exec(context.Background(),
-		`UPDATE accounts SET plan='trial' WHERE id=$1`, accountID); err != nil {
+		`UPDATE accounts SET plan='trial', trial_ends_at = now() + interval '14 days' WHERE id=$1`, accountID); err != nil {
 		t.Fatalf("set plan: %v", err)
 	}
 
