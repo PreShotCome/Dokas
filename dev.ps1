@@ -96,6 +96,25 @@ if (-not (Test-Path node_modules)) {
     npm install
 }
 
+# Persistent dev keys so encrypted account data survives server restarts.
+# Without these, EVIDENCE_ENCRYPTION_KEY rotates every launch and previously
+# encrypted blobs (per-account wrap keys) fail to unwrap with
+# "message authentication failed".
+if (-not (Test-Path tmp\dev-keys.env)) {
+    Write-Host "==> generating persistent dev evidence keys (one-time)..." -ForegroundColor Cyan
+    go run ./cmd/devkeys | Out-File -Encoding ascii tmp\dev-keys.env
+}
+foreach ($line in Get-Content tmp\dev-keys.env) {
+    if ($line -match '^([A-Z_][A-Z0-9_]*)=(.*)$') {
+        Set-Item -Path ("Env:" + $matches[1]) -Value $matches[2]
+    }
+}
+# Decode the PEM signing key (stored base64 so it fits on one .env line).
+if ($env:EVIDENCE_SIGNING_KEY_B64 -and -not $env:EVIDENCE_SIGNING_KEY) {
+    $env:EVIDENCE_SIGNING_KEY = [System.Text.Encoding]::ASCII.GetString(
+        [Convert]::FromBase64String($env:EVIDENCE_SIGNING_KEY_B64))
+}
+
 Write-Host "==> templ generate..." -ForegroundColor Cyan
 templ generate
 
