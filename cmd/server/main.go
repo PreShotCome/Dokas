@@ -32,6 +32,7 @@ import (
 	"github.com/preshotcome/anything/internal/flags"
 	"github.com/preshotcome/anything/internal/fly"
 	"github.com/preshotcome/anything/internal/heartbeat"
+	heartbeatnotify "github.com/preshotcome/anything/internal/heartbeat/notify"
 	"github.com/preshotcome/anything/internal/oauth"
 	"github.com/preshotcome/anything/internal/obs"
 	"github.com/preshotcome/anything/internal/ratelimit"
@@ -116,6 +117,9 @@ func main() {
 	} else {
 		logger.Info("email disabled (no POSTMARK_TOKEN) — using log mailer")
 	}
+	// Heartbeat alerts: email an account's members on a monitor up/down edge.
+	// Uses the same Mailer (LogMailer in dev) — works without Postmark.
+	heartbeatNotifier := heartbeatnotify.New(mailer, accountStore, cfg.BaseURL, logger)
 	analyticsClient := analytics.New(cfg.PostHogAPIKey, cfg.PostHogHost, logger)
 	featureFlags := flags.New(cfg.PostHogAPIKey, cfg.PostHogHost, logger)
 	oauthRegistry := oauth.NewRegistry(
@@ -192,6 +196,7 @@ func main() {
 		Store:    heartbeatStore,
 		Dispatch: webhookDispatch,
 		Audit:    auditLog,
+		Notify:   heartbeatNotifier,
 		Logger:   logger,
 	})
 
@@ -222,6 +227,7 @@ func main() {
 		Drills:          drillStore,
 		Orchestrator:    orch,
 		Heartbeats:      heartbeatStore,
+		HeartbeatNotify: heartbeatNotifier,
 		PingLimiter:     pingLimiter,
 		Accounts:        accountStore,
 		Billing:         billingCustomers,

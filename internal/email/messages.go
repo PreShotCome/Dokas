@@ -56,6 +56,50 @@ to sign in, you can ignore this email.
 	}
 }
 
+// HeartbeatDownMessage builds the alert sent when a backup check-in goes
+// overdue (or a job reports an explicit failure).
+func HeartbeatDownMessage(to, monitorName, accountName, link string) Message {
+	return Message{
+		To:      to,
+		Subject: fmt.Sprintf("[Soteria] DOWN: %s", monitorName),
+		TextBody: fmt.Sprintf(`A backup check-in is overdue.
+
+Monitor: %s
+Workspace: %s
+
+Soteria has not received the expected check-in for this monitor, so the
+backup job it watches may have failed or stopped running. Investigate the
+job, then check the monitor:
+
+%s
+
+You'll get an "UP" email automatically once a check-in arrives again.
+
+— Soteria
+`, monitorName, accountName, link),
+	}
+}
+
+// HeartbeatUpMessage builds the recovery email sent when a previously-down
+// monitor receives a check-in again.
+func HeartbeatUpMessage(to, monitorName, accountName, link string) Message {
+	return Message{
+		To:      to,
+		Subject: fmt.Sprintf("[Soteria] UP: %s", monitorName),
+		TextBody: fmt.Sprintf(`A backup check-in has recovered.
+
+Monitor: %s
+Workspace: %s
+
+Soteria received a check-in for this monitor again — it's back to healthy.
+
+%s
+
+— Soteria
+`, monitorName, accountName, link),
+	}
+}
+
 // WelcomeMessage builds the email sent to a new account owner at signup.
 func WelcomeMessage(to, accountName string) Message {
 	return Message{

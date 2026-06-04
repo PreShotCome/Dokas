@@ -24,7 +24,8 @@ func (h *Handlers) heartbeatsList(w http.ResponseWriter, r *http.Request) {
 		render(w, r, templates.HeartbeatsError(lc, "Could not load check-ins."))
 		return
 	}
-	render(w, r, templates.HeartbeatsPage(lc, hbs, h.baseURL))
+	atCap := account.AtLimit(len(hbs), account.LimitsFor(lc.Account.Plan).Heartbeats)
+	render(w, r, templates.HeartbeatsPage(lc, hbs, h.baseURL, atCap))
 }
 
 func (h *Handlers) heartbeatNewPage(w http.ResponseWriter, r *http.Request) {
@@ -235,6 +236,9 @@ func (h *Handlers) ping(w http.ResponseWriter, r *http.Request) {
 			TargetKind: "heartbeat", TargetID: hb.ID.String(),
 			IP: ip, UserAgent: ua, Metadata: data,
 		})
+		if h.heartbeatNotify != nil {
+			_ = h.heartbeatNotify.Notify(r.Context(), hb, event)
+		}
 	}
 
 	w.Header().Set("Content-Type", "text/plain; charset=utf-8")

@@ -30,7 +30,7 @@ func TestAccessibility(t *testing.T) {
 		"legal-subproc": LegalPage(LayoutCtx{}, "Sub-processors", LegalSubprocessors()),
 		"help":          HelpPage(LayoutCtx{}),
 		"admin-home":    AdminHome(LayoutCtx{}),
-		"heartbeats":    HeartbeatsPage(LayoutCtx{}, nil, "https://app.example"),
+		"heartbeats":    HeartbeatsPage(LayoutCtx{}, nil, "https://app.example", false),
 		"heartbeat-new": HeartbeatNewForm(LayoutCtx{}, HeartbeatFormValues{}, ""),
 		"heartbeat-detail": HeartbeatDetail(LayoutCtx{}, heartbeat.Heartbeat{
 			ID: uuid.New(), Name: "nightly backup", PeriodSeconds: 86400,

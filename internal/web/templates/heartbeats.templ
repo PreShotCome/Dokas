@@ -17,14 +17,23 @@ type HeartbeatFormValues struct {
 	GraceUnit   string
 }
 
-templ HeartbeatsPage(lc LayoutCtx, hbs []heartbeat.Heartbeat, baseURL string) {
+templ HeartbeatsPage(lc LayoutCtx, hbs []heartbeat.Heartbeat, baseURL string, atCap bool) {
 	@LayoutWith("Check-ins", lc) {
 		<div class="mb-2 flex items-baseline justify-between">
 			<h1 class="text-2xl font-semibold tracking-tight">Backup check-ins</h1>
-			if lc.Membership != nil && auth.Allowed(lc.Membership.Role, auth.ActionHeartbeatWrite) {
+			if lc.Membership != nil && auth.Allowed(lc.Membership.Role, auth.ActionHeartbeatWrite) && !atCap {
 				<a href="/heartbeats/new" class="btn-primary">New monitor</a>
 			}
 		</div>
+		if atCap && lc.Membership != nil && auth.Allowed(lc.Membership.Role, auth.ActionHeartbeatWrite) {
+			<div class="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-brand-200 bg-brand-50 px-4 py-3 dark:border-brand-800 dark:bg-brand-900/40">
+				<p class="text-sm text-brand-900 dark:text-brand-100">
+					You've reached your plan's check-in limit. Upgrade to add more
+					monitors.
+				</p>
+				<a href="/pricing" class="btn-primary shrink-0">Upgrade plan</a>
+			</div>
+		}
 		<p class="mb-6 max-w-2xl text-sm text-zinc-600 dark:text-zinc-400">
 			Have your backup job ping a unique URL after each run. If a check-in
 			is overdue, Soteria flips the monitor to <span class="font-medium">down</span>,

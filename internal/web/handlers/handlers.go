@@ -37,6 +37,7 @@ type Handlers struct {
 	drills          *drill.Store
 	orch            *drill.Orchestrator
 	heartbeats      *heartbeat.Store
+	heartbeatNotify heartbeat.Notifier
 	pingLimiter     *ratelimit.Limiter
 	accounts        *account.Store
 	billing         billing.Service
@@ -75,6 +76,7 @@ type Deps struct {
 	Drills          *drill.Store
 	Orchestrator    *drill.Orchestrator
 	Heartbeats      *heartbeat.Store
+	HeartbeatNotify heartbeat.Notifier
 	PingLimiter     *ratelimit.Limiter
 	Accounts        *account.Store
 	Billing         billing.Service
@@ -118,6 +120,7 @@ func New(d Deps) *Handlers {
 		drills:          d.Drills,
 		orch:            d.Orchestrator,
 		heartbeats:      d.Heartbeats,
+		heartbeatNotify: d.HeartbeatNotify,
 		pingLimiter:     d.PingLimiter,
 		accounts:        d.Accounts,
 		billing:         d.Billing,

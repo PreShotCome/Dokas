@@ -28,6 +28,13 @@ type Auditor interface {
 	Record(ctx context.Context, e audit.Event) error
 }
 
+// Notifier delivers a human-facing alert for a monitor transition (e.g. an
+// email to the account's members). Implemented outside the domain package so
+// heartbeat stays free of email/account dependencies. Optional on the worker.
+type Notifier interface {
+	Notify(ctx context.Context, hb Heartbeat, event string) error
+}
+
 // EventData builds the webhook/audit payload for a monitor transition. Shared
 // by the sweeper (down) and the ping handler (up) so both edges carry the same
 // shape.
@@ -59,6 +66,7 @@ type SweeperWorker struct {
 	Store    *Store
 	Dispatch Dispatcher
 	Audit    Auditor
+	Notify   Notifier
 	Logger   *slog.Logger
 }
 
@@ -84,6 +92,11 @@ func (w *SweeperWorker) Work(ctx context.Context, _ *river.Job[SweeperArgs]) err
 				Metadata:   data,
 			}); err != nil {
 				w.logErr("audit heartbeat.down", h.ID, err)
+			}
+		}
+		if w.Notify != nil {
+			if err := w.Notify.Notify(ctx, h, EventDown); err != nil {
+				w.logErr("notify heartbeat.down", h.ID, err)
 			}
 		}
 		if w.Logger != nil {
