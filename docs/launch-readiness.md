@@ -44,7 +44,7 @@ without taking anyone's word for it.*
 | 14 | `support@selket.io` forward | ⬜ TODO | — |
 | 15 | Sentry wired to a real DSN | ⬜ TODO | — |
 | 16 | Fly volume snapshots or S3/R2 evidence storage | ⬜ TODO | — |
-| 17 | Customer-facing data-loss response runbook | ⬜ TODO | — |
+| 17 | Customer-facing data-loss response runbook | ✅ DONE | 2026-06-09 |
 | 18 | Selket-specific logo / favicon (vs. inherited phoenix) | ⬜ TODO | — |
 | 19 | GDPR data-deletion endpoint | ⬜ TODO | — |
 | 20 | Onboarding fixtures + walkthrough | ⬜ TODO | — |
@@ -141,3 +141,27 @@ blocked on the Postmark sender-domain verification for `selket.io`
 |---|---|---|
 | 2026-06-09 | `SECURITY.md` added at repo root: report instructions, 24 h / 72 h / 7-day timeline table, safe-harbour terms, in/out-of-scope list, and an (intentionally empty) acknowledgements section | This commit |
 | — | `security@selket.io` mailbox live | Blocked on item #4 (Postmark sender domain for `selket.io`) |
+
+---
+
+## 17. Customer drill-failure response runbook
+
+When a customer's drill fails — or worse, when a verdict is wrong — the
+thing under attack is the product's entire premise: that Selket can be
+trusted about whether a backup restores. There has to be a written,
+rehearsed response so the on-call doesn't improvise under pressure.
+
+`docs/runbooks/customer-drill-failure-response.md` covers: P1/P2
+promotion criteria (false-positive verdict, signature/verdict mismatch,
+multi-tenant blast radius, and audit-window all force P1); a
+5 min / 30 min / 120 min / 24 h / 7 d response timeline; a
+known-failure-mode triage table keyed to each pipeline step
+(provision → fetch → restore → assert → report → teardown), explicitly
+separating *our* seam bugs from a correct FAILED verdict; customer-comms
+templates including an honest false-positive disclosure; audit-window
+escalation; and the standing rule that every production-origin failure
+must add a new `e2e-smoke` check before its postmortem can close.
+
+| When | What | Evidence |
+|---|---|---|
+| 2026-06-09 | `docs/runbooks/customer-drill-failure-response.md` added with severity criteria, timeline, per-step triage table, comms templates, audit escalation, and the e2e-smoke standing rule | This commit |
