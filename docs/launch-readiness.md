@@ -37,7 +37,7 @@ without taking anyone's word for it.*
 | 7 | Production Postgres + automated backups | ⬜ TODO | — |
 | 8 | Public signing-key endpoint at `.well-known/evidence-signing-keys.pem` | ✅ DONE | 2026-06-09 |
 | 9 | `selket-verify` CLI binaries on GitHub Releases | ⬜ TODO | — |
-| 10 | Terms / Privacy / DPA — rebranded + sub-processor list | ⬜ TODO | — |
+| 10 | Terms / Privacy / DPA — rebranded + sub-processor list | 🟡 IN PROGRESS | 2026-06-09 |
 | 11 | Evidence-key backup procedure (signing + encryption) | ⬜ TODO | — |
 | 12 | Status page at `status.selket.io` | ⬜ TODO | — |
 | 13 | `security@selket.io` + `SECURITY.md` vulnerability disclosure | 🟡 IN PROGRESS | 2026-06-09 |
@@ -91,6 +91,46 @@ one-hour cache so a rotation propagates within the day.
 |---|---|---|
 | 2026-06-09 | `(*Signer).AllPublicKeysPEM()` added in `internal/evidence/sign.go`; `*evidence.Signer` wired through `handlers.Deps`/`Handlers` and `cmd/server/main.go`; route mounted next to `robots.txt` in `handlers.go` | This commit |
 | 2026-06-09 | Round-trip verified: the served PEM piped through `openssl pkey -pubin -text -noout` recovers a 32-byte `ED25519 Public-Key`, and the `# PublicKeyID` comment equals `Signer.PublicKeyID()` (the fingerprint a PDF signature carries) | Local test run |
+
+---
+
+## 10. Legal documents — Terms / Privacy / DPA
+
+The in-app legal pages exist and have been rebranded to Selket. The
+remaining work before this can go ✅ is twofold: the sub-processor list
+needs real vendor names (which depend on infrastructure decisions not yet
+made), and the documents need an independent legal review. So: IN
+PROGRESS, with the verifiable parts attested below.
+
+What's verifiable now:
+
+- **Rebrand is complete.** `grep -c Soteria internal/web/templates/legal.templ`
+  returns `0` — no stale brand name survives in the Terms, Privacy, DPA,
+  or sub-processor templates.
+- **The retention claim is backed by code, not just prose.**
+  `LegalPrivacy` states evidence and audit logs are "retained for seven
+  years," and `evidence.DefaultRetention = 7 * 365 * 24 * time.Hour`
+  (`internal/evidence/service.go`) enforces exactly that. The legal claim
+  and the running system agree.
+
+What's still open:
+
+- **Sub-processor vendor names are deferred.** `LegalSubprocessors`
+  currently lists generic roles ("Managed Postgres host", "Object
+  storage", "Sandbox compute") rather than named vendors, because those
+  names are determined by launch-readiness items **#6** (first Fly
+  deploy), **#7** (production Postgres host), and **#16** (S3/R2 evidence
+  storage). The list gets filled in once those decisions land.
+- **Independent lawyer review pending** — budgeted at roughly $500–2k;
+  the documents are not "DONE" until a qualified attorney has reviewed
+  the Terms, Privacy policy, and DPA.
+
+| When | What | Evidence |
+|---|---|---|
+| 2026-06-09 | Rebrand verified: `grep -c Soteria internal/web/templates/legal.templ` = 0 | This commit |
+| 2026-06-09 | Seven-year retention claim in `LegalPrivacy` matches `evidence.DefaultRetention = 7 * 365 * 24h` in code | `internal/evidence/service.go:15` |
+| — | Sub-processor vendor names | Deferred to items #6 / #7 / #16 (Postgres host + evidence storage + sandbox compute decisions) |
+| — | Independent legal review | Pending — qualified attorney, ~$500–2k |
 
 ---
 
