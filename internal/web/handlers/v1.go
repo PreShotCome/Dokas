@@ -98,6 +98,16 @@ func (h *Handlers) v1Router() http.Handler {
 		r.Use(h.v1Idempotency)
 		r.Post("/drills", h.v1CreateDrill)
 	})
+
+	// Account erasure (GDPR right-to-be-forgotten). Gated on the opt-in
+	// account:delete scope and idempotency, but NOT on trial state — a
+	// lapsed-trial account must always be able to delete itself; erasure
+	// is never paywalled.
+	r.Group(func(r chi.Router) {
+		r.Use(h.v1RequireScope(apikey.ScopeAccountDelete))
+		r.Use(h.v1Idempotency)
+		r.Delete("/accounts/{id}", h.v1DeleteAccount)
+	})
 	return r
 }
 

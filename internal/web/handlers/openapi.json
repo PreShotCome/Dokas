@@ -9,7 +9,7 @@
   "security": [{ "bearerAuth": [] }],
   "components": {
     "securitySchemes": {
-      "bearerAuth": { "type": "http", "scheme": "bearer", "description": "An API key created from the Account page. Each key is limited to a set of scopes (databases:read, databases:write, drills:read, drills:write); a request whose key lacks the scope an endpoint needs is rejected with 403 insufficient_scope." }
+      "bearerAuth": { "type": "http", "scheme": "bearer", "description": "An API key created from the Account page. Each key is limited to a set of scopes (databases:read, databases:write, drills:read, drills:write, and the opt-in account:delete); a request whose key lacks the scope an endpoint needs is rejected with 403 insufficient_scope." }
     }
   },
   "paths": {
@@ -115,6 +115,19 @@
         "responses": {
           "200": { "description": "The PDF.", "content": { "application/pdf": {} } },
           "404": { "description": "Drill not found, or evidence not yet generated." }
+        }
+      }
+    },
+    "/accounts/{id}": {
+      "delete": {
+        "summary": "Delete (erase) your account — GDPR right to be forgotten",
+        "description": "Soft-deletes the API key's own account immediately and schedules an irreversible hard delete (crypto-shred of all evidence keys + cascade of every account row) for when the grace window closes. The {id} must be the account the API key belongs to; a key cannot delete any other account. Requires the opt-in account:delete scope and an Idempotency-Key. Not blocked by trial state — erasure is never paywalled.",
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string", "format": "uuid" } }],
+        "responses": {
+          "202": { "description": "Deletion scheduled. Body: { data: { id, status: \"deletion_scheduled\", purge_after } }." },
+          "400": { "description": "Malformed account id." },
+          "403": { "description": "Key lacks the account:delete scope, or the id is not this key's account." },
+          "409": { "description": "Account is already scheduled for deletion." }
         }
       }
     }

@@ -8,16 +8,19 @@ import (
 )
 
 // scopeOption pairs a scope value with its human label for the create form.
+// Danger marks an irreversible scope that is never ticked by default.
 type scopeOption struct {
-	Value string
-	Label string
+	Value  string
+	Label  string
+	Danger bool
 }
 
 var apiKeyScopeOptions = []scopeOption{
-	{apikey.ScopeDatabasesRead, "Read databases"},
-	{apikey.ScopeDatabasesWrite, "Create databases"},
-	{apikey.ScopeDrillsRead, "Read drills & evidence"},
-	{apikey.ScopeDrillsWrite, "Start drills"},
+	{apikey.ScopeDatabasesRead, "Read databases", false},
+	{apikey.ScopeDatabasesWrite, "Create databases", false},
+	{apikey.ScopeDrillsRead, "Read drills & evidence", false},
+	{apikey.ScopeDrillsWrite, "Start drills", false},
+	{apikey.ScopeAccountDelete, "Delete this account (irreversible)", true},
 }
 
 // APIKeysPage lists an account's API keys. revealedSecret is non-empty only
@@ -57,11 +60,19 @@ templ APIKeysPage(lc LayoutCtx, keys []apikey.Key, revealedSecret string) {
 				<legend class="mb-1 block text-sm font-medium">Scopes</legend>
 				<div class="grid grid-cols-1 gap-1 sm:grid-cols-2">
 					for _, opt := range apiKeyScopeOptions {
-						<label class="flex items-center gap-2 text-sm">
-							<input type="checkbox" name="scopes" value={ opt.Value } checked
-								class="rounded border-zinc-300 dark:border-zinc-700"/>
-							{ opt.Label }
-						</label>
+						if opt.Danger {
+							<label class="flex items-center gap-2 text-sm text-red-700 dark:text-red-400">
+								<input type="checkbox" name="scopes" value={ opt.Value }
+									class="rounded border-red-300 dark:border-red-800"/>
+								{ opt.Label }
+							</label>
+						} else {
+							<label class="flex items-center gap-2 text-sm">
+								<input type="checkbox" name="scopes" value={ opt.Value } checked
+									class="rounded border-zinc-300 dark:border-zinc-700"/>
+								{ opt.Label }
+							</label>
+						}
 					}
 				</div>
 				<p class="form-hint">For a read-only key, untick the write scopes.</p>

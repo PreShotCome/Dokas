@@ -11,6 +11,9 @@ func TestNormalizeScopes(t *testing.T) {
 		{"empty falls back to all", nil, AllScopes},
 		{"all unknown falls back to all", []string{"x", "y"}, AllScopes},
 		{"unknowns dropped", []string{"bogus", ScopeDrillsRead}, []string{ScopeDrillsRead}},
+		{"account:delete is grantable when explicit",
+			[]string{ScopeDrillsRead, ScopeAccountDelete},
+			[]string{ScopeDrillsRead, ScopeAccountDelete}},
 		{"dedup + canonical order",
 			[]string{ScopeDrillsRead, ScopeDatabasesRead, ScopeDrillsRead},
 			[]string{ScopeDatabasesRead, ScopeDrillsRead}},
@@ -48,5 +51,14 @@ func TestValidScope(t *testing.T) {
 	}
 	if ValidScope("databases:delete") {
 		t.Error("ValidScope(databases:delete) = true, want false")
+	}
+	if !ValidScope(ScopeAccountDelete) {
+		t.Error("ValidScope(account:delete) = false, want true")
+	}
+	// The destructive scope must be valid + grantable but never a default.
+	for _, s := range AllScopes {
+		if s == ScopeAccountDelete {
+			t.Error("account:delete must not be in AllScopes (the default fallback set)")
+		}
 	}
 }

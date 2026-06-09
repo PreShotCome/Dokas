@@ -34,18 +34,35 @@ const (
 	ScopeDatabasesWrite = "databases:write"
 	ScopeDrillsRead     = "drills:read"
 	ScopeDrillsWrite    = "drills:write"
+	// ScopeAccountDelete authorises irreversible erasure of the entire
+	// account via DELETE /v1/accounts/{id}. It is deliberately NOT part of
+	// AllScopes (the default fallback set): a key holds it only when it was
+	// explicitly requested at creation time, so a "no scopes specified" key
+	// can never wipe the account by accident.
+	ScopeAccountDelete = "account:delete"
 )
 
-// AllScopes is every scope a key can hold, in canonical order. A key created
-// with no valid scopes falls back to this full set.
+// AllScopes is the default set a key falls back to when no valid scopes are
+// requested: full read+write on resources, but never the destructive
+// account-deletion scope. Listed in canonical order.
 var AllScopes = []string{
 	ScopeDatabasesRead, ScopeDatabasesWrite, ScopeDrillsRead, ScopeDrillsWrite,
+}
+
+// GrantableScopes is every scope a key MAY carry when explicitly requested —
+// AllScopes plus the opt-in destructive scopes. normalizeScopes and the
+// key-creation UI both range over this, so the dangerous extras are
+// grantable but never default.
+var GrantableScopes = []string{
+	ScopeDatabasesRead, ScopeDatabasesWrite, ScopeDrillsRead, ScopeDrillsWrite,
+	ScopeAccountDelete,
 }
 
 // ValidScope reports whether s is a known scope.
 func ValidScope(s string) bool {
 	switch s {
-	case ScopeDatabasesRead, ScopeDatabasesWrite, ScopeDrillsRead, ScopeDrillsWrite:
+	case ScopeDatabasesRead, ScopeDatabasesWrite, ScopeDrillsRead, ScopeDrillsWrite,
+		ScopeAccountDelete:
 		return true
 	default:
 		return false
@@ -86,7 +103,7 @@ func normalizeScopes(in []string) []string {
 		want[s] = true
 	}
 	var out []string
-	for _, s := range AllScopes {
+	for _, s := range GrantableScopes {
 		if want[s] {
 			out = append(out, s)
 		}

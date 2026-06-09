@@ -3,11 +3,15 @@ package handlers
 import (
 	"bytes"
 	"net/http"
+	"time"
 
+	"github.com/go-chi/chi/v5"
+	"github.com/google/uuid"
 	"github.com/riverqueue/river"
 
 	"github.com/preshotcome/anything/internal/account"
 	"github.com/preshotcome/anything/internal/audit"
+	"github.com/preshotcome/anything/internal/auth"
 	"github.com/preshotcome/anything/internal/compliance"
 	"github.com/preshotcome/anything/internal/web/templates"
 )
@@ -63,6 +67,62 @@ func (h *Handlers) accountDelete(w http.ResponseWriter, r *http.Request) {
 	// The account is now soft-deleted; the next request's LoadCurrentAccount
 	// will fall the user back to another account (or none). Send them home.
 	render(w, r, templates.AccountDeleted(purgeAfter))
+}
+
+// v1DeleteAccount is the programmatic GDPR right-to-erasure endpoint:
+// DELETE /v1/accounts/{id}. It soft-deletes the API key's own account now
+// and schedules the hard delete (crypto-shred + row cascade) for when the
+// grace window closes — the same lifecycle the browser button drives. The
+// {id} in the path MUST match the authenticated account: a key can only
+// erase the account it belongs to. Gated on the opt-in account:delete
+// scope; never paywalled on trial state.
+func (h *Handlers) v1DeleteAccount(w http.ResponseWriter, r *http.Request) {
+	acct, _ := auth.CurrentAccountFromContext(r.Context())
+	key, _ := apiKeyFromContext(r.Context())
+
+	pathID, err := uuid.Parse(chi.URLParam(r, "id"))
+	if err != nil {
+		writeAPIError(w, http.StatusBadRequest, "bad_request", "invalid account id")
+		return
+	}
+	if pathID != acct.ID {
+		// Don't leak whether the other account exists.
+		writeAPIError(w, http.StatusForbidden, "forbidden",
+			"an API key can only delete the account it belongs to")
+		return
+	}
+
+	purgeAfter, err := h.purger.SoftDelete(r.Context(), acct.ID, key.CreatedByUserID)
+	if err != nil {
+		// Most often: already soft-deleted. Idempotency middleware replays
+		// exact retries; a fresh call against an already-deleting account
+		// reads as a conflict, not a server fault.
+		h.logger().Warn("v1 account delete soft-delete failed",
+			"account_id", acct.ID, "err", err)
+		writeAPIError(w, http.StatusConflict, "already_deleted",
+			"account is already scheduled for deletion")
+		return
+	}
+
+	if _, err := h.inserter.Insert(r.Context(),
+		compliance.PurgeAccountArgs{AccountID: acct.ID},
+		&river.InsertOpts{ScheduledAt: purgeAfter},
+	); err != nil {
+		h.logger().Error("schedule account purge (v1)", "account_id", acct.ID, "err", err)
+	}
+
+	_ = h.audit.Record(r.Context(), audit.Event{
+		AccountID: &acct.ID, ActorID: &key.CreatedByUserID, Action: "account.delete_requested",
+		TargetKind: "account", TargetID: acct.ID.String(),
+		IP: audit.ClientIP(r), UserAgent: r.UserAgent(),
+		Metadata: map[string]any{"via": "v1", "api_key_id": key.ID.String()},
+	})
+
+	writeData(w, http.StatusAccepted, map[string]any{
+		"id":          acct.ID,
+		"status":      "deletion_scheduled",
+		"purge_after": purgeAfter.UTC().Format(time.RFC3339),
+	}, nil)
 }
 
 // --- legal pages ---

@@ -19,6 +19,7 @@ import (
 	"github.com/preshotcome/anything/internal/account"
 	"github.com/preshotcome/anything/internal/apikey"
 	"github.com/preshotcome/anything/internal/audit"
+	"github.com/preshotcome/anything/internal/compliance"
 	"github.com/preshotcome/anything/internal/drill"
 	"github.com/preshotcome/anything/internal/evidence"
 	"github.com/preshotcome/anything/internal/ratelimit"
@@ -67,13 +68,18 @@ func v1TestServer(t *testing.T, pool *pgxpool.Pool) (*httptest.Server, string, u
 	if err != nil {
 		t.Fatalf("cipher: %v", err)
 	}
+	auditLog := audit.New(pool)
+	evService := evidence.NewService(evidence.NewLocalStore(t.TempDir()), signer, evCipher, pool)
 	h := &Handlers{
 		pool:      pool,
 		drills:    drill.NewStore(pool),
 		accounts:  account.NewStore(pool),
 		apiKeys:   apiKeys,
-		orch:      drill.NewOrchestrator(drill.NewStore(pool), v1FakeInserter{}, audit.New(pool)),
-		evidence:  evidence.NewService(evidence.NewLocalStore(t.TempDir()), signer, evCipher, pool),
+		audit:     auditLog,
+		orch:      drill.NewOrchestrator(drill.NewStore(pool), v1FakeInserter{}, auditLog),
+		evidence:  evService,
+		purger:    compliance.NewPurger(pool, evService, auditLog, compliance.DefaultGracePeriod),
+		inserter:  v1FakeInserter{},
 		v1Limiter: ratelimit.New(10000, 10000), // effectively unlimited for tests
 		// Confine source paths to the testdata fixtures directory.
 		sourceDir: filepath.Dir(mustAbsTestdata(t)),
@@ -367,6 +373,68 @@ func TestV1DatabasePlanLimit(t *testing.T) {
 	first, _ := errs[0].(map[string]any)
 	if code, _ := first["code"].(string); code != "plan_limit" {
 		t.Fatalf("error code = %q, want plan_limit", code)
+	}
+}
+
+func TestV1DeleteAccount(t *testing.T) {
+	dsn := os.Getenv("DATABASE_URL")
+	if dsn == "" {
+		t.Skip("DATABASE_URL not set")
+	}
+	pool, err := pgxpool.New(context.Background(), dsn)
+	if err != nil {
+		t.Fatalf("pool: %v", err)
+	}
+	defer pool.Close()
+	srv, fullKey, accountID, userID, apiKeys := v1TestServer(t, pool)
+	ctx := context.Background()
+
+	// The default full-access key does NOT carry account:delete (it's never
+	// part of the fallback set), so it cannot erase the account.
+	if resp, env := v1Do(t, "DELETE", srv.URL+"/accounts/"+accountID.String(), fullKey, "del-1", ""); resp.StatusCode != 403 {
+		t.Fatalf("full key DELETE: got %d, want 403 insufficient_scope (env=%v)", resp.StatusCode, env)
+	}
+
+	// Mint a key that explicitly holds account:delete.
+	delKey, err := apiKeys.Create(ctx, accountID, userID, "deleter",
+		[]string{apikey.ScopeAccountDelete})
+	if err != nil {
+		t.Fatalf("create delete key: %v", err)
+	}
+
+	// A delete-scoped key still cannot erase some OTHER account.
+	other := uuid.New()
+	if resp, _ := v1Do(t, "DELETE", srv.URL+"/accounts/"+other.String(), delKey.Secret, "del-2", ""); resp.StatusCode != 403 {
+		t.Fatalf("cross-account DELETE: got %d, want 403 forbidden", resp.StatusCode)
+	}
+
+	// Deleting its own account succeeds and schedules the purge.
+	resp, env := v1Do(t, "DELETE", srv.URL+"/accounts/"+accountID.String(), delKey.Secret, "del-3", "")
+	if resp.StatusCode != 202 {
+		t.Fatalf("self DELETE: got %d, want 202 (env=%v)", resp.StatusCode, env)
+	}
+	data, _ := env["data"].(map[string]any)
+	if status, _ := data["status"].(string); status != "deletion_scheduled" {
+		t.Fatalf("status = %q, want deletion_scheduled", status)
+	}
+
+	// The account is now soft-deleted in the DB.
+	var deletedAt *string
+	if err := pool.QueryRow(ctx,
+		`SELECT to_char(deleted_at, 'YYYY-MM-DD') FROM accounts WHERE id=$1`, accountID,
+	).Scan(&deletedAt); err != nil {
+		t.Fatalf("read deleted_at: %v", err)
+	}
+	if deletedAt == nil {
+		t.Fatal("account should be soft-deleted (deleted_at is null)")
+	}
+
+	// Once deletion is scheduled the account is soft-deleted, and the API
+	// stops serving it entirely: a fresh request (new idempotency key) no
+	// longer authenticates, since v1's GetAccount filters deleted_at. The
+	// account is effectively gone from the API the moment it's scheduled.
+	if resp, _ := v1Do(t, "DELETE", srv.URL+"/accounts/"+accountID.String(), delKey.Secret, "del-4", ""); resp.StatusCode != 401 {
+		t.Fatalf("repeat DELETE after soft-delete: got %d, want 401 (account no longer served)", resp.StatusCode)
 	}
 }
 
