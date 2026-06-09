@@ -40,7 +40,7 @@ without taking anyone's word for it.*
 | 10 | Terms / Privacy / DPA — rebranded + sub-processor list | ⬜ TODO | — |
 | 11 | Evidence-key backup procedure (signing + encryption) | ⬜ TODO | — |
 | 12 | Status page at `status.selket.io` | ⬜ TODO | — |
-| 13 | `security@selket.io` + `SECURITY.md` vulnerability disclosure | ⬜ TODO | — |
+| 13 | `security@selket.io` + `SECURITY.md` vulnerability disclosure | 🟡 IN PROGRESS | 2026-06-09 |
 | 14 | `support@selket.io` forward | ⬜ TODO | — |
 | 15 | Sentry wired to a real DSN | ⬜ TODO | — |
 | 16 | Fly volume snapshots or S3/R2 evidence storage | ⬜ TODO | — |
@@ -121,3 +121,23 @@ this log; only the attestation does.
 | When | What | Evidence |
 |---|---|---|
 | — | — | (pending first production key generation) |
+
+---
+
+## 13. Vulnerability disclosure (`SECURITY.md` + `security@selket.io`)
+
+A security product that has no way to receive security reports is a
+liability. `SECURITY.md` at the repo root now states how to report a
+vulnerability, the response timeline we commit to (24 h acknowledgement
+/ 72 h triage / 7-day fix plan), an explicit safe-harbour for good-faith
+researchers, a scope list, and a researcher-acknowledgements section.
+
+This item is IN PROGRESS, not DONE: the policy is published and
+authoritative, but the `security@selket.io` mailbox it points to is
+blocked on the Postmark sender-domain verification for `selket.io`
+(launch-readiness item #4). The file flags that interim explicitly.
+
+| When | What | Evidence |
+|---|---|---|
+| 2026-06-09 | `SECURITY.md` added at repo root: report instructions, 24 h / 72 h / 7-day timeline table, safe-harbour terms, in/out-of-scope list, and an (intentionally empty) acknowledgements section | This commit |
+| — | `security@selket.io` mailbox live | Blocked on item #4 (Postmark sender domain for `selket.io`) |
