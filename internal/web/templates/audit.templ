@@ -1,0 +1,108 @@
+package templates
+
+import (
+	"fmt"
+	"sort"
+	"strings"
+
+	"github.com/preshotcome/anything/internal/audit"
+)
+
+// auditActor is what to show in the Actor column when the event has no
+// resolvable user (system jobs, or an actor whose account row is gone).
+const auditActor = "system"
+
+// auditMetaSummary renders an event's metadata map as a compact, stable
+// "key=value, key=value" string for the Details column. Keys are sorted so
+// the output doesn't jitter between renders.
+func auditMetaSummary(m map[string]any) string {
+	if len(m) == 0 {
+		return ""
+	}
+	keys := make([]string, 0, len(m))
+	for k := range m {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+	var b strings.Builder
+	for i, k := range keys {
+		if i > 0 {
+			b.WriteString(", ")
+		}
+		fmt.Fprintf(&b, "%s=%v", k, m[k])
+	}
+	return b.String()
+}
+
+// AuditLogPage shows the account's own audit trail. nextBefore is the keyset
+// cursor for the next (older) page, or 0 when this is the last page.
+templ AuditLogPage(lc LayoutCtx, entries []audit.Entry, nextBefore int64) {
+	@LayoutWith("Audit log", lc) {
+		<div class="mb-2 flex items-baseline justify-between">
+			<h1 class="text-2xl font-semibold tracking-tight">Audit log</h1>
+			<a href="/account" class="text-sm underline">Back to account</a>
+		</div>
+		<p class="mb-6 text-sm text-zinc-600 dark:text-zinc-400">
+			Every security-relevant action on this account — sign-ins, key and
+			webhook changes, member changes, exports, and deletions — newest
+			first. Timestamps are UTC.
+		</p>
+
+		if len(entries) == 0 {
+			<p class="text-sm text-zinc-500">No audit events recorded yet.</p>
+		} else {
+			<div class="card overflow-x-auto p-0">
+				<table class="min-w-full divide-y divide-zinc-200 text-sm dark:divide-zinc-800">
+					<thead class="bg-zinc-50 dark:bg-zinc-900/50">
+						<tr>
+							<th class="px-4 py-2 text-left font-medium">When (UTC)</th>
+							<th class="px-4 py-2 text-left font-medium">Actor</th>
+							<th class="px-4 py-2 text-left font-medium">Action</th>
+							<th class="px-4 py-2 text-left font-medium">Target</th>
+							<th class="px-4 py-2 text-left font-medium">IP</th>
+							<th class="px-4 py-2 text-left font-medium">Details</th>
+						</tr>
+					</thead>
+					<tbody class="divide-y divide-zinc-200 dark:divide-zinc-800">
+						for _, e := range entries {
+							<tr>
+								<td class="whitespace-nowrap px-4 py-2 text-xs text-zinc-500">
+									{ e.At.UTC().Format("2006-01-02 15:04:05") }
+								</td>
+								<td class="px-4 py-2 text-xs">
+									if e.ActorEmail != "" {
+										{ e.ActorEmail }
+									} else {
+										<span class="text-zinc-400">{ auditActor }</span>
+									}
+								</td>
+								<td class="px-4 py-2">
+									<code class="text-xs">{ e.Action }</code>
+								</td>
+								<td class="px-4 py-2 text-xs text-zinc-500">
+									if e.TargetKind != "" {
+										{ e.TargetKind }
+										if e.TargetID != "" {
+											<span class="text-zinc-400"> · { e.TargetID }</span>
+										}
+									}
+								</td>
+								<td class="whitespace-nowrap px-4 py-2 text-xs text-zinc-500">{ e.IP }</td>
+								<td class="px-4 py-2 text-xs text-zinc-500">{ auditMetaSummary(e.Metadata) }</td>
+							</tr>
+						}
+					</tbody>
+				</table>
+			</div>
+
+			if nextBefore > 0 {
+				<div class="mt-4">
+					<a href={ templ.SafeURL(fmt.Sprintf("/account/audit?before=%d", nextBefore)) }
+						class="btn-secondary text-sm">
+						Load older
+					</a>
+				</div>
+			}
+		}
+	}
+}

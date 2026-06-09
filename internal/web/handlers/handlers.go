@@ -382,6 +382,7 @@ func (h *Handlers) Router(staticFS http.FileSystem) http.Handler {
 		r.Group(func(r chi.Router) {
 			r.Use(auth.RequireAction(auth.ActionAccountRead))
 			r.Get("/account", h.accountSettings)
+			r.Get("/account/audit", h.auditLog)
 			r.Get("/account/webhooks", h.webhooksList)
 			r.Get("/account/webhooks/{id}/deliveries", h.webhookDeliveries)
 			r.Get("/account/api-keys", h.apiKeysList)
