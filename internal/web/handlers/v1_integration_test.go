@@ -338,8 +338,12 @@ func TestV1DatabasePlanLimit(t *testing.T) {
 	srv, key, accountID, _, _ := v1TestServer(t, pool)
 
 	// v1TestServer seeds Pro; drop to trial — capped at ten databases.
+	// trial_ends_at has to land in the future too: TrialLapsed treats a NULL
+	// end date as lapsed (fail-closed), so without it the very first POST
+	// would 402 with trial_expired before reaching the limit check.
 	if _, err := pool.Exec(context.Background(),
-		`UPDATE accounts SET plan='trial' WHERE id=$1`, accountID); err != nil {
+		`UPDATE accounts SET plan='trial', trial_ends_at = now() + interval '14 days' WHERE id=$1`,
+		accountID); err != nil {
 		t.Fatalf("set plan: %v", err)
 	}
 
