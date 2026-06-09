@@ -36,7 +36,7 @@ type Runner interface {
 	// Returns the local path Restore should consume AND the SHA-256 hash
 	// of the dump bytes (hex). The hash is the *input* side of the
 	// evidence chain — embedded in the signed PDF so a holder of the dump
-	// can independently prove it's the exact bytes Soteria drilled.
+	// can independently prove it's the exact bytes Selket drilled.
 	// pg_dump -Fd directory dumps are hashed over the concatenation of
 	// their files in sorted order, so the same directory always produces
 	// the same hash.

@@ -9,7 +9,7 @@ import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
 // HowItWorks is the public explainer page: what backup drilling is, why it
-// matters, and how Soteria does it. Linked from the nav and footer.
+// matters, and how Selket does it. Linked from the nav and footer.
 func HowItWorks(lc LayoutCtx) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
@@ -43,7 +43,7 @@ func HowItWorks(lc LayoutCtx) templ.Component {
 				}()
 			}
 			ctx = templ.InitializeContext(ctx)
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<article class=\"mx-auto max-w-3xl\"><header class=\"mb-12\"><p class=\"text-sm font-semibold uppercase tracking-wide text-brand-600 dark:text-brand-400\">The basics</p><h1 class=\"mt-1 text-3xl font-semibold tracking-tight sm:text-4xl\">Backup drilling, explained</h1><p class=\"mt-4 text-lg text-zinc-600 dark:text-zinc-400\">Most teams trust backups they have never actually restored. Soteria exists to fix that. Here is what backup drilling is, why it matters, and how Soteria does it for you.</p></header><div class=\"space-y-12\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<article class=\"mx-auto max-w-3xl\"><header class=\"mb-12\"><p class=\"text-sm font-semibold uppercase tracking-wide text-brand-600 dark:text-brand-400\">The basics</p><h1 class=\"mt-1 text-3xl font-semibold tracking-tight sm:text-4xl\">Backup drilling, explained</h1><p class=\"mt-4 text-lg text-zinc-600 dark:text-zinc-400\">Most teams trust backups they have never actually restored. Selket exists to fix that. Here is what backup drilling is, why it matters, and how Selket does it for you.</p></header><div class=\"space-y-12\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -127,7 +127,7 @@ func HowItWorks(lc LayoutCtx) templ.Component {
 					}()
 				}
 				ctx = templ.InitializeContext(ctx)
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "<p>Every Soteria drill runs the same six steps, inside an isolated sandbox that never touches your production database:</p><div class=\"space-y-3 pt-1\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "<p>Every Selket drill runs the same six steps, inside an isolated sandbox that never touches your production database:</p><div class=\"space-y-3 pt-1\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -177,7 +177,7 @@ func HowItWorks(lc LayoutCtx) templ.Component {
 					}()
 				}
 				ctx = templ.InitializeContext(ctx)
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "<p>Doing all of this by hand is tedious — so it does not get done. Soteria turns backup drilling into something that simply happens:</p><ul class=\"space-y-2.5\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "<p>Doing all of this by hand is tedious — so it does not get done. Selket turns backup drilling into something that simply happens:</p><ul class=\"space-y-2.5\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -185,7 +185,7 @@ func HowItWorks(lc LayoutCtx) templ.Component {
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = explainFeature("Isolated and safe", "every drill runs in an ephemeral sandbox destroyed when it finishes. Soteria never connects to your production database.").Render(ctx, templ_7745c5c3_Buffer)
+				templ_7745c5c3_Err = explainFeature("Isolated and safe", "every drill runs in an ephemeral sandbox destroyed when it finishes. Selket never connects to your production database.").Render(ctx, templ_7745c5c3_Buffer)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -207,7 +207,7 @@ func HowItWorks(lc LayoutCtx) templ.Component {
 				}
 				return nil
 			})
-			templ_7745c5c3_Err = explainSection("How Soteria helps").Render(templ.WithChildren(ctx, templ_7745c5c3_Var6), templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = explainSection("How Selket helps").Render(templ.WithChildren(ctx, templ_7745c5c3_Var6), templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -223,7 +223,7 @@ func HowItWorks(lc LayoutCtx) templ.Component {
 					}()
 				}
 				ctx = templ.InitializeContext(ctx)
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "<p>Soteria is built for engineering teams running managed PostgreSQL who cannot afford to learn their backups are broken the hard way — and especially for teams going through SOC 2, HIPAA, or ISO 27001, where evidence that backups are tested and restorable is a control an auditor will ask you to demonstrate.</p>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "<p>Selket is built for engineering teams running managed PostgreSQL who cannot afford to learn their backups are broken the hard way — and especially for teams going through SOC 2, HIPAA, or ISO 27001, where evidence that backups are tested and restorable is a control an auditor will ask you to demonstrate.</p>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -410,7 +410,7 @@ func explainStep(num, name, body string) templ.Component {
 	})
 }
 
-// explainFeature is one "how Soteria helps" item: a bold lead-in plus prose.
+// explainFeature is one "how Selket helps" item: a bold lead-in plus prose.
 func explainFeature(title, body string) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context

@@ -121,7 +121,7 @@ func TrialEnded(lc LayoutCtx) templ.Component {
 				}()
 			}
 			ctx = templ.InitializeContext(ctx)
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "<div class=\"card mx-auto max-w-xl space-y-4 text-center\"><h1 class=\"text-2xl font-semibold tracking-tight\">Your free trial has ended</h1><p class=\"text-zinc-600 dark:text-zinc-400\">Your 14-day Soteria trial is over. Your databases, drill history, and signed evidence are all still here — choose a plan to start verifying your backups again.</p><div class=\"flex justify-center gap-3\"><a href=\"/pricing\" class=\"btn-primary\">Choose a plan</a> <a href=\"/account\" class=\"btn-ghost\">Account &amp; billing</a></div></div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "<div class=\"card mx-auto max-w-xl space-y-4 text-center\"><h1 class=\"text-2xl font-semibold tracking-tight\">Your free trial has ended</h1><p class=\"text-zinc-600 dark:text-zinc-400\">Your 14-day Selket trial is over. Your databases, drill history, and signed evidence are all still here — choose a plan to start verifying your backups again.</p><div class=\"flex justify-center gap-3\"><a href=\"/pricing\" class=\"btn-primary\">Choose a plan</a> <a href=\"/account\" class=\"btn-ghost\">Account &amp; billing</a></div></div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

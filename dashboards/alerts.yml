@@ -1,17 +1,17 @@
-# Prometheus alerting rules for Soteria.
+# Prometheus alerting rules for Selket.
 # Load into Prometheus via rule_files; route to PagerDuty/Telegram per the
 # incident runbook. Thresholds are starting points — tune against real
 # traffic before GA.
 groups:
-  - name: soteria
+  - name: selket
     rules:
       - alert: AppDown
-        expr: up{job="soteria"} == 0
+        expr: up{job="selket"} == 0
         for: 1m
         labels:
           severity: sev1
         annotations:
-          summary: "Soteria app is down"
+          summary: "Selket app is down"
           runbook: "runbooks/incident-response.md#app-is-down-healthz-fails"
 
       - alert: DrillFailureRateHigh

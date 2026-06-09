@@ -84,7 +84,7 @@ func Layout(title string, user *auth.User) templ.Component {
 
 // Logo is the brand mark — the phoenix sigil: flame at base, wings
 // spread upward, single star above. Vector, scales cleanly. Pure
-// decoration; the adjacent "Soteria" wordmark carries the name.
+// decoration; the adjacent "Selket" wordmark carries the name.
 func Logo() templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
@@ -106,7 +106,7 @@ func Logo() templ.Component {
 			templ_7745c5c3_Var3 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<svg viewBox=\"0 0 320 320\" class=\"h-7 w-7 shrink-0\" aria-hidden=\"true\" focusable=\"false\"><defs><linearGradient id=\"logo-ambr\" x1=\"0.5\" y1=\"1\" x2=\"0.5\" y2=\"0\"><stop offset=\"0%\" stop-color=\"#7c2d12\"></stop> <stop offset=\"22%\" stop-color=\"#c2410c\"></stop> <stop offset=\"55%\" stop-color=\"#f59e0b\"></stop> <stop offset=\"100%\" stop-color=\"#fde68a\"></stop></linearGradient></defs> <path d=\"M 148 196 C 120 184, 90 168, 60 134 C 44 112, 38 92, 46 74 C 56 92, 74 110, 98 130 C 122 148, 140 168, 152 192 Z\" fill=\"url(#logo-ambr)\"></path> <path d=\"M 172 196 C 200 184, 230 168, 260 134 C 276 112, 282 92, 274 74 C 264 92, 246 110, 222 130 C 198 148, 180 168, 168 192 Z\" fill=\"url(#logo-ambr)\"></path> <path d=\"M 160 110 C 150 134, 142 162, 144 196 C 146 224, 152 254, 156 280 C 158 290, 159 298, 160 304 C 161 298, 162 290, 164 280 C 168 254, 174 224, 176 196 C 178 162, 170 134, 160 110 Z\" fill=\"url(#logo-ambr)\"></path> <path d=\"M 160 22 L 164 52 L 196 60 L 164 68 L 160 100 L 156 68 L 124 60 L 156 52 Z\" fill=\"#fef3c7\"></path></svg>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<svg viewBox=\"0 0 320 320\" class=\"h-7 w-7 shrink-0\" aria-hidden=\"true\" focusable=\"false\"><defs><linearGradient id=\"logo-ambr\" x1=\"0.5\" y1=\"1\" x2=\"0.5\" y2=\"0\"><stop offset=\"0%\" stop-color=\"#7f1d1d\"></stop> <stop offset=\"22%\" stop-color=\"#b91c1c\"></stop> <stop offset=\"55%\" stop-color=\"#eab308\"></stop> <stop offset=\"100%\" stop-color=\"#fef9c3\"></stop></linearGradient></defs> <path d=\"M 148 196 C 120 184, 90 168, 60 134 C 44 112, 38 92, 46 74 C 56 92, 74 110, 98 130 C 122 148, 140 168, 152 192 Z\" fill=\"url(#logo-ambr)\"></path> <path d=\"M 172 196 C 200 184, 230 168, 260 134 C 276 112, 282 92, 274 74 C 264 92, 246 110, 222 130 C 198 148, 180 168, 168 192 Z\" fill=\"url(#logo-ambr)\"></path> <path d=\"M 160 110 C 150 134, 142 162, 144 196 C 146 224, 152 254, 156 280 C 158 290, 159 298, 160 304 C 161 298, 162 290, 164 280 C 168 254, 174 224, 176 196 C 178 162, 170 134, 160 110 Z\" fill=\"url(#logo-ambr)\"></path> <path d=\"M 160 22 L 164 52 L 196 60 L 164 68 L 160 100 L 156 68 L 124 60 L 156 52 Z\" fill=\"#fef08a\"></path></svg>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -148,7 +148,7 @@ func LayoutWith(title string, lc LayoutCtx) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, " · Soteria</title><link rel=\"icon\" type=\"image/x-icon\" href=\"/static/favicon.ico\"><link rel=\"icon\" type=\"image/png\" sizes=\"32x32\" href=\"/static/favicon-32.png\"><link rel=\"icon\" type=\"image/png\" sizes=\"16x16\" href=\"/static/favicon-16.png\"><link rel=\"apple-touch-icon\" sizes=\"180x180\" href=\"/static/favicon-180.png\"><meta name=\"theme-color\" content=\"#0f172a\"><link rel=\"stylesheet\" href=\"/static/app.css\"><script src=\"/static/htmx.min.js\" defer></script><script src=\"/static/account-switch.js\" defer></script></head><body class=\"min-h-screen flex flex-col\"><a href=\"#main-content\" class=\"skip-link\">Skip to main content</a> ")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, " · Selket</title><link rel=\"icon\" type=\"image/x-icon\" href=\"/static/favicon.ico\"><link rel=\"icon\" type=\"image/png\" sizes=\"32x32\" href=\"/static/favicon-32.png\"><link rel=\"icon\" type=\"image/png\" sizes=\"16x16\" href=\"/static/favicon-16.png\"><link rel=\"apple-touch-icon\" sizes=\"180x180\" href=\"/static/favicon-180.png\"><meta name=\"theme-color\" content=\"#0f172a\"><link rel=\"stylesheet\" href=\"/static/app.css\"><script src=\"/static/htmx.min.js\" defer></script><script src=\"/static/account-switch.js\" defer></script></head><body class=\"min-h-screen flex flex-col\"><a href=\"#main-content\" class=\"skip-link\">Skip to main content</a> ")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -242,7 +242,7 @@ func LayoutWith(title string, lc LayoutCtx) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "<span>Soteria</span></a> ")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "<span>Selket</span></a> ")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -440,7 +440,7 @@ func LayoutWith(title string, lc LayoutCtx) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 40, "</main><footer class=\"border-t border-zinc-200 px-4 py-4 text-center text-xs text-zinc-500 dark:border-zinc-800 dark:text-zinc-400\"><p>Soteria — backup verification as a service.</p><nav aria-label=\"Footer\" class=\"mt-1 flex flex-wrap justify-center gap-3\"><a href=\"/how-it-works\" class=\"hover:underline\">How it works</a> <a href=\"/pricing\" class=\"hover:underline\">Pricing</a> <a href=\"/docs\" class=\"hover:underline\">API docs</a> <a href=\"/legal/terms\" class=\"hover:underline\">Terms</a> <a href=\"/legal/privacy\" class=\"hover:underline\">Privacy</a> <a href=\"/legal/dpa\" class=\"hover:underline\">DPA</a> <a href=\"/legal/subprocessors\" class=\"hover:underline\">Sub-processors</a> <a href=\"/legal/cookies\" class=\"hover:underline\">Cookies</a></nav></footer></body></html>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 40, "</main><footer class=\"border-t border-zinc-200 px-4 py-4 text-center text-xs text-zinc-500 dark:border-zinc-800 dark:text-zinc-400\"><p>Selket — backup verification as a service.</p><nav aria-label=\"Footer\" class=\"mt-1 flex flex-wrap justify-center gap-3\"><a href=\"/how-it-works\" class=\"hover:underline\">How it works</a> <a href=\"/pricing\" class=\"hover:underline\">Pricing</a> <a href=\"/docs\" class=\"hover:underline\">API docs</a> <a href=\"/legal/terms\" class=\"hover:underline\">Terms</a> <a href=\"/legal/privacy\" class=\"hover:underline\">Privacy</a> <a href=\"/legal/dpa\" class=\"hover:underline\">DPA</a> <a href=\"/legal/subprocessors\" class=\"hover:underline\">Sub-processors</a> <a href=\"/legal/cookies\" class=\"hover:underline\">Cookies</a></nav></footer></body></html>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

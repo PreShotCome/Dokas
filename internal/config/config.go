@@ -107,7 +107,7 @@ func Load() (Config, error) {
 
 		PostmarkToken:        os.Getenv("POSTMARK_TOKEN"),
 		PostmarkWebhookToken: os.Getenv("POSTMARK_WEBHOOK_TOKEN"),
-		EmailFrom:            getenv("EMAIL_FROM", "notifications@soteria.io"),
+		EmailFrom:            getenv("EMAIL_FROM", "notifications@selket.io"),
 		PostHogAPIKey:        os.Getenv("POSTHOG_API_KEY"),
 		PostHogHost:          os.Getenv("POSTHOG_HOST"),
 
@@ -135,7 +135,7 @@ func Load() (Config, error) {
 	// request's Host header, which an attacker can forge to exfiltrate
 	// magic-link tokens.
 	if c.Environment != "dev" && c.BaseURL == "" {
-		return c, errors.New("BASE_URL is required outside dev (e.g. https://app.soteria.io)")
+		return c, errors.New("BASE_URL is required outside dev (e.g. https://app.selket.io)")
 	}
 
 	key := os.Getenv("SESSION_KEY")

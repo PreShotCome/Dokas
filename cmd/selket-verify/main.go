@@ -1,17 +1,17 @@
-// Command soteria-verify independently checks a Soteria evidence PDF
+// Command selket-verify independently checks a Selket evidence PDF
 // against its detached Ed25519 signature and a public key. It depends on
 // the Go standard library only (crypto/ed25519, crypto/sha256, encoding/
-// pem, encoding/json) — no Soteria-specific code path — so any auditor
+// pem, encoding/json) — no Selket-specific code path — so any auditor
 // can build it from this source and audit what they're trusting.
 //
 // Usage:
 //
-//	soteria-verify --pdf=evidence.pdf --sig=signature.json --pubkey=soteria.pem
+//	selket-verify --pdf=evidence.pdf --sig=signature.json --pubkey=selket.pem
 //
 //	  --pdf      path to the evidence PDF downloaded from /v1/drills/{id}/evidence
 //	  --sig      path to the signature JSON downloaded from /v1/drills/{id}/signature
-//	  --pubkey   path to a PEM-encoded Ed25519 public key (Soteria publishes the
-//	             active and any retired keys at https://soteria.io/.well-known/
+//	  --pubkey   path to a PEM-encoded Ed25519 public key (Selket publishes the
+//	             active and any retired keys at https://selket.io/.well-known/
 //	             evidence-signing-keys.pem — verify the key fingerprint in the
 //	             signature matches one published there)
 //
@@ -49,7 +49,7 @@ type signature struct {
 	RetainUntil time.Time `json:"retain_until"`
 }
 
-// envelope mirrors the Soteria API response wrapper { data: ..., meta: ..., errors: ... }
+// envelope mirrors the Selket API response wrapper { data: ..., meta: ..., errors: ... }
 // so the CLI accepts either the bare signature JSON or the wrapped form.
 type envelope struct {
 	Data *signature `json:"data"`
@@ -62,7 +62,7 @@ func main() {
 	flag.Parse()
 
 	if *pdfPath == "" || *sigPath == "" || *pubPath == "" {
-		fmt.Fprintln(os.Stderr, "usage: soteria-verify --pdf=PDF --sig=JSON --pubkey=PEM")
+		fmt.Fprintln(os.Stderr, "usage: selket-verify --pdf=PDF --sig=JSON --pubkey=PEM")
 		os.Exit(2)
 	}
 
@@ -135,7 +135,7 @@ func parsePublicKey(pemBytes []byte) (ed25519.PublicKey, error) {
 
 // verify mirrors evidence.Verify in the main repo exactly. Reimplemented
 // here (rather than imported) so the CLI is small, has no transitive
-// dependencies on Soteria packages, and can be audited in isolation.
+// dependencies on Selket packages, and can be audited in isolation.
 func verify(pub ed25519.PublicKey, pdf []byte, sig signature) error {
 	if sig.Algorithm != "ed25519" {
 		return fmt.Errorf("unsupported algorithm %q", sig.Algorithm)

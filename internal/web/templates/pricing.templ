@@ -8,7 +8,10 @@ import (
 )
 
 // Pricing is the public pricing page. starterLabel / proLabel are the
-// headline monthly prices (display-only — Stripe holds the real amount).
+// headline monthly prices (display-only — Stripe holds the real amount)
+// for the Standard and VIP tiers respectively. The internal plan IDs
+// remain "starter" and "pro" so existing Stripe products / DB values
+// keep working; only the user-facing names change.
 // stripeEnabled is false when no Stripe keys are configured, in which case
 // the subscribe action is replaced with a notice.
 templ Pricing(lc LayoutCtx, starterLabel, proLabel string, stripeEnabled bool) {
@@ -19,16 +22,16 @@ templ Pricing(lc LayoutCtx, starterLabel, proLabel string, stripeEnabled bool) {
 				<p class="mx-auto mt-3 max-w-2xl text-zinc-600 dark:text-zinc-400">
 					Every plan includes signed PDF evidence, the full assertion
 					suite, backup check-in monitors, the versioned JSON API, and
-					webhooks. Plans differ by how often Soteria drills your databases
+					webhooks. Plans differ by how often Selket drills your databases
 					— the more critical your data, the more frequently you verify it.
 				</p>
 			</div>
-			<div class="grid gap-6 sm:grid-cols-3">
-				@pricingCard(lc, "trial", "Trial", "Free", "", stripeEnabled,
+			<div class="grid gap-6 pt-3 sm:grid-cols-3">
+				@pricingCard(lc, "trial", "Trial", "Free", "", false, stripeEnabled,
 					account.LimitsFor(account.PlanTrial))
-				@pricingCard(lc, "starter", "Starter", starterLabel, "/mo", stripeEnabled,
+				@pricingCard(lc, "starter", "Standard", starterLabel, "/mo", false, stripeEnabled,
 					account.LimitsFor(account.PlanStarter))
-				@pricingCard(lc, "pro", "Pro", proLabel, "/mo", stripeEnabled,
+				@pricingCard(lc, "pro", "VIP", proLabel, "/mo", true, stripeEnabled,
 					account.LimitsFor(account.PlanPro))
 			</div>
 			<p class="mt-8 text-center text-xs text-zinc-500">
@@ -40,9 +43,16 @@ templ Pricing(lc LayoutCtx, starterLabel, proLabel string, stripeEnabled bool) {
 }
 
 // pricingCard renders one plan tier. Drill frequency is the headline; the
-// database count is a fair-use allowance below it.
-templ pricingCard(lc LayoutCtx, plan, name, price, period string, stripeEnabled bool, limits account.Limits) {
-	<div class="card flex flex-col gap-5">
+// database count is a fair-use allowance below it. `popular` adds the
+// gold border + "MOST POPULAR" badge — exactly one tier should be marked
+// popular at a time.
+templ pricingCard(lc LayoutCtx, plan, name, price, period string, popular, stripeEnabled bool, limits account.Limits) {
+	<div class={ "flex flex-col gap-5 rounded-lg p-6 shadow-sm relative bg-white dark:bg-zinc-900",
+		templ.KV("border-2 border-gold-500 dark:border-gold-400 shadow-lg", popular),
+		templ.KV("border border-zinc-200 dark:border-zinc-800", !popular) }>
+		if popular {
+			<span class="absolute -top-3 left-1/2 -translate-x-1/2 inline-flex items-center rounded-full bg-gold-500 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-brand-900 shadow-md">Most popular</span>
+		}
 		<div>
 			<h2 class="text-lg font-semibold">{ name }</h2>
 			<p class="mt-1">
@@ -114,7 +124,7 @@ templ pricingCTA(lc LayoutCtx, plan string, stripeEnabled bool) {
 }
 
 // limitText renders a resource cap: "1 database", "10 databases", or
-// "Unlimited databases" for an uncapped (Pro) tier.
+// "Unlimited databases" for an uncapped (VIP) tier.
 func limitText(n int, singular string) string {
 	switch {
 	case n == account.Unlimited:

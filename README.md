@@ -1,13 +1,13 @@
-# Soteria
+# Selket
 
-**Backup verification you can independently prove.** Soteria periodically
+**Backup verification you can independently prove.** Selket periodically
 restores your database dumps into an isolated sandbox, runs assertions
 against the restored data, and produces evidence anyone can verify
 without trusting us.
 
 ## Why you can trust the evidence
 
-Most backup-verification tools hand you a green checkbox. Soteria gives
+Most backup-verification tools hand you a green checkbox. Selket gives
 you a four-link chain that a third party can walk end-to-end. Break any
 link and verification fails loudly.
 
@@ -23,25 +23,25 @@ link and verification fails loudly.
    `row_count`, `table_exists`, `column_exists`, `no_nulls` today;
    `sql_query` is on the roadmap so you can write the SQL yourself.
 3. **Detached Ed25519 signature.** Every PDF is signed offline by the
-   active Soteria key. The signature attests `sha256(pdf) ‖
+   active Selket key. The signature attests `sha256(pdf) ‖
    signedAt(RFC3339Nano UTC)` — so a forgery has to match both the PDF
    bytes and the recorded timestamp, not one or the other. Past keys
    are kept as verification-only so evidence signed before a key
    rotation still verifies.
-4. **Open-source verifier.** [`cmd/soteria-verify`](cmd/soteria-verify)
+4. **Open-source verifier.** [`cmd/selket-verify`](cmd/selket-verify)
    is a single Go file that depends on `crypto/ed25519` and nothing of
    ours. Build it from this source, point it at the PDF, the signature
    JSON, and our published public key, and exit code 0 means the chain
    holds. Anyone with the three files can prove the result; the path
-   does not go through Soteria's servers, and there is no Soteria SDK
+   does not go through Selket's servers, and there is no Selket SDK
    you are asked to trust.
 
 ```sh
 # Independently verify a drill:
-curl -H "Authorization: Bearer $KEY" https://app.soteria.io/v1/drills/$ID/evidence  > drill.pdf
-curl -H "Authorization: Bearer $KEY" https://app.soteria.io/v1/drills/$ID/signature > sig.json
-curl https://soteria.io/.well-known/evidence-signing-keys.pem > soteria.pem
-go run ./cmd/soteria-verify --pdf=drill.pdf --sig=sig.json --pubkey=soteria.pem
+curl -H "Authorization: Bearer $KEY" https://app.selket.io/v1/drills/$ID/evidence  > drill.pdf
+curl -H "Authorization: Bearer $KEY" https://app.selket.io/v1/drills/$ID/signature > sig.json
+curl https://selket.io/.well-known/evidence-signing-keys.pem > selket.pem
+go run ./cmd/selket-verify --pdf=drill.pdf --sig=sig.json --pubkey=selket.pem
 # OK  key=9f2c4b…a17b  signed_at=2026-05-25T04:11:02Z  retain_until=2033-05-25T04:11:02Z
 ```
 
@@ -51,13 +51,13 @@ detail.
 ## What's in the repo
 
 This repo contains the application (Go monolith) deployed at
-`app.soteria.io`. The marketing site lives in a separate repo. The
+`app.selket.io`. The marketing site lives in a separate repo. The
 verifier CLI ships here so the chain stays in one auditable place.
 
 ## Status
 
 All 11 rubric layers are built. Latest: hashed input + the
-`soteria-verify` CLI close the verifiability chain end-to-end.
+`selket-verify` CLI close the verifiability chain end-to-end.
 
 Implemented:
 - Chi + Templ + HTMX + Tailwind monolith
@@ -68,7 +68,7 @@ Implemented:
 - Assertion kinds: `row_count`, `table_exists`, `column_exists`, `no_nulls`
 - SHA-256 hash of the dump bytes (input anchor of the evidence chain)
 - Ed25519-signed evidence PDFs via `github.com/go-pdf/fpdf`
-- `cmd/soteria-verify` — stdlib-only third-party verifier
+- `cmd/selket-verify` — stdlib-only third-party verifier
 - Idempotency on `POST /drills` (per-account, per-key)
 - Multi-tenant accounts + memberships; signup auto-creates a personal account
 - RBAC (`owner`/`admin`/`member`/`viewer`) via a single `Authorize` matrix
@@ -141,12 +141,12 @@ To exercise a drill end-to-end:
 4. Go to `/drills`, pick the target, click **Run drill**, watch the steps
    tick through (HTMX polls every 2 s until terminal).
 5. Download the PDF, fetch the signature JSON from `/v1/drills/{id}/signature`,
-   and verify with `go run ./cmd/soteria-verify`.
+   and verify with `go run ./cmd/selket-verify`.
 
 ## Tests
 
 ```sh
-DATABASE_URL=postgres://soteria:soteria@localhost:5432/soteria?sslmode=disable \
+DATABASE_URL=postgres://selket:selket@localhost:5432/selket?sslmode=disable \
   go test ./...
 ```
 
@@ -159,7 +159,7 @@ skips.
 ```
 cmd/server               HTTP + River worker entrypoint
 cmd/migrate              goose + River migration CLI
-cmd/soteria-verify       stdlib-only third-party evidence verifier
+cmd/selket-verify       stdlib-only third-party evidence verifier
 internal/auth            sessions, password hashing, RBAC, MFA, magic-link
 internal/apikey          /v1 API-key issuance + verification
 internal/account         accounts, memberships, invitations, trial window

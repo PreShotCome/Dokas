@@ -1,6 +1,6 @@
 # Go-live runbook
 
-The ordered checklist to take Soteria from "builds locally" to "a paying
+The ordered checklist to take Selket from "builds locally" to "a paying
 customer can sign up." Per-integration detail lives in the sibling runbooks
 (`stripe.md`, `postmark.md`, `s3.md`, `fly.md`, `signing-cert.md`); this is
 the master sequence.
@@ -11,7 +11,7 @@ the master sequence.
 - **Neon** — managed Postgres (already provisioned).
 - **Stripe** — billing.
 - **Postmark** — transactional email.
-- A **domain registrar** — for `soteria.io` (or your chosen domain).
+- A **domain registrar** — for `selket.io` (or your chosen domain).
 
 ## 1. Generate the production secrets
 
@@ -31,8 +31,8 @@ evidence verification. See `signing-cert.md` for the signing-key lifecycle.
 ## 2. Create the Fly app and the evidence volume
 
 ```sh
-fly apps create soteria
-fly volumes create soteria_evidence --region sea --size 1
+fly apps create selket
+fly volumes create selket_evidence --region sea --size 1
 ```
 
 The volume backs `EVIDENCE_DIR` (`/data/evidence`, set in `fly.toml`) so
@@ -48,7 +48,7 @@ fly secrets set \
   EVIDENCE_ENCRYPTION_KEY="<step 1>" \
   METRICS_TOKEN="<step 1>" \
   POSTMARK_WEBHOOK_TOKEN="<step 1>" \
-  EMAIL_FROM="notifications@soteria.io" \
+  EMAIL_FROM="notifications@selket.io" \
   STAFF_EMAILS="you@yourdomain.com"
 
 # Multi-line PEM — set on its own:
@@ -93,7 +93,7 @@ GitHub Action — set the `FLY_API_TOKEN` repo secret: `fly tokens create deploy
 ## 7. Domain
 
 ```sh
-fly certs add soteria.io
+fly certs add selket.io
 ```
 
 Add the DNS records Fly prints (A/AAAA + the ACME CNAME). One domain serves
@@ -107,7 +107,7 @@ everything — marketing pages at `/`, the app behind login.
 4. Set a daily schedule; confirm `/reports` shows the drill.
 5. Subscribe with Stripe test card `4242 4242 4242 4242`; confirm the plan
    flips and the Customer Portal opens.
-6. Restart the app (`fly apps restart soteria`); re-download the PDF — it
+6. Restart the app (`fly apps restart selket`); re-download the PDF — it
    must still verify (proves the persistent evidence key + volume work).
 
 ## 9. Go live

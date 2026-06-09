@@ -19,7 +19,7 @@ templ Landing(lc LayoutCtx) {
 
 templ landingHero() {
 	<section class="relative overflow-hidden rounded-3xl border border-zinc-200 bg-gradient-to-b from-brand-50 to-white px-6 py-14 text-center dark:border-zinc-800 dark:from-brand-900/30 dark:to-zinc-950">
-		<p class="mb-5 inline-flex items-center gap-2 rounded-full border border-brand-200 bg-white/70 px-3 py-1 text-xs font-medium text-brand-800 dark:border-brand-800 dark:bg-brand-900/40 dark:text-brand-200">
+		<p class="mb-5 inline-flex items-center gap-2 rounded-full border border-gold-300 bg-white/70 px-3 py-1 text-xs font-medium text-gold-700 dark:border-gold-700 dark:bg-gold-700/15 dark:text-gold-300">
 			<span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
 			Backup verification as a service
 		</p>
@@ -27,7 +27,7 @@ templ landingHero() {
 			Your backups are untested until something restores them.
 		</h1>
 		<p class="mx-auto mt-5 max-w-xl text-lg text-zinc-600 dark:text-zinc-400">
-			Soteria restores your database backups in an isolated sandbox on a
+			Selket restores your database backups in an isolated sandbox on a
 			schedule, proves the data really came back, and signs the result —
 			so a broken backup shows up in a report, not an outage.
 		</p>
@@ -50,7 +50,7 @@ templ landingMockup() {
 			<span class="h-2.5 w-2.5 rounded-full bg-red-400"></span>
 			<span class="h-2.5 w-2.5 rounded-full bg-amber-400"></span>
 			<span class="h-2.5 w-2.5 rounded-full bg-emerald-400"></span>
-			<span class="ml-3 font-mono text-xs text-zinc-400">app.soteria.io/drills/a1f9c2</span>
+			<span class="ml-3 font-mono text-xs text-zinc-400">app.selket.io/drills/a1f9c2</span>
 		</div>
 		<div class="space-y-4 p-5">
 			<div class="flex items-start justify-between">
@@ -101,12 +101,12 @@ templ landingHow() {
 	<section>
 		@sectionHead("How it works", "A drill, start to finish")
 		<div class="grid gap-6 sm:grid-cols-3">
-			@howCard("1", "Connect a database", "Point Soteria at the dump your backup job already produces — a local path, S3, or R2. We never touch your production database.")
-			@howCard("2", "Soteria runs the drill", "On your schedule we spin up an isolated sandbox, restore the dump, and run your assertions: row counts, required tables, no-null checks.")
+			@howCard("1", "Connect a database", "Point Selket at the dump your backup job already produces — a local path, S3, or R2. We never touch your production database.")
+			@howCard("2", "Selket runs the drill", "On your schedule we spin up an isolated sandbox, restore the dump, and run your assertions: row counts, required tables, no-null checks.")
 			@howCard("3", "Collect signed evidence", "Every drill produces a signed PDF and an immutable audit entry — the proof auditors and customers ask to see.")
 		</div>
 		<p class="mt-6 text-center">
-			<a href="/how-it-works" class="text-sm font-medium text-brand-600 hover:underline dark:text-brand-400">
+			<a href="/how-it-works" class="text-sm font-medium text-gold-600 hover:underline dark:text-gold-400">
 				New to backup drilling? Read the full explainer →
 			</a>
 		</p>
@@ -128,11 +128,11 @@ templ howCard(num, title, body string) {
 templ landingEvidence() {
 	<section class="grid items-center gap-10 sm:grid-cols-2">
 		<div>
-			<p class="text-sm font-semibold uppercase tracking-wide text-brand-600 dark:text-brand-400">Auditor-grade evidence</p>
+			<p class="text-sm font-semibold uppercase tracking-wide text-gold-600 dark:text-gold-400">Auditor-grade evidence</p>
 			<h2 class="mt-1 text-3xl font-semibold tracking-tight">Proof, not a green checkmark</h2>
 			<p class="mt-4 text-zinc-600 dark:text-zinc-400">
 				A backup job that "succeeded" only tells you a file was written.
-				Soteria proves the file restores — and hands you a
+				Selket proves the file restores — and hands you a
 				cryptographically signed report, retained for seven years, with a
 				live tamper-check.
 			</p>
@@ -151,7 +151,7 @@ templ landingEvidenceCard() {
 		<div class="flex items-center justify-between border-b border-dashed border-zinc-200 pb-4 dark:border-zinc-800">
 			<div class="flex items-center gap-2">
 				@Logo()
-				<span class="font-semibold">Soteria</span>
+				<span class="font-semibold">Selket</span>
 			</div>
 			<span class="inline-flex items-center gap-1.5 rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-medium text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300">
 				@landingCheck()
@@ -190,7 +190,7 @@ templ landingFeatures() {
 			@featureCard("Signed PDF evidence", "Every drill is cryptographically signed, retained for seven years, and verifiable with a live tamper-check.")
 			@featureCard("Immutable audit log", "Every drill, download, and account change is recorded — the trail SOC 2 and HIPAA reviewers expect.")
 			@featureCard("API and webhooks", "A versioned JSON API and signed webhooks push drill results straight into your own tooling and alerts.")
-			@featureCard("No production access", "Soteria verifies the dumps you already have. It never needs a connection to your live database.")
+			@featureCard("No production access", "Selket verifies the dumps you already have. It never needs a connection to your live database.")
 		</div>
 	</section>
 }
@@ -211,7 +211,7 @@ templ landingFAQ() {
 	<section class="mx-auto max-w-2xl">
 		@sectionHead("FAQ", "Questions, answered")
 		<div class="space-y-3">
-			@faqItem("Does Soteria need access to my production database?", "No. Soteria only reads the backup dumps you register. It never connects to your live database.")
+			@faqItem("Does Selket need access to my production database?", "No. Selket only reads the backup dumps you register. It never connects to your live database.")
 			@faqItem("Which databases are supported?", "PostgreSQL today — every pg_dump format: plain, custom, tar, and directory archives. MySQL and MongoDB are on the roadmap.")
 			@faqItem("Where do drills run?", "In an isolated, ephemeral sandbox that is destroyed the moment the drill finishes. The working copy of your dump is deleted with it.")
 			@faqItem("What do I actually get?", "A signed PDF report and an immutable audit entry for every drill, retained for seven years — the evidence SOC 2 and HIPAA reviewers ask for.")
@@ -250,7 +250,7 @@ templ landingCTA() {
 // sectionHead is the centered eyebrow + heading used above each section.
 templ sectionHead(eyebrow, title string) {
 	<div class="mb-10 text-center">
-		<p class="text-sm font-semibold uppercase tracking-wide text-brand-600 dark:text-brand-400">{ eyebrow }</p>
+		<p class="text-sm font-semibold uppercase tracking-wide text-gold-600 dark:text-gold-400">{ eyebrow }</p>
 		<h2 class="mt-1 text-3xl font-semibold tracking-tight">{ title }</h2>
 	</div>
 }

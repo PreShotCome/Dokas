@@ -14,9 +14,10 @@ type Limits struct {
 	Heartbeats int // backup check-in monitors
 }
 
-// LimitsFor returns the resource caps for a plan tier. Pro is uncapped; the
-// trial has full Starter-level access for its window; an unknown plan falls
-// to the most restrictive caps so a bad value can never widen access.
+// LimitsFor returns the resource caps for a plan tier. The VIP tier
+// (PlanPro) is uncapped; the trial gets the same generous caps as
+// Standard (PlanStarter) for its window; an unknown plan falls to the
+// most restrictive caps so a bad value can never widen access.
 func LimitsFor(p Plan) Limits {
 	switch p {
 	case PlanPro:
@@ -29,14 +30,16 @@ func LimitsFor(p Plan) Limits {
 }
 
 // AllowedCadences returns the drill cadences a plan may select, from least to
-// most frequent. A trial has Starter-level access (up to daily) for its
-// window; Pro adds hourly.
+// most frequent. Standard (PlanStarter) tops out at weekly; VIP (PlanPro)
+// adds daily. Trial mirrors VIP so prospects can experience the top cadence
+// during the trial window. Hourly is reserved for enterprise / custom and
+// is not exposed by any standard tier.
 func AllowedCadences(p Plan) []string {
 	switch p {
-	case PlanPro:
-		return []string{"off", "weekly", "daily", "hourly"}
-	case PlanStarter, PlanTrial:
+	case PlanPro, PlanTrial:
 		return []string{"off", "weekly", "daily"}
+	case PlanStarter:
+		return []string{"off", "weekly"}
 	default:
 		return []string{"off", "weekly"}
 	}

@@ -12,17 +12,17 @@ jobs:
       postgres:
         image: postgres:16-alpine
         env:
-          POSTGRES_USER: soteria
-          POSTGRES_PASSWORD: soteria
-          POSTGRES_DB: soteria
+          POSTGRES_USER: selket
+          POSTGRES_PASSWORD: selket
+          POSTGRES_DB: selket
         ports: ["5432:5432"]
         options: >-
-          --health-cmd="pg_isready -U soteria"
+          --health-cmd="pg_isready -U selket"
           --health-interval=2s
           --health-timeout=5s
           --health-retries=20
     env:
-      DATABASE_URL: postgres://soteria:soteria@localhost:5432/soteria?sslmode=disable
+      DATABASE_URL: postgres://selket:selket@localhost:5432/selket?sslmode=disable
     steps:
       - uses: actions/checkout@v4
 
@@ -90,3 +90,37 @@ jobs:
         run: |
           go build -o /tmp/server ./cmd/server
           go build -o /tmp/migrate ./cmd/migrate
+          go build -o /tmp/e2e-smoke ./cmd/e2e-smoke
+          go build -o /tmp/devkeys ./cmd/devkeys
+
+      # End-to-end smoke: signup -> connect dump -> assertion -> drill ->
+      # download PDF -> verify "Verdict: PASSED" and no mojibake. Each of
+      # those steps is what surfaced a pre-launch bug none of the unit
+      # tests would catch in isolation. If this job fails, paste the
+      # uploaded server log into the PR thread - it has the worker error.
+      - name: E2E smoke
+        run: |
+          set -euo pipefail
+          mkdir -p tmp/sources tmp/evidence
+          PGPASSWORD=selket pg_dump -h localhost -U selket -Fc \
+            -f tmp/sources/test.dump selket
+          eval "$(/tmp/devkeys)"
+          export EVIDENCE_SIGNING_KEY="$(printf '%s' "$EVIDENCE_SIGNING_KEY_B64" | base64 -d)"
+          export DATABASE_URL="$DATABASE_URL"
+          export ENV=dev ADDR=:5173 EVIDENCE_DIR="$PWD/tmp/evidence"
+          /tmp/server > /tmp/server-e2e.log 2>&1 &
+          SRV_PID=$!
+          trap 'kill $SRV_PID 2>/dev/null || true' EXIT
+          timeout 30 bash -c \
+            'until curl -sf http://localhost:5173/ >/dev/null 2>&1; do sleep 0.5; done'
+          BASE_URL=http://localhost:5173 \
+            E2E_DUMP_PATH="$PWD/tmp/sources/test.dump" \
+            /tmp/e2e-smoke
+
+      - name: Upload server log on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-server-log
+          path: /tmp/server-e2e.log
+          retention-days: 7

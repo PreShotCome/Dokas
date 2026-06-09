@@ -589,7 +589,8 @@ func (s *Store) ListSteps(ctx context.Context, drillID uuid.UUID) ([]Step, error
 	for rows.Next() {
 		var step Step
 		if err := rows.Scan(&step.ID, &step.DrillID, &step.Name, &step.Status,
-			&step.StartedAt, &step.CompletedAt, &step.Error, &step.IdempotencyKey, &step.Ordinal); err != nil {
+			&step.StartedAt, &step.CompletedAt, &step.Error, &step.IdempotencyKey, &step.Ordinal,
+			&step.OutputSnippet, &step.OutputSHA256, &step.OutputTruncated); err != nil {
 			return nil, err
 		}
 		out = append(out, step)

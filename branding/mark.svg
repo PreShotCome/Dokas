@@ -1,26 +1,26 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  Soteria — primary mark, iteration 3.
+  Selket — primary mark, iteration 3.
 
   Composition: narrow vertical flame at the base; phoenix wings that
   spread wide AND scoop UPWARD, framing a single 4-point star. The
   wings have real mass — closed shapes, not strokes — so they survive
   the squint test at small sizes and read as "wings" not "lines".
 
-  Vector. Single amber gradient + a star. Transparent background.
+  Vector. Red→gold flame gradient + a gold star. Transparent background.
 -->
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320" role="img" aria-label="Soteria">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320" role="img" aria-label="Selket">
   <defs>
     <linearGradient id="ambr" x1="0.5" y1="1" x2="0.5" y2="0">
-      <stop offset="0%"   stop-color="#7c2d12"/>
-      <stop offset="22%"  stop-color="#c2410c"/>
-      <stop offset="55%"  stop-color="#f59e0b"/>
-      <stop offset="100%" stop-color="#fde68a"/>
+      <stop offset="0%"   stop-color="#7f1d1d"/>
+      <stop offset="22%"  stop-color="#b91c1c"/>
+      <stop offset="55%"  stop-color="#eab308"/>
+      <stop offset="100%" stop-color="#fef9c3"/>
     </linearGradient>
     <radialGradient id="halo" cx="0.5" cy="0.5" r="0.5">
-      <stop offset="0%"   stop-color="#fffbeb" stop-opacity="0.55"/>
-      <stop offset="55%"  stop-color="#fbbf24" stop-opacity="0.12"/>
-      <stop offset="100%" stop-color="#fbbf24" stop-opacity="0"/>
+      <stop offset="0%"   stop-color="#fefce8" stop-opacity="0.55"/>
+      <stop offset="55%"  stop-color="#facc15" stop-opacity="0.12"/>
+      <stop offset="100%" stop-color="#facc15" stop-opacity="0"/>
     </radialGradient>
   </defs>
 
@@ -93,7 +93,7 @@
     L 124 60
     L 156 52
     Z
-  " fill="#fef3c7"/>
+  " fill="#fef08a"/>
 
   <!-- Star core pinprick. -->
   <circle cx="160" cy="60" r="2.5" fill="#ffffff"/>

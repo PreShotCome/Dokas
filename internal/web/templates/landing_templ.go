@@ -107,7 +107,7 @@ func landingHero() templ.Component {
 			templ_7745c5c3_Var3 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "<section class=\"relative overflow-hidden rounded-3xl border border-zinc-200 bg-gradient-to-b from-brand-50 to-white px-6 py-14 text-center dark:border-zinc-800 dark:from-brand-900/30 dark:to-zinc-950\"><p class=\"mb-5 inline-flex items-center gap-2 rounded-full border border-brand-200 bg-white/70 px-3 py-1 text-xs font-medium text-brand-800 dark:border-brand-800 dark:bg-brand-900/40 dark:text-brand-200\"><span class=\"h-1.5 w-1.5 rounded-full bg-emerald-500\"></span> Backup verification as a service</p><h1 class=\"mx-auto max-w-3xl text-4xl font-semibold tracking-tight sm:text-5xl\">Your backups are untested until something restores them.</h1><p class=\"mx-auto mt-5 max-w-xl text-lg text-zinc-600 dark:text-zinc-400\">Soteria restores your database backups in an isolated sandbox on a schedule, proves the data really came back, and signs the result — so a broken backup shows up in a report, not an outage.</p><div class=\"mt-8 flex flex-wrap justify-center gap-3\"><a href=\"/signup\" class=\"btn-primary px-6 py-3 text-base\">Start free</a> <a href=\"/pricing\" class=\"btn-ghost px-6 py-3 text-base\">View pricing</a></div><p class=\"mt-4 text-xs text-zinc-500\">No card required · Postgres supported today</p><div class=\"mx-auto mt-12 max-w-3xl\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "<section class=\"relative overflow-hidden rounded-3xl border border-zinc-200 bg-gradient-to-b from-brand-50 to-white px-6 py-14 text-center dark:border-zinc-800 dark:from-brand-900/30 dark:to-zinc-950\"><p class=\"mb-5 inline-flex items-center gap-2 rounded-full border border-gold-300 bg-white/70 px-3 py-1 text-xs font-medium text-gold-700 dark:border-gold-700 dark:bg-gold-700/15 dark:text-gold-300\"><span class=\"h-1.5 w-1.5 rounded-full bg-emerald-500\"></span> Backup verification as a service</p><h1 class=\"mx-auto max-w-3xl text-4xl font-semibold tracking-tight sm:text-5xl\">Your backups are untested until something restores them.</h1><p class=\"mx-auto mt-5 max-w-xl text-lg text-zinc-600 dark:text-zinc-400\">Selket restores your database backups in an isolated sandbox on a schedule, proves the data really came back, and signs the result — so a broken backup shows up in a report, not an outage.</p><div class=\"mt-8 flex flex-wrap justify-center gap-3\"><a href=\"/signup\" class=\"btn-primary px-6 py-3 text-base\">Start free</a> <a href=\"/pricing\" class=\"btn-ghost px-6 py-3 text-base\">View pricing</a></div><p class=\"mt-4 text-xs text-zinc-500\">No card required · Postgres supported today</p><div class=\"mx-auto mt-12 max-w-3xl\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -146,7 +146,7 @@ func landingMockup() templ.Component {
 			templ_7745c5c3_Var4 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "<div class=\"overflow-hidden rounded-xl border border-zinc-200 bg-white text-left shadow-2xl dark:border-zinc-700 dark:bg-zinc-900\"><div class=\"flex items-center gap-1.5 border-b border-zinc-200 px-4 py-2.5 dark:border-zinc-800\"><span class=\"h-2.5 w-2.5 rounded-full bg-red-400\"></span> <span class=\"h-2.5 w-2.5 rounded-full bg-amber-400\"></span> <span class=\"h-2.5 w-2.5 rounded-full bg-emerald-400\"></span> <span class=\"ml-3 font-mono text-xs text-zinc-400\">app.soteria.io/drills/a1f9c2</span></div><div class=\"space-y-4 p-5\"><div class=\"flex items-start justify-between\"><div><p class=\"font-semibold\">production-primary</p><p class=\"text-xs text-zinc-500\">Daily drill · pg_dump -Fc · 4.2 GB</p></div><span class=\"inline-flex items-center gap-1.5 rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-medium text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300\"><span class=\"h-1.5 w-1.5 rounded-full bg-emerald-500\"></span> passed</span></div><div class=\"grid grid-cols-2 gap-3 sm:grid-cols-4\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "<div class=\"overflow-hidden rounded-xl border border-zinc-200 bg-white text-left shadow-2xl dark:border-zinc-700 dark:bg-zinc-900\"><div class=\"flex items-center gap-1.5 border-b border-zinc-200 px-4 py-2.5 dark:border-zinc-800\"><span class=\"h-2.5 w-2.5 rounded-full bg-red-400\"></span> <span class=\"h-2.5 w-2.5 rounded-full bg-amber-400\"></span> <span class=\"h-2.5 w-2.5 rounded-full bg-emerald-400\"></span> <span class=\"ml-3 font-mono text-xs text-zinc-400\">app.selket.io/drills/a1f9c2</span></div><div class=\"space-y-4 p-5\"><div class=\"flex items-start justify-between\"><div><p class=\"font-semibold\">production-primary</p><p class=\"text-xs text-zinc-500\">Daily drill · pg_dump -Fc · 4.2 GB</p></div><span class=\"inline-flex items-center gap-1.5 rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-medium text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300\"><span class=\"h-1.5 w-1.5 rounded-full bg-emerald-500\"></span> passed</span></div><div class=\"grid grid-cols-2 gap-3 sm:grid-cols-4\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -337,11 +337,11 @@ func landingHow() templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = howCard("1", "Connect a database", "Point Soteria at the dump your backup job already produces — a local path, S3, or R2. We never touch your production database.").Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = howCard("1", "Connect a database", "Point Selket at the dump your backup job already produces — a local path, S3, or R2. We never touch your production database.").Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = howCard("2", "Soteria runs the drill", "On your schedule we spin up an isolated sandbox, restore the dump, and run your assertions: row counts, required tables, no-null checks.").Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = howCard("2", "Selket runs the drill", "On your schedule we spin up an isolated sandbox, restore the dump, and run your assertions: row counts, required tables, no-null checks.").Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -349,7 +349,7 @@ func landingHow() templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, "</div><p class=\"mt-6 text-center\"><a href=\"/how-it-works\" class=\"text-sm font-medium text-brand-600 hover:underline dark:text-brand-400\">New to backup drilling? Read the full explainer →</a></p></section>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, "</div><p class=\"mt-6 text-center\"><a href=\"/how-it-works\" class=\"text-sm font-medium text-gold-600 hover:underline dark:text-gold-400\">New to backup drilling? Read the full explainer →</a></p></section>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -447,7 +447,7 @@ func landingEvidence() templ.Component {
 			templ_7745c5c3_Var15 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 20, "<section class=\"grid items-center gap-10 sm:grid-cols-2\"><div><p class=\"text-sm font-semibold uppercase tracking-wide text-brand-600 dark:text-brand-400\">Auditor-grade evidence</p><h2 class=\"mt-1 text-3xl font-semibold tracking-tight\">Proof, not a green checkmark</h2><p class=\"mt-4 text-zinc-600 dark:text-zinc-400\">A backup job that \"succeeded\" only tells you a file was written. Soteria proves the file restores — and hands you a cryptographically signed report, retained for seven years, with a live tamper-check.</p><ul class=\"mt-5 space-y-2 text-sm text-zinc-700 dark:text-zinc-300\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 20, "<section class=\"grid items-center gap-10 sm:grid-cols-2\"><div><p class=\"text-sm font-semibold uppercase tracking-wide text-gold-600 dark:text-gold-400\">Auditor-grade evidence</p><h2 class=\"mt-1 text-3xl font-semibold tracking-tight\">Proof, not a green checkmark</h2><p class=\"mt-4 text-zinc-600 dark:text-zinc-400\">A backup job that \"succeeded\" only tells you a file was written. Selket proves the file restores — and hands you a cryptographically signed report, retained for seven years, with a live tamper-check.</p><ul class=\"mt-5 space-y-2 text-sm text-zinc-700 dark:text-zinc-300\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -508,7 +508,7 @@ func landingEvidenceCard() templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 24, "<span class=\"font-semibold\">Soteria</span></div><span class=\"inline-flex items-center gap-1.5 rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-medium text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 24, "<span class=\"font-semibold\">Selket</span></div><span class=\"inline-flex items-center gap-1.5 rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-medium text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -653,7 +653,7 @@ func landingFeatures() templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = featureCard("No production access", "Soteria verifies the dumps you already have. It never needs a connection to your live database.").Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = featureCard("No production access", "Selket verifies the dumps you already have. It never needs a connection to your live database.").Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -762,7 +762,7 @@ func landingFAQ() templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = faqItem("Does Soteria need access to my production database?", "No. Soteria only reads the backup dumps you register. It never connects to your live database.").Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = faqItem("Does Selket need access to my production database?", "No. Selket only reads the backup dumps you register. It never connects to your live database.").Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -899,14 +899,14 @@ func sectionHead(eyebrow, title string) templ.Component {
 			templ_7745c5c3_Var29 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 44, "<div class=\"mb-10 text-center\"><p class=\"text-sm font-semibold uppercase tracking-wide text-brand-600 dark:text-brand-400\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 44, "<div class=\"mb-10 text-center\"><p class=\"text-sm font-semibold uppercase tracking-wide text-gold-600 dark:text-gold-400\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var30 string
 		templ_7745c5c3_Var30, templ_7745c5c3_Err = templ.JoinStringErrs(eyebrow)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/templates/landing.templ`, Line: 253, Col: 103}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/templates/landing.templ`, Line: 253, Col: 101}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var30))
 		if templ_7745c5c3_Err != nil {

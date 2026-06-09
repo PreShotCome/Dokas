@@ -210,12 +210,12 @@ func (h *Handlers) v1GetEvidence(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.Header().Set("Content-Type", "application/pdf")
-	w.Header().Set("Content-Disposition", `attachment; filename="soteria-`+d.ID.String()+`.pdf"`)
+	w.Header().Set("Content-Disposition", `attachment; filename="selket-`+d.ID.String()+`.pdf"`)
 	_, _ = w.Write(body)
 }
 
 // apiSignature is the detached signature shape served over the API: the
-// fields a third-party verifier (soteria-verify) needs to re-prove the
+// fields a third-party verifier (selket-verify) needs to re-prove the
 // PDF, plus a retention horizon so the customer knows the window.
 type apiSignature struct {
 	Algorithm   string    `json:"algorithm"`
@@ -268,8 +268,8 @@ func (h *Handlers) v1GetLogs(w http.ResponseWriter, r *http.Request) {
 
 // v1GetSignature returns the detached signature record for a drill as
 // JSON. Pair the bytes with the evidence PDF (/drills/{id}/evidence)
-// and feed both to `soteria-verify` along with the published public
-// key — the verifier needs no Soteria-specific code.
+// and feed both to `selket-verify` along with the published public
+// key — the verifier needs no Selket-specific code.
 func (h *Handlers) v1GetSignature(w http.ResponseWriter, r *http.Request) {
 	acct, _ := auth.CurrentAccountFromContext(r.Context())
 	id, err := uuid.Parse(chi.URLParam(r, "id"))

@@ -1,6 +1,7 @@
-"""Generate Soteria_Investor_Deck.pptx — a tight 9-slide investor brief.
+"""Generate Selket_Investor_Deck.pptx — a tight 9-slide investor brief.
 
-Matches the Soteria brand (navy + emerald). Run once; commit the output.
+Matches the Selket brand (deep ceremonial red + Egyptian gold, with
+lapis-blue touches). Run once; commit the output.
 """
 
 from pptx import Presentation
@@ -10,14 +11,24 @@ from pptx.enum.shapes import MSO_SHAPE
 from pptx.enum.text import PP_ALIGN, MSO_ANCHOR
 from pathlib import Path
 
-# Brand palette mirrors tailwind.config.js.
-BRAND_900 = RGBColor(0x18, 0x23, 0x3A)
-BRAND_800 = RGBColor(0x21, 0x30, 0x4A)
-BRAND_700 = RGBColor(0x28, 0x3C, 0x5D)
-BRAND_500 = RGBColor(0x3F, 0x5E, 0x8D)
-BRAND_300 = RGBColor(0x84, 0xA0, 0xC6)
-BRAND_100 = RGBColor(0xD6, 0xE0, 0xEE)
-BRAND_50  = RGBColor(0xEE, 0xF2, 0xF8)
+# Brand palette mirrors tailwind.config.js — Selket red (primary) with
+# gold (secondary) and lapis (accent). Emerald stays reserved for the
+# verified/passed state.
+BRAND_900 = RGBColor(0x7F, 0x1D, 0x1D)
+BRAND_800 = RGBColor(0x99, 0x1B, 0x1B)
+BRAND_700 = RGBColor(0xB9, 0x1C, 0x1C)
+BRAND_500 = RGBColor(0xEF, 0x44, 0x44)
+BRAND_300 = RGBColor(0xFC, 0xA5, 0xA5)
+BRAND_100 = RGBColor(0xFE, 0xE2, 0xE2)
+BRAND_50  = RGBColor(0xFE, 0xF2, 0xF2)
+
+GOLD_700  = RGBColor(0xA1, 0x62, 0x07)
+GOLD_500  = RGBColor(0xEA, 0xB3, 0x08)
+GOLD_300  = RGBColor(0xFD, 0xE0, 0x47)
+GOLD_100  = RGBColor(0xFE, 0xF9, 0xC3)
+
+LAPIS_900 = RGBColor(0x1E, 0x3A, 0x8A)
+LAPIS_700 = RGBColor(0x1D, 0x4D, 0xD8)
 
 EMERALD     = RGBColor(0x10, 0xB9, 0x81)
 EMERALD_700 = RGBColor(0x04, 0x78, 0x57)
@@ -105,7 +116,7 @@ def page_chrome(slide, eyebrow, title, slide_num, total):
             f'{slide_num} / {total}', size=9, color=ZINC_400, align=PP_ALIGN.RIGHT)
     # Footer brand mark
     textbox(slide, Inches(0.6), Inches(7.05), Inches(6), Inches(0.3),
-            'SOTERIA  ·  Backup verification you can prove', size=9, color=ZINC_400)
+            'SELKET  ·  Backup verification you can prove', size=9, color=ZINC_400)
 
 
 TOTAL = 11
@@ -125,7 +136,7 @@ rounded(s, Inches(0.9), Inches(0.9), Inches(0.6), Inches(0.6), WHITE, radius=0.2
 textbox(s, Inches(0.95), Inches(0.96), Inches(0.5), Inches(0.5),
         'S', size=22, bold=True, color=BRAND_700, align=PP_ALIGN.CENTER)
 textbox(s, Inches(1.65), Inches(1.0), Inches(5), Inches(0.4),
-        'SOTERIA', size=14, bold=True, color=WHITE)
+        'SELKET', size=14, bold=True, color=WHITE)
 
 # Status pill
 rounded(s, Inches(0.9), Inches(2.6), Inches(2.6), Inches(0.35), BRAND_700, radius=0.5)
@@ -192,7 +203,7 @@ page_chrome(s, 'The solution', 'A drill is a controlled restore — daily, autom
 rounded(s, Inches(0.6), Inches(1.7), Inches(12.2), Inches(1.2), BRAND_50, line=BRAND_100, radius=0.05)
 rect(s, Inches(0.6), Inches(1.7), Inches(0.06), Inches(1.2), BRAND_700)
 textbox(s, Inches(0.9), Inches(1.85), Inches(11.6), Inches(0.95),
-        'Soteria pulls your latest backup into a clean sandbox, runs your assertions, and produces a\n'
+        'Selket pulls your latest backup into a clean sandbox, runs your assertions, and produces a\n'
         'cryptographically signed PDF. Run it every day. Catch the broken backup on a Tuesday.',
         size=16, color=ZINC_900, bold=True)
 
@@ -321,7 +332,7 @@ for i, c in enumerate([RGBColor(0xEF, 0x44, 0x44), RGBColor(0xF5, 0x9E, 0x0B), E
                              Inches(0.13), Inches(0.13))
     dot.fill.solid(); dot.fill.fore_color.rgb = c; dot.line.fill.background()
 textbox(s, mock_left + Inches(0.95), mock_top + Inches(0.12), Inches(5), Inches(0.25),
-        'app.soteria.io/drills/a1f9c2', size=9, color=ZINC_400, font='Consolas')
+        'app.selket.io/drills/a1f9c2', size=9, color=ZINC_400, font='Consolas')
 
 # Content
 textbox(s, mock_left + Inches(0.3), mock_top + Inches(0.7), Inches(4), Inches(0.35),
@@ -417,7 +428,7 @@ def drill_card(slide, left, top, w, h, *, status, pill_bg, pill_fg, stats, steps
                                      Inches(0.12), Inches(0.12))
         dot.fill.solid(); dot.fill.fore_color.rgb = c; dot.line.fill.background()
     textbox(slide, left + Inches(0.85), top + Inches(0.1), Inches(5), Inches(0.25),
-            'app.soteria.io/drills/...', size=9, color=ZINC_400, font='Consolas')
+            'app.selket.io/drills/...', size=9, color=ZINC_400, font='Consolas')
     # header
     textbox(slide, left + Inches(0.3), top + Inches(0.6), Inches(3.5), Inches(0.3),
             'production-primary', size=13, bold=True, color=ZINC_900)
@@ -609,15 +620,15 @@ pricing_card(s, left0, card_top, card_w, card_h,
               'API & webhooks', 'Community support'])
 
 pricing_card(s, left0 + card_w + card_gap, card_top, card_w, card_h,
-             'Starter', '$99', '/mo', 'DRILL FREQUENCY', 'Daily',
+             'Standard', '$99', '/mo', 'DRILL FREQUENCY', 'Weekly',
              ['10 databases', '10 team seats', 'Signed PDF evidence', '7-year retention',
-              'API & webhooks · Slack alerts', 'Email support'],
-             popular=True)
+              'API & webhooks · Slack alerts', 'Email support'])
 
 pricing_card(s, left0 + (card_w + card_gap) * 2, card_top, card_w, card_h,
-             'Pro', '$299', '/mo', 'DRILL FREQUENCY', 'Hourly',
+             'VIP', '$299', '/mo', 'DRILL FREQUENCY', 'Daily',
              ['Unlimited databases', 'Unlimited team seats', 'Signed PDF evidence',
-              '7-year retention', 'API & webhooks · Slack', 'SSO/SAML · Priority support · SLA'])
+              '7-year retention', 'API & webhooks · Slack', 'SSO/SAML · Priority support · SLA'],
+             popular=True)
 
 # Footer note about Enterprise
 textbox(s, Inches(0.6), Inches(7.05), Inches(12), Inches(0.3),
@@ -740,7 +751,7 @@ textbox(s, Inches(0.9), Inches(2.2), Inches(11.5), Inches(1.5),
         'Let’s build the proof layer\nfor every backup.', size=48, bold=True, color=WHITE)
 
 textbox(s, Inches(0.9), Inches(4.5), Inches(11.5), Inches(0.6),
-        'Soteria — backup verification you can prove.', size=18, color=BRAND_100)
+        'Selket — backup verification you can prove.', size=18, color=BRAND_100)
 
 # Contact card
 rounded(s, Inches(0.9), Inches(5.6), Inches(6.5), Inches(1.4), BRAND_700, radius=0.06)
@@ -753,6 +764,6 @@ textbox(s, Inches(1.1), Inches(6.45), Inches(6), Inches(0.4),
 
 
 # ---- save ----
-out = Path(__file__).parent / 'Soteria_Investor_Deck.pptx'
+out = Path(__file__).parent / 'Selket_Investor_Deck.pptx'
 prs.save(out)
 print(f'Wrote {out}')
