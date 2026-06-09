@@ -98,7 +98,7 @@ templ AuditLogPage(lc LayoutCtx, entries []audit.Entry, nextBefore int64) {
 			if nextBefore > 0 {
 				<div class="mt-4">
 					<a href={ templ.SafeURL(fmt.Sprintf("/account/audit?before=%d", nextBefore)) }
-						class="btn-secondary text-sm">
+						class="btn-ghost text-sm">
 						Load older
 					</a>
 				</div>
