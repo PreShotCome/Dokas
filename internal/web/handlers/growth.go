@@ -34,6 +34,24 @@ Disallow: /invitations/
 `))
 }
 
+// evidenceSigningKeys publishes the public halves of every key Selket signs
+// or verifies evidence with, as a PEM document at a well-known path. A
+// customer (or an auditor, or a court) holding a Selket-issued PDF can fetch
+// this, pick the block whose PublicKeyID matches the signature, and verify
+// the detached signature with stock OpenSSL — no Selket software in the loop.
+// Served with a short cache so a key rotation propagates within the day.
+func (h *Handlers) evidenceSigningKeys(w http.ResponseWriter, r *http.Request) {
+	pem, err := h.signer.AllPublicKeysPEM()
+	if err != nil {
+		h.logger().Error("serialize evidence signing keys", "err", err)
+		http.Error(w, "could not serialize signing keys", http.StatusInternalServerError)
+		return
+	}
+	w.Header().Set("Content-Type", "application/x-pem-file")
+	w.Header().Set("Cache-Control", "public, max-age=3600")
+	_, _ = w.Write([]byte(pem))
+}
+
 // postmarkBounce is Postmark's inbound bounce/complaint webhook. The {token}
 // path segment must match POSTMARK_WEBHOOK_TOKEN — Postmark webhooks have no
 // other authentication. When the token is unconfigured the route 404s.

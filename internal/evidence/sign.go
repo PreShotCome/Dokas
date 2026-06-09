@@ -8,6 +8,7 @@
 package evidence
 
 import (
+	"bytes"
 	"crypto/ed25519"
 	"crypto/sha256"
 	"crypto/x509"
@@ -16,6 +17,7 @@ import (
 	"encoding/pem"
 	"errors"
 	"fmt"
+	"sort"
 	"time"
 )
 
@@ -126,6 +128,54 @@ func (s *Signer) PublicKeyID() string { return s.publicKeyID }
 // PublicKey returns the raw verifying key.
 func (s *Signer) PublicKey() ed25519.PublicKey {
 	return s.priv.Public().(ed25519.PublicKey)
+}
+
+// AllPublicKeysPEM serializes every key this Signer will verify against —
+// the active signing key plus any retired verification keys — as a single
+// PEM document. Each block is preceded by two comment lines naming its
+// fingerprint and status:
+//
+//	# PublicKeyID: <hex fingerprint>
+//	# Status: active
+//	-----BEGIN PUBLIC KEY-----
+//	...
+//	-----END PUBLIC KEY-----
+//
+// The comments sit OUTSIDE the PEM block on purpose: OpenSSL (and Go's own
+// pem.Decode) treat any non-PEM line between blocks as ignorable preamble,
+// but header lines inside a block break parsing. So this document round-trips
+// through `openssl pkey -pubin` while still being self-describing to a human.
+//
+// The active key is emitted first; retired keys follow in fingerprint order
+// so the output is stable across calls.
+func (s *Signer) AllPublicKeysPEM() (string, error) {
+	ids := make([]string, 0, len(s.verifyKeys))
+	for id := range s.verifyKeys {
+		if id != s.publicKeyID {
+			ids = append(ids, id)
+		}
+	}
+	sort.Strings(ids)
+	// Active key leads; retired keys follow in deterministic order.
+	ordered := append([]string{s.publicKeyID}, ids...)
+
+	var buf bytes.Buffer
+	for _, id := range ordered {
+		pub := s.verifyKeys[id]
+		der, err := x509.MarshalPKIXPublicKey(pub)
+		if err != nil {
+			return "", fmt.Errorf("evidence: marshal public key %s: %w", id, err)
+		}
+		status := "retired"
+		if id == s.publicKeyID {
+			status = "active"
+		}
+		fmt.Fprintf(&buf, "# PublicKeyID: %s\n# Status: %s\n", id, status)
+		if err := pem.Encode(&buf, &pem.Block{Type: "PUBLIC KEY", Bytes: der}); err != nil {
+			return "", fmt.Errorf("evidence: encode public key %s: %w", id, err)
+		}
+	}
+	return buf.String(), nil
 }
 
 // Sign produces a detached signature over the PDF bytes. The signed message

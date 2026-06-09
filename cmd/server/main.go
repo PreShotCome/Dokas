@@ -238,6 +238,7 @@ func main() {
 		AuthLimiter:     authLimiter,
 		AppLimiter:      appLimiter,
 		Evidence:        evidenceService,
+		Signer:          signer,
 		Exporter:        compliance.NewExporter(pool),
 		Purger:          purger,
 		Inserter:        riverClient,

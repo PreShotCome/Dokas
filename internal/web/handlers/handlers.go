@@ -48,6 +48,7 @@ type Handlers struct {
 	authLimiter     *ratelimit.Limiter
 	appLimiter      *ratelimit.Limiter
 	evidence        *evidence.Service
+	signer          *evidence.Signer
 	exporter        *compliance.Exporter
 	purger          *compliance.Purger
 	inserter        drill.RiverInserter
@@ -87,6 +88,7 @@ type Deps struct {
 	AuthLimiter     *ratelimit.Limiter
 	AppLimiter      *ratelimit.Limiter
 	Evidence        *evidence.Service
+	Signer          *evidence.Signer
 	Exporter        *compliance.Exporter
 	Purger          *compliance.Purger
 	Inserter        drill.RiverInserter
@@ -131,6 +133,7 @@ func New(d Deps) *Handlers {
 		authLimiter:     d.AuthLimiter,
 		appLimiter:      d.AppLimiter,
 		evidence:        d.Evidence,
+		signer:          d.Signer,
 		exporter:        d.Exporter,
 		purger:          d.Purger,
 		inserter:        d.Inserter,
@@ -217,6 +220,11 @@ func (h *Handlers) Router(staticFS http.FileSystem) http.Handler {
 	}))
 	r.Handle("/metrics", h.metricsHandler())
 	r.Get("/robots.txt", h.robotsTxt)
+
+	// Public verification surface: the evidence signing keys, served as PEM
+	// so anyone holding a Selket-issued PDF can fetch the key and verify the
+	// detached signature without trusting Selket's own tooling.
+	r.Get("/.well-known/evidence-signing-keys.pem", h.evidenceSigningKeys)
 
 	// Inbound Postmark bounce/complaint webhook — authenticated by the
 	// token path segment, CSRF-exempt (see csrf.New in main).
