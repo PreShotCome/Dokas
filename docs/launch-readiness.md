@@ -36,7 +36,7 @@ without taking anyone's word for it.*
 | 6 | First Fly deploy with production secrets | ⬜ TODO | — |
 | 7 | Production Postgres + automated backups | ⬜ TODO | — |
 | 8 | Public signing-key endpoint at `.well-known/evidence-signing-keys.pem` | ✅ DONE | 2026-06-09 |
-| 9 | `selket-verify` CLI binaries on GitHub Releases | ⬜ TODO | — |
+| 9 | `selket-verify` CLI binaries on GitHub Releases | 🟡 IN PROGRESS | 2026-06-09 |
 | 10 | Terms / Privacy / DPA — rebranded + sub-processor list | 🟡 IN PROGRESS | 2026-06-09 |
 | 11 | Evidence-key backup procedure (signing + encryption) | ⬜ TODO | — |
 | 12 | Status page at `status.selket.io` | ⬜ TODO | — |
@@ -91,6 +91,32 @@ one-hour cache so a rotation propagates within the day.
 |---|---|---|
 | 2026-06-09 | `(*Signer).AllPublicKeysPEM()` added in `internal/evidence/sign.go`; `*evidence.Signer` wired through `handlers.Deps`/`Handlers` and `cmd/server/main.go`; route mounted next to `robots.txt` in `handlers.go` | This commit |
 | 2026-06-09 | Round-trip verified: the served PEM piped through `openssl pkey -pubin -text -noout` recovers a 32-byte `ED25519 Public-Key`, and the `# PublicKeyID` comment equals `Signer.PublicKeyID()` (the fingerprint a PDF signature carries) | Local test run |
+
+---
+
+## 9. `selket-verify` release binaries
+
+An auditor must be able to *download and run* the verifier — "compile it
+yourself with `go build`" is not an auditor-friendly answer. The release
+automation is now in place; the binaries land on GitHub Releases the
+moment the first tag is pushed.
+
+`.github/workflows/release-verify.yml` cross-compiles `cmd/selket-verify`
+for macOS, Linux, and Windows (amd64 + arm64), writes a `SHA256SUMS`
+file, and attaches all of it to the Release for a pushed `verify-v*` tag.
+`selket-verify` is standard-library-only, so every target builds
+statically with `CGO_ENABLED=0`. The release body tells the auditor how
+to fetch the public key from `/.well-known/evidence-signing-keys.pem`
+(item #8) and run the check.
+
+IN PROGRESS, not DONE: the workflow exists and all six targets compile
+clean, but no Release is published until the first tag is pushed
+(`git tag verify-v1.0.0 && git push origin verify-v1.0.0`).
+
+| When | What | Evidence |
+|---|---|---|
+| 2026-06-09 | `release-verify.yml` added; all six GOOS/GOARCH targets cross-compile locally (`CGO_ENABLED=0 go build -trimpath`) and the resulting binary prints its usage banner | This commit + local build |
+| — | Binaries live on GitHub Releases | Pending first `verify-v*` tag push |
 
 ---
 

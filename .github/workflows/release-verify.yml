@@ -1,0 +1,95 @@
+name: release-verify
+
+# Publishes the selket-verify CLI as downloadable binaries on a GitHub
+# Release, so a customer's auditor can verify Selket evidence without
+# installing Go ("compile it yourself" is not an auditor-friendly answer).
+#
+# Cut a release by pushing a tag like `verify-v1.0.0`:
+#
+#   git tag verify-v1.0.0 && git push origin verify-v1.0.0
+#
+# The job cross-compiles selket-verify for macOS, Linux, and Windows
+# (amd64 + arm64), writes a SHA256SUMS file, and attaches everything to the
+# Release for that tag. selket-verify depends only on the Go standard
+# library, so every target builds statically with CGO disabled.
+#
+# workflow_dispatch runs the same build for a dry run: it uploads the
+# binaries to the Actions run as artifacts but only publishes a Release when
+# triggered by a `verify-v*` tag.
+
+on:
+  push:
+    tags: ["verify-v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - name: Cross-compile selket-verify
+        run: |
+          set -euo pipefail
+          mkdir -p dist
+          targets=(
+            "linux/amd64" "linux/arm64"
+            "darwin/amd64" "darwin/arm64"
+            "windows/amd64" "windows/arm64"
+          )
+          for t in "${targets[@]}"; do
+            os="${t%/*}"; arch="${t#*/}"
+            ext=""
+            [ "$os" = "windows" ] && ext=".exe"
+            out="dist/selket-verify_${os}_${arch}${ext}"
+            echo "building $out"
+            CGO_ENABLED=0 GOOS="$os" GOARCH="$arch" \
+              go build -trimpath -ldflags "-s -w" \
+              -o "$out" ./cmd/selket-verify
+          done
+
+      - name: Checksums
+        run: |
+          cd dist
+          sha256sum * > SHA256SUMS
+          cat SHA256SUMS
+
+      - name: Upload build artifacts to the run
+        uses: actions/upload-artifact@v4
+        with:
+          name: selket-verify-binaries
+          path: dist/*
+          retention-days: 7
+
+      - name: Publish GitHub Release
+        if: startsWith(github.ref, 'refs/tags/verify-v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*
+          fail_on_unmatched_files: true
+          body: |
+            **selket-verify** — standalone evidence verifier for Selket.
+
+            Independently checks a Selket evidence PDF against its detached
+            Ed25519 signature and a published public key. Depends only on the
+            Go standard library — no Selket code in the trust path.
+
+            **Download** the binary for your platform, then verify the
+            `SHA256SUMS` checksum. Usage:
+
+            ```
+            selket-verify --pdf=evidence.pdf --sig=signature.json --pubkey=selket.pem
+            ```
+
+            Fetch the public key(s) from
+            `https://app.selket.io/.well-known/evidence-signing-keys.pem` and
+            match the `public_key_id` in the signature to a key block there.
+            Exit code 0 means the signature is valid.
