@@ -35,7 +35,7 @@ without taking anyone's word for it.*
 | 5 | DNS for selket.io | ⬜ TODO | — |
 | 6 | First Fly deploy with production secrets | ⬜ TODO | — |
 | 7 | Production Postgres + automated backups | ⬜ TODO | — |
-| 8 | Public signing-key endpoint at `.well-known/evidence-signing-keys.pem` | ⬜ TODO | — |
+| 8 | Public signing-key endpoint at `.well-known/evidence-signing-keys.pem` | ✅ DONE | 2026-06-09 |
 | 9 | `selket-verify` CLI binaries on GitHub Releases | ⬜ TODO | — |
 | 10 | Terms / Privacy / DPA — rebranded + sub-processor list | ⬜ TODO | — |
 | 11 | Evidence-key backup procedure (signing + encryption) | ⬜ TODO | — |
@@ -66,6 +66,31 @@ future contributor sees the fixes.
 |---|---|---|
 | 2026-06-09 | Full local CI gauntlet passes pre-merge: `templ generate`, `go mod tidy` (no diff), `go vet`, `govulncheck` (0 in code path), `tailwindcss --minify`, `go test ./...` (all packages green incl. `TestV1DatabasePlanLimit` after a trial-end-date fix), `go build` of all five binaries | This commit |
 | 2026-06-09 | `TestV1DatabasePlanLimit` updated to seed `trial_ends_at` when flipping a test account to `trial` — `TrialLapsed` correctly treats a null end date as lapsed, so the test as written would 402 before reaching the cap | This commit |
+
+---
+
+## 8. Public signing-key endpoint
+
+Selket's entire value proposition is that its evidence verifies
+independently of Selket. That promise is empty if the verifying public
+key is only available from Selket's own tooling. The keys must be
+published at a stable, well-known URL so a customer — or their auditor,
+or a court — can fetch them and verify a detached signature with stock
+tooling years after the fact, even if Selket is gone.
+
+`GET /.well-known/evidence-signing-keys.pem` now serves the active
+signing key plus every retired verification key as a single PEM
+document. Each block is preceded by `# PublicKeyID:` and `# Status:`
+(active/retired) comment lines placed *outside* the PEM block, because
+header lines inside a block break OpenSSL and Go's `pem.Decode`, while
+text between blocks is ignored as preamble. The endpoint is public,
+CSRF-exempt (top-level, outside the session group), and sent with a
+one-hour cache so a rotation propagates within the day.
+
+| When | What | Evidence |
+|---|---|---|
+| 2026-06-09 | `(*Signer).AllPublicKeysPEM()` added in `internal/evidence/sign.go`; `*evidence.Signer` wired through `handlers.Deps`/`Handlers` and `cmd/server/main.go`; route mounted next to `robots.txt` in `handlers.go` | This commit |
+| 2026-06-09 | Round-trip verified: the served PEM piped through `openssl pkey -pubin -text -noout` recovers a 32-byte `ED25519 Public-Key`, and the `# PublicKeyID` comment equals `Signer.PublicKeyID()` (the fingerprint a PDF signature carries) | Local test run |
 
 ---
 
