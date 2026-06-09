@@ -47,7 +47,7 @@ without taking anyone's word for it.*
 | 17 | Customer-facing data-loss response runbook | ✅ DONE | 2026-06-09 |
 | 18 | Selket-specific logo / favicon (vs. inherited phoenix) | ⬜ TODO | — |
 | 19 | GDPR data-deletion endpoint | ⬜ TODO | — |
-| 20 | Onboarding fixtures + walkthrough | ⬜ TODO | — |
+| 20 | Onboarding fixtures + walkthrough | ✅ DONE | 2026-06-09 |
 | 21 | Stripe purchase flow verified end-to-end against real keys | ⬜ TODO | — |
 | 22 | OAuth providers (Google, GitHub) | ⬜ TODO | — |
 | 23 | Customer-facing audit-trail viewer | ⬜ TODO | — |
@@ -165,3 +165,32 @@ must add a new `e2e-smoke` check before its postmortem can close.
 | When | What | Evidence |
 |---|---|---|
 | 2026-06-09 | `docs/runbooks/customer-drill-failure-response.md` added with severity criteria, timeline, per-step triage table, comms templates, audit escalation, and the e2e-smoke standing rule | This commit |
+
+---
+
+## 20. Onboarding fixtures + walkthrough
+
+A new user shouldn't have to point Selket at their production database to
+find out whether the product works. They need a known-good backup they
+can drill in five minutes, and a walkthrough that ends in *independently
+verified* evidence — the product's whole point — not just a green
+checkmark.
+
+`testdata/fixtures/tiny.dump` (a one-table `public.events` custom-format
+dump) is now copied to `internal/web/handlers/sample.dump`, embedded via
+`go:embed`, and served at `GET /onboarding/sample.dump` as a file
+download (Content-Disposition attachment, `max-age=86400`). It's the same
+artifact the `e2e-smoke` harness drills, so the onboarding path and the
+CI path can't silently diverge.
+
+`docs/onboarding.md` is the 7-step walkthrough: signup → download the
+fixture → connect it as a source → add a `table_exists` assertion → run
+the drill (watching provision→…→teardown) → download the signed PDF →
+verify it with `selket-verify` against the published key. It opens with
+the Windows `Invoke-WebRequest -OutFile` caution (PowerShell `>` corrupts
+the binary dump) and closes with a troubleshooting table covering the
+same five seam bugs the e2e-smoke harness guards.
+
+| When | What | Evidence |
+|---|---|---|
+| 2026-06-09 | Fixture embedded (`internal/web/handlers/onboarding.go`, `sample.dump`) and served at `/onboarding/sample.dump`; route mounted next to `/how-it-works`; `docs/onboarding.md` 7-step walkthrough + troubleshooting added | This commit |

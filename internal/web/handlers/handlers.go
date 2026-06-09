@@ -258,6 +258,10 @@ func (h *Handlers) Router(staticFS http.FileSystem) http.Handler {
 	// Public explainer — what backup drilling is and how Selket helps.
 	r.Get("/how-it-works", h.howItWorks)
 
+	// Onboarding sample dump — a known-good fixture a new user can run
+	// their first drill against before connecting a real database.
+	r.Get("/onboarding/sample.dump", h.onboardingSampleDump)
+
 	r.Handle("/static/*", http.StripPrefix("/static/", http.FileServer(staticFS)))
 
 	r.Get("/", h.index)
