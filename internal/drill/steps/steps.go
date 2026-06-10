@@ -537,11 +537,14 @@ func (w *ReportWorker) Work(ctx context.Context, job *river.Job[drill.ReportArgs
 	}
 
 	// Render the PDF to memory, then hand it to the evidence service, which
-	// stores it and records a detached signature + retention horizon.
+	// stores it and records a detached signature + retention horizon. The
+	// operator (the user who created the drill) is best-effort — a lookup
+	// miss leaves the row off rather than failing the report.
+	operator, _ := w.D.Store.CreatorEmail(ctx, dr.CreatedByUserID)
 	var buf bytes.Buffer
 	if err := report.Render(&buf, report.Data{
 		Drill: dr, Target: target, Steps: steps, Assertions: ars,
-		GeneratedAt: time.Now().UTC(),
+		Operator: operator, GeneratedAt: time.Now().UTC(),
 	}); err != nil {
 		return w.D.failAndCleanup(ctx, drillID, drill.StepReport, err.Error())
 	}

@@ -19,6 +19,7 @@ type Data struct {
 	Target      drill.Target
 	Steps       []drill.Step
 	Assertions  []drill.AssertionResult
+	Operator    string // email of the user who ran the drill; "" omits the row
 	GeneratedAt time.Time
 }
 
@@ -30,8 +31,13 @@ func Render(out io.Writer, d Data) error {
 	pdf.AddPage()
 
 	pdf.SetFont("Helvetica", "B", 18)
-	pdf.Cell(0, 10, "Selket Report")
-	pdf.Ln(12)
+	pdf.Cell(0, 10, "Proof of Recovery")
+	pdf.Ln(8)
+	pdf.SetFont("Helvetica", "", 10)
+	pdf.SetTextColor(110, 110, 110)
+	pdf.Cell(0, 6, "Backup restore-test evidence - Selket")
+	pdf.SetTextColor(0, 0, 0)
+	pdf.Ln(10)
 
 	pdf.SetFont("Helvetica", "", 10)
 	verdict := "FAILED"
@@ -60,6 +66,9 @@ func Render(out io.Writer, d Data) error {
 		{"Duration", duration(d.Drill.StartedAt, d.Drill.CompletedAt)},
 		{"Generated", d.GeneratedAt.UTC().Format(time.RFC3339)},
 	}
+	if d.Operator != "" {
+		pairs = append(pairs, [2]string{"Operator", d.Operator})
+	}
 	for _, kv := range pairs {
 		pdf.SetFont("Helvetica", "B", 10)
 		pdf.CellFormat(35, 6, kv[0], "", 0, "L", false, 0, "")
@@ -86,10 +95,23 @@ func Render(out io.Writer, d Data) error {
 	assertionsTable(pdf, d.Assertions)
 
 	pdf.Ln(6)
+	pdf.SetFont("Helvetica", "B", 9)
+	pdf.CellFormat(0, 5, "Compliance and insurance", "", 1, "L", false, 0, "")
+	pdf.SetFont("Helvetica", "", 8)
+	pdf.MultiCell(0, 4,
+		"This Proof-of-Recovery report is evidence that the backup above was "+
+			"restored and checked on the date shown. It supports the regularly-"+
+			"tested-backup requirements of ISO/IEC 27001:2022 Annex A 8.13 and "+
+			"the SOC 2 Availability criterion A1.3, and the restore-within-the-"+
+			"last-12-months evidence many cyber-insurance carriers require at "+
+			"renewal.", "", "L", false)
+
+	pdf.Ln(3)
 	pdf.SetFont("Helvetica", "I", 8)
 	pdf.MultiCell(0, 4,
 		"This report is sealed with a detached cryptographic signature over "+
-			"its SHA-256 digest; verify it from the drill detail page.", "", "L", false)
+			"its SHA-256 digest; verify it from the drill detail page or with "+
+			"the open-source selket-verify tool against the published signing key.", "", "L", false)
 
 	pdf.Ln(2)
 	pdf.SetFont("Helvetica", "B", 8)

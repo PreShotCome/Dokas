@@ -245,6 +245,19 @@ func (s *Store) GetTarget(ctx context.Context, accountID, targetID uuid.UUID) (T
 	return t, err
 }
 
+// CreatorEmail resolves a user ID to its email — used to name the operator on
+// an evidence report. Best-effort: returns "" (no error) when the user is
+// missing, so a deleted operator never blocks rendering.
+func (s *Store) CreatorEmail(ctx context.Context, userID uuid.UUID) (string, error) {
+	var email string
+	err := s.pool.QueryRow(ctx,
+		`SELECT email FROM users WHERE id = $1`, userID).Scan(&email)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return "", nil
+	}
+	return email, err
+}
+
 // SetTargetSchedule updates a target's drill cadence and its next run time.
 // Pass cadence "off" with a nil nextAt to disable scheduling.
 func (s *Store) SetTargetSchedule(ctx context.Context, accountID, targetID uuid.UUID, cadence string, nextAt *time.Time) error {

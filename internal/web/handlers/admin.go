@@ -206,11 +206,12 @@ func (h *Handlers) adminEvidenceRegen(w http.ResponseWriter, r *http.Request) {
 	target, _ := h.drills.GetTargetByID(r.Context(), dr.TargetID)
 	steps, _ := h.drills.ListSteps(r.Context(), dr.ID)
 	ars, _ := h.drills.ListAssertions(r.Context(), dr.ID)
+	operator, _ := h.drills.CreatorEmail(r.Context(), dr.CreatedByUserID)
 
 	var buf bytes.Buffer
 	if err := report.Render(&buf, report.Data{
 		Drill: dr, Target: target, Steps: steps, Assertions: ars,
-		GeneratedAt: time.Now().UTC(),
+		Operator: operator, GeneratedAt: time.Now().UTC(),
 	}); err != nil {
 		http.Error(w, "render: "+err.Error(), http.StatusInternalServerError)
 		return
