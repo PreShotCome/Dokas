@@ -162,6 +162,11 @@ func (h *Handlers) v1CreateDrill(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Drilling a real backup needs a paid plan; the sample is always allowed.
+	if !target.IsSample && h.v1BlockFreeReal(w, r) {
+		return
+	}
+
 	// Use the request's Idempotency-Key as the drill idempotency key too,
 	// so even two concurrent POSTs with the same key collapse to one drill
 	// (the v1Idempotency middleware stores responses but doesn't serialize

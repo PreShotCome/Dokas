@@ -29,7 +29,6 @@ import (
 	"net/http/cookiejar"
 	"net/url"
 	"os"
-	"path/filepath"
 	"regexp"
 	"strings"
 	"time"
@@ -47,13 +46,6 @@ var (
 
 func main() {
 	base := strings.TrimRight(env("BASE_URL", "http://localhost:5173"), "/")
-	dump := env("E2E_DUMP_PATH", "tmp/sources/test.dump")
-	dumpAbs, err := filepath.Abs(dump)
-	if err == nil {
-		if _, err := os.Stat(dumpAbs); err != nil {
-			die("dump file not found at %s - generate one first with pg_dump", dumpAbs)
-		}
-	}
 
 	stamp := randHex(6)
 	email := fmt.Sprintf("e2e-%s@local.test", stamp)
@@ -62,22 +54,16 @@ func main() {
 	jar, _ := cookiejar.New(nil)
 	c := &http.Client{Jar: jar, Timeout: 30 * time.Second}
 
+	// The smoke walks the free-user happy path: sign up, then run a drill
+	// against the built-in sample dataset (a real pg_dump exercised through
+	// the full provision -> restore -> assert -> report -> sign pipeline).
+	// The sample target ships with a table_exists assertion - the kind that
+	// surfaced the assertion_results CHECK-constraint bug - so the smoke
+	// still covers that seam without a free account needing a paid plan.
 	step("signup", func() error { return signup(c, base, email, password) })
-	var targetID string
-	step("connect database", func() (err error) {
-		targetID, err = connectDB(c, base, "e2e-"+stamp, dump)
-		return
-	})
-	// table_exists is the kind that surfaced the assertion_results CHECK
-	// constraint bug - row_count was already in the original allowlist.
-	// table_exists also passes against any non-empty schema, so the smoke
-	// doesn't depend on the dump containing rows.
-	step("add table_exists assertion", func() error {
-		return addAssertion(c, base, targetID, "table_exists", "users", "0")
-	})
 	var drillID string
-	step("trigger drill", func() (err error) {
-		drillID, err = triggerDrill(c, base, targetID)
+	step("run sample drill", func() (err error) {
+		drillID, err = runSampleDrill(c, base)
 		return
 	})
 	step("wait for drill completion", func() error {
@@ -127,71 +113,24 @@ func signup(c *http.Client, base, email, password string) error {
 	return nil
 }
 
-func connectDB(c *http.Client, base, name, dumpPath string) (string, error) {
-	token, err := getCSRF(c, base+"/databases/new")
+// runSampleDrill posts the sample-drill form (the free-user demo) and returns
+// the new drill's ID, parsed from the /drills/{id} page it redirects to. The
+// CSRF token comes from the /databases page, which renders the sample-drill
+// form for any account.
+func runSampleDrill(c *http.Client, base string) (string, error) {
+	token, err := getCSRF(c, base+"/databases")
 	if err != nil {
-		return "", fmt.Errorf("fetch /databases/new: %w", err)
+		return "", fmt.Errorf("fetch /databases: %w", err)
 	}
-	form := url.Values{csrfField: {token}, "name": {name}, "source_uri": {dumpPath}}
-	resp, err := c.PostForm(base+"/databases", form)
+	form := url.Values{csrfField: {token}}
+	resp, err := c.PostForm(base+"/databases/sample-drill", form)
 	if err != nil {
 		return "", err
 	}
 	defer resp.Body.Close()
 	body, _ := io.ReadAll(resp.Body)
 	if resp.StatusCode >= 400 {
-		return "", fmt.Errorf("/databases returned %d:\n%s", resp.StatusCode, truncate(body, 500))
-	}
-	// After a successful POST we land on /databases/{id} - extract the ID.
-	final := resp.Request.URL.Path
-	parts := strings.Split(final, "/")
-	if len(parts) < 3 || parts[1] != "databases" {
-		return "", fmt.Errorf("expected redirect to /databases/{id}, got %q", final)
-	}
-	return parts[2], nil
-}
-
-func addAssertion(c *http.Client, base, targetID, kind, table, minRows string) error {
-	token, err := getCSRF(c, base+"/databases/"+targetID)
-	if err != nil {
-		return fmt.Errorf("fetch /databases/%s: %w", targetID, err)
-	}
-	form := url.Values{
-		csrfField:  {token},
-		"kind":     {kind},
-		"table":    {table},
-		"min_rows": {minRows},
-	}
-	resp, err := c.PostForm(base+"/databases/"+targetID+"/assertions", form)
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
-	if resp.StatusCode >= 400 {
-		body, _ := io.ReadAll(resp.Body)
-		return fmt.Errorf("/assertions returned %d:\n%s", resp.StatusCode, truncate(body, 500))
-	}
-	return nil
-}
-
-func triggerDrill(c *http.Client, base, targetID string) (string, error) {
-	token, err := getCSRF(c, base+"/drills")
-	if err != nil {
-		return "", fmt.Errorf("fetch /drills: %w", err)
-	}
-	form := url.Values{
-		csrfField:         {token},
-		"target_id":       {targetID},
-		"idempotency_key": {"e2e-" + randHex(8)},
-	}
-	resp, err := c.PostForm(base+"/drills", form)
-	if err != nil {
-		return "", err
-	}
-	defer resp.Body.Close()
-	if resp.StatusCode >= 400 {
-		body, _ := io.ReadAll(resp.Body)
-		return "", fmt.Errorf("/drills returned %d:\n%s", resp.StatusCode, truncate(body, 500))
+		return "", fmt.Errorf("/databases/sample-drill returned %d:\n%s", resp.StatusCode, truncate(body, 500))
 	}
 	final := resp.Request.URL.Path
 	parts := strings.Split(final, "/")

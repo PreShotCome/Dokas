@@ -343,12 +343,11 @@ func TestV1DatabasePlanLimit(t *testing.T) {
 	defer pool.Close()
 	srv, key, accountID, _, _ := v1TestServer(t, pool)
 
-	// v1TestServer seeds Pro; drop to trial — capped at ten databases. Give it
-	// a live trial window: a trial with no end date is treated as lapsed
-	// (fail-closed), which the v1 middleware answers with 402 before any plan
-	// check, so without this the create calls below 402 instead of 201.
+	// v1TestServer seeds Pro (uncapped). Drop to Starter — the paid tier
+	// capped at ten databases. (Trial can't create real databases at all now,
+	// so the database cap is exercised on a paid tier, not on trial.)
 	if _, err := pool.Exec(context.Background(),
-		`UPDATE accounts SET plan='trial', trial_ends_at = now() + interval '14 days' WHERE id=$1`, accountID); err != nil {
+		`UPDATE accounts SET plan='starter' WHERE id=$1`, accountID); err != nil {
 		t.Fatalf("set plan: %v", err)
 	}
 
@@ -436,6 +435,65 @@ func TestV1DeleteAccount(t *testing.T) {
 	if resp, _ := v1Do(t, "DELETE", srv.URL+"/accounts/"+accountID.String(), delKey.Secret, "del-4", ""); resp.StatusCode != 401 {
 		t.Fatalf("repeat DELETE after soft-delete: got %d, want 401 (account no longer served)", resp.StatusCode)
 	}
+}
+
+func TestV1FreePlanCannotDrillReal(t *testing.T) {
+	dsn := os.Getenv("DATABASE_URL")
+	if dsn == "" {
+		t.Skip("DATABASE_URL not set")
+	}
+	pool, err := pgxpool.New(context.Background(), dsn)
+	if err != nil {
+		t.Fatalf("pool: %v", err)
+	}
+	defer pool.Close()
+	srv, key, accountID, userID, _ := v1TestServer(t, pool)
+	ctx := context.Background()
+
+	// Drop to a live (unlapsed) trial — the free tier.
+	if _, err := pool.Exec(ctx,
+		`UPDATE accounts SET plan='trial', trial_ends_at = now() + interval '14 days' WHERE id=$1`,
+		accountID); err != nil {
+		t.Fatalf("set trial: %v", err)
+	}
+
+	// A free account cannot add a real backup target.
+	body := `{"name":"prod","source_uri":"` + mustAbsTestdata(t) + `"}`
+	resp, env := v1Do(t, "POST", srv.URL+"/databases", key, uuid.NewString(), body)
+	if resp.StatusCode != 402 {
+		t.Fatalf("free create real database: got %d, want 402 (env=%v)", resp.StatusCode, env)
+	}
+	if first, _ := firstError(env); first != "plan_required" {
+		t.Fatalf("error code = %q, want plan_required", first)
+	}
+
+	// Even with an existing real target (e.g. a downgraded account), a free
+	// account cannot drill it. Seed one directly.
+	var realID uuid.UUID
+	if err := pool.QueryRow(ctx, `
+		INSERT INTO database_targets (account_id, created_by_user_id, name, source_kind, source_uri, is_sample)
+		VALUES ($1, $2, 'real', 'postgres_dump_local', '/tmp/whatever.dump', false)
+		RETURNING id`, accountID, userID).Scan(&realID); err != nil {
+		t.Fatalf("seed real target: %v", err)
+	}
+	drillBody := `{"database_id":"` + realID.String() + `"}`
+	resp, env = v1Do(t, "POST", srv.URL+"/drills", key, uuid.NewString(), drillBody)
+	if resp.StatusCode != 402 {
+		t.Fatalf("free drill real target: got %d, want 402 (env=%v)", resp.StatusCode, env)
+	}
+	if first, _ := firstError(env); first != "plan_required" {
+		t.Fatalf("error code = %q, want plan_required", first)
+	}
+}
+
+func firstError(env map[string]any) (code string, ok bool) {
+	errs, _ := env["errors"].([]any)
+	if len(errs) == 0 {
+		return "", false
+	}
+	m, _ := errs[0].(map[string]any)
+	c, _ := m["code"].(string)
+	return c, true
 }
 
 func mustAbsTestdata(t *testing.T) string {

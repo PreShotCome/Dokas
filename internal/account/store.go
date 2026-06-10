@@ -54,6 +54,11 @@ const (
 	PlanPro     Plan = "pro"
 )
 
+// IsPaid reports whether a plan is a paid subscription (Starter or Pro/Growth)
+// rather than the free trial. Free/trial accounts may only drill the built-in
+// sample dataset; drilling a real backup requires a paid plan.
+func IsPaid(p Plan) bool { return p == PlanStarter || p == PlanPro }
+
 type Account struct {
 	ID               uuid.UUID
 	Name             string

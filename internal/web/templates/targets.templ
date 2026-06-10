@@ -17,26 +17,44 @@ type TargetFormValues struct {
 
 templ TargetsPage(lc LayoutCtx, targets []drill.Target) {
 	@LayoutWith("Databases", lc) {
-		<div class="mb-6 flex items-baseline justify-between">
+		<div class="mb-6 flex items-baseline justify-between gap-3">
 			<h1 class="text-2xl font-semibold tracking-tight">Databases</h1>
-			if lc.Membership != nil && auth.Allowed(lc.Membership.Role, auth.ActionTargetWrite) {
-				<a href="/databases/new" class="btn-primary">Connect a database</a>
+			if lc.Membership != nil && auth.Allowed(lc.Membership.Role, auth.ActionDrillWrite) {
+				<div class="flex gap-2">
+					@sampleDrillForm("Run the sample drill", "btn-ghost")
+					<a href="/databases/new" class="btn-primary">Connect a database</a>
+				</div>
 			}
 		</div>
 		if len(targets) == 0 {
-			<div class="card flex flex-col items-center justify-center gap-2 py-16 text-center">
-				<h2 class="text-lg font-semibold">No databases yet</h2>
+			<div class="card flex flex-col items-center justify-center gap-3 py-16 text-center">
+				<h2 class="text-lg font-semibold">See the signed evidence in two minutes</h2>
 				<p class="max-w-md text-sm text-zinc-600 dark:text-zinc-400">
-					Add a database target to start running drills.
+					Run a drill against our built-in sample dataset — no setup, no
+					card — and download the signed Proof-of-Recovery PDF. Then
+					connect your own backup to drill it on a schedule.
 				</p>
-				if lc.Membership != nil && auth.Allowed(lc.Membership.Role, auth.ActionTargetWrite) {
-					<a href="/databases/new" class="btn-primary mt-2">Connect a database</a>
+				if lc.Membership != nil && auth.Allowed(lc.Membership.Role, auth.ActionDrillWrite) {
+					<div class="mt-2 flex gap-2">
+						@sampleDrillForm("Run the sample drill", "btn-primary")
+						<a href="/databases/new" class="btn-ghost">Connect a database</a>
+					</div>
 				}
 			</div>
 		} else {
 			@TargetsTable(targets, lc.Membership)
 		}
 	}
+}
+
+// sampleDrillForm is the CSRF-protected POST that runs a drill against the
+// built-in sample dataset. btnClass picks the button styling so the same
+// control works as a primary or ghost button depending on context.
+templ sampleDrillForm(label, btnClass string) {
+	<form method="POST" action="/databases/sample-drill">
+		@CSRFField()
+		<button type="submit" class={ btnClass }>{ label }</button>
+	</form>
 }
 
 templ TargetsTable(targets []drill.Target, m *account.Membership) {

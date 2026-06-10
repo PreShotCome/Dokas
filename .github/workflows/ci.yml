@@ -102,8 +102,6 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p tmp/sources tmp/evidence
-          PGPASSWORD=selket pg_dump -h localhost -U selket -Fc \
-            -f tmp/sources/test.dump selket
           eval "$(/tmp/devkeys)"
           export EVIDENCE_SIGNING_KEY="$(printf '%s' "$EVIDENCE_SIGNING_KEY_B64" | base64 -d)"
           export DATABASE_URL="$DATABASE_URL"
@@ -113,9 +111,7 @@ jobs:
           trap 'kill $SRV_PID 2>/dev/null || true' EXIT
           timeout 30 bash -c \
             'until curl -sf http://localhost:5173/ >/dev/null 2>&1; do sleep 0.5; done'
-          BASE_URL=http://localhost:5173 \
-            E2E_DUMP_PATH="$PWD/tmp/sources/test.dump" \
-            /tmp/e2e-smoke
+          BASE_URL=http://localhost:5173 /tmp/e2e-smoke
 
       - name: Upload server log on failure
         if: failure()

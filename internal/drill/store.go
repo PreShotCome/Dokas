@@ -62,6 +62,10 @@ type Target struct {
 	// when the scheduler should next enqueue a drill (nil when cadence is off).
 	DrillCadence string
 	NextDrillAt  *time.Time
+	// IsSample marks the built-in demo target (the bundled sample dump).
+	// Free/trial accounts may drill only their sample target; a real target
+	// requires a paid plan.
+	IsSample bool
 }
 
 // Assertion is one configured check on a target. config holds the raw JSONB
@@ -144,18 +148,36 @@ var ErrNotFound = errors.New("drill: not found")
 func (s *Store) CreateTarget(ctx context.Context, t Target) (Target, error) {
 	err := s.pool.QueryRow(ctx, `
 		INSERT INTO database_targets
-		    (account_id, created_by_user_id, name, source_kind, source_uri)
-		VALUES ($1, $2, $3, $4, $5)
+		    (account_id, created_by_user_id, name, source_kind, source_uri, is_sample)
+		VALUES ($1, $2, $3, $4, $5, $6)
 		RETURNING id, created_at
-	`, t.AccountID, t.CreatedByUserID, t.Name, t.SourceKind, t.SourceURI).
+	`, t.AccountID, t.CreatedByUserID, t.Name, t.SourceKind, t.SourceURI, t.IsSample).
 		Scan(&t.ID, &t.CreatedAt)
+	return t, err
+}
+
+// GetSampleTarget returns the account's built-in sample target, or ErrNotFound
+// if it hasn't been created yet.
+func (s *Store) GetSampleTarget(ctx context.Context, accountID uuid.UUID) (Target, error) {
+	var t Target
+	err := s.pool.QueryRow(ctx, `
+		SELECT id, account_id, created_by_user_id, name, source_kind, source_uri, created_at,
+		       drill_cadence, next_drill_at, is_sample
+		  FROM database_targets
+		 WHERE account_id = $1 AND is_sample = true AND deleted_at IS NULL
+		 LIMIT 1
+	`, accountID).Scan(&t.ID, &t.AccountID, &t.CreatedByUserID, &t.Name, &t.SourceKind, &t.SourceURI,
+		&t.CreatedAt, &t.DrillCadence, &t.NextDrillAt, &t.IsSample)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return Target{}, ErrNotFound
+	}
 	return t, err
 }
 
 func (s *Store) ListTargets(ctx context.Context, accountID uuid.UUID) ([]Target, error) {
 	rows, err := s.pool.Query(ctx, `
 		SELECT id, account_id, created_by_user_id, name, source_kind, source_uri, created_at,
-		       drill_cadence, next_drill_at
+		       drill_cadence, next_drill_at, is_sample
 		  FROM database_targets
 		 WHERE account_id = $1 AND deleted_at IS NULL
 		 ORDER BY created_at DESC
@@ -168,7 +190,7 @@ func (s *Store) ListTargets(ctx context.Context, accountID uuid.UUID) ([]Target,
 	for rows.Next() {
 		var t Target
 		if err := rows.Scan(&t.ID, &t.AccountID, &t.CreatedByUserID, &t.Name, &t.SourceKind, &t.SourceURI,
-			&t.CreatedAt, &t.DrillCadence, &t.NextDrillAt); err != nil {
+			&t.CreatedAt, &t.DrillCadence, &t.NextDrillAt, &t.IsSample); err != nil {
 			return nil, err
 		}
 		out = append(out, t)
@@ -180,7 +202,7 @@ func (s *Store) ListTargets(ctx context.Context, accountID uuid.UUID) ([]Target,
 // Pass a nil cursor for the first page; rows order (created_at, id) DESC.
 func (s *Store) ListTargetsPage(ctx context.Context, accountID uuid.UUID, afterAt *time.Time, afterID *uuid.UUID, limit int) ([]Target, error) {
 	rows, err := s.pool.Query(ctx, `
-		SELECT id, account_id, created_by_user_id, name, source_kind, source_uri, created_at
+		SELECT id, account_id, created_by_user_id, name, source_kind, source_uri, created_at, is_sample
 		  FROM database_targets
 		 WHERE account_id = $1 AND deleted_at IS NULL
 		   AND ($2::timestamptz IS NULL OR (created_at, id) < ($2, $3))
@@ -195,7 +217,7 @@ func (s *Store) ListTargetsPage(ctx context.Context, accountID uuid.UUID, afterA
 	for rows.Next() {
 		var t Target
 		if err := rows.Scan(&t.ID, &t.AccountID, &t.CreatedByUserID, &t.Name, &t.SourceKind, &t.SourceURI,
-			&t.CreatedAt); err != nil {
+			&t.CreatedAt, &t.IsSample); err != nil {
 			return nil, err
 		}
 		out = append(out, t)
@@ -234,11 +256,11 @@ func (s *Store) GetTarget(ctx context.Context, accountID, targetID uuid.UUID) (T
 	var t Target
 	err := s.pool.QueryRow(ctx, `
 		SELECT id, account_id, created_by_user_id, name, source_kind, source_uri, created_at,
-		       drill_cadence, next_drill_at
+		       drill_cadence, next_drill_at, is_sample
 		  FROM database_targets
 		 WHERE id = $1 AND account_id = $2 AND deleted_at IS NULL
 	`, targetID, accountID).Scan(&t.ID, &t.AccountID, &t.CreatedByUserID, &t.Name, &t.SourceKind, &t.SourceURI,
-		&t.CreatedAt, &t.DrillCadence, &t.NextDrillAt)
+		&t.CreatedAt, &t.DrillCadence, &t.NextDrillAt, &t.IsSample)
 	if errors.Is(err, pgx.ErrNoRows) {
 		return Target{}, ErrNotFound
 	}
@@ -296,8 +318,11 @@ func (s *Store) DueTargets(ctx context.Context) ([]Target, error) {
 		   AND t.drill_cadence <> 'off'
 		   AND t.next_drill_at IS NOT NULL
 		   AND t.next_drill_at <= now()
-		   -- A lapsed trial is read-only: the scheduler stops drilling it.
-		   AND NOT (a.plan = 'trial' AND a.trial_ends_at IS NOT NULL AND a.trial_ends_at < now())
+		   -- The sample (demo) target is never auto-scheduled.
+		   AND t.is_sample = false
+		   -- Only paid plans get scheduled drills of their own backups; a
+		   -- downgraded (now-trial) account stops being drilled automatically.
+		   AND a.plan IN ('starter', 'pro')
 		 FOR UPDATE OF t SKIP LOCKED
 	`)
 	if err != nil {
@@ -360,10 +385,10 @@ func (s *Store) GetDrillByID(ctx context.Context, drillID uuid.UUID) (Drill, err
 func (s *Store) GetTargetByID(ctx context.Context, targetID uuid.UUID) (Target, error) {
 	var t Target
 	err := s.pool.QueryRow(ctx, `
-		SELECT id, account_id, created_by_user_id, name, source_kind, source_uri, created_at
+		SELECT id, account_id, created_by_user_id, name, source_kind, source_uri, created_at, is_sample
 		  FROM database_targets
 		 WHERE id = $1
-	`, targetID).Scan(&t.ID, &t.AccountID, &t.CreatedByUserID, &t.Name, &t.SourceKind, &t.SourceURI, &t.CreatedAt)
+	`, targetID).Scan(&t.ID, &t.AccountID, &t.CreatedByUserID, &t.Name, &t.SourceKind, &t.SourceURI, &t.CreatedAt, &t.IsSample)
 	if errors.Is(err, pgx.ErrNoRows) {
 		return Target{}, ErrNotFound
 	}

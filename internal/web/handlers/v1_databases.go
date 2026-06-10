@@ -133,6 +133,11 @@ func (h *Handlers) v1CreateDatabase(w http.ResponseWriter, r *http.Request) {
 	acct, _ := auth.CurrentAccountFromContext(r.Context())
 	key, _ := apiKeyFromContext(r.Context())
 
+	// Adding a real backup target requires a paid plan.
+	if h.v1BlockFreeReal(w, r) {
+		return
+	}
+
 	var req createDatabaseReq
 	if err := decodeJSONBody(r, &req); err != nil {
 		writeAPIError(w, http.StatusBadRequest, "bad_request", err.Error())

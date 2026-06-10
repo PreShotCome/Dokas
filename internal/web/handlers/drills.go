@@ -78,8 +78,20 @@ func (h *Handlers) targetCreate(w http.ResponseWriter, r *http.Request) {
 	lc := h.layoutCtx(r)
 	u, acct := lc.User, lc.Account
 
+	// Free/trial accounts may drill the sample dataset only — adding a real
+	// backup requires a paid plan.
+	if h.blockFreeRealWeb(w, r) {
+		return
+	}
+
 	existing, _ := h.drills.ListTargets(r.Context(), acct.ID)
-	if h.enforceLimit(w, r, lc, "databases", len(existing),
+	real := 0
+	for _, t := range existing {
+		if !t.IsSample {
+			real++
+		}
+	}
+	if h.enforceLimit(w, r, lc, "databases", real,
 		account.LimitsFor(acct.Plan).Databases) {
 		return
 	}
@@ -315,6 +327,11 @@ func (h *Handlers) drillCreate(w http.ResponseWriter, r *http.Request) {
 	target, err := h.drills.GetTarget(r.Context(), acct.ID, targetID)
 	if err != nil {
 		http.Error(w, "target not found", http.StatusNotFound)
+		return
+	}
+
+	// Drilling a real backup needs a paid plan; the sample is always allowed.
+	if !target.IsSample && h.blockFreeRealWeb(w, r) {
 		return
 	}
 

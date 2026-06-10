@@ -402,6 +402,9 @@ func (h *Handlers) Router(staticFS http.FileSystem) http.Handler {
 			r.Use(auth.RequireAction(auth.ActionDrillWrite))
 			r.Use(h.requireUnlapsedTrial)
 			r.Post("/drills", h.drillCreate)
+			// The free demo: run a drill against the built-in sample dataset.
+			// Allowed on every plan (it's the sample, not a real backup).
+			r.Post("/databases/sample-drill", h.runSampleDrill)
 		})
 		r.Group(func(r chi.Router) {
 			r.Use(auth.RequireAction(auth.ActionHeartbeatWrite))
