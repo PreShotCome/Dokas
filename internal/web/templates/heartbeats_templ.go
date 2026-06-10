@@ -78,7 +78,7 @@ func HeartbeatsPage(lc LayoutCtx, hbs []heartbeat.Heartbeat, baseURL string, atC
 					return templ_7745c5c3_Err
 				}
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, " <p class=\"mb-6 max-w-2xl text-sm text-zinc-600 dark:text-zinc-400\">Have your backup job ping a unique URL after each run. If a check-in is overdue, Soteria flips the monitor to <span class=\"font-medium\">down</span>, fires your webhooks, and records it — so a silently-failing cron can't hide.</p>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, " <p class=\"mb-6 max-w-2xl text-sm text-zinc-600 dark:text-zinc-400\">Have your backup job ping a unique URL after each run. If a check-in is overdue, Selket flips the monitor to <span class=\"font-medium\">down</span>, fires your webhooks, and records it — so a silently-failing cron can't hide.</p>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

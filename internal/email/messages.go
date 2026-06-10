@@ -61,13 +61,13 @@ to sign in, you can ignore this email.
 func HeartbeatDownMessage(to, monitorName, accountName, link string) Message {
 	return Message{
 		To:      to,
-		Subject: fmt.Sprintf("[Soteria] DOWN: %s", monitorName),
+		Subject: fmt.Sprintf("[Selket] DOWN: %s", monitorName),
 		TextBody: fmt.Sprintf(`A backup check-in is overdue.
 
 Monitor: %s
 Workspace: %s
 
-Soteria has not received the expected check-in for this monitor, so the
+Selket has not received the expected check-in for this monitor, so the
 backup job it watches may have failed or stopped running. Investigate the
 job, then check the monitor:
 
@@ -75,7 +75,7 @@ job, then check the monitor:
 
 You'll get an "UP" email automatically once a check-in arrives again.
 
-— Soteria
+— Selket
 `, monitorName, accountName, link),
 	}
 }
@@ -85,17 +85,17 @@ You'll get an "UP" email automatically once a check-in arrives again.
 func HeartbeatUpMessage(to, monitorName, accountName, link string) Message {
 	return Message{
 		To:      to,
-		Subject: fmt.Sprintf("[Soteria] UP: %s", monitorName),
+		Subject: fmt.Sprintf("[Selket] UP: %s", monitorName),
 		TextBody: fmt.Sprintf(`A backup check-in has recovered.
 
 Monitor: %s
 Workspace: %s
 
-Soteria received a check-in for this monitor again — it's back to healthy.
+Selket received a check-in for this monitor again — it's back to healthy.
 
 %s
 
-— Soteria
+— Selket
 `, monitorName, accountName, link),
 	}
 }

@@ -112,7 +112,7 @@ unique URL on success:
 
 ```sh
 # at the end of your nightly backup cron
-pg_dump … && curl -fsS https://app.soteria.io/ping/<token>
+pg_dump … && curl -fsS https://app.selket.io/ping/<token>
 ```
 
 If a check-in is overdue, a once-a-minute River sweeper flips the monitor to

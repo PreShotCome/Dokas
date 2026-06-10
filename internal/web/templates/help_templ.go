@@ -77,7 +77,7 @@ func HelpPage(lc LayoutCtx) templ.Component {
 			templ_7745c5c3_Err = faq("What is a backup check-in?",
 				"A check-in is a lightweight monitor for the backup job itself. "+
 					"Your job pings a unique URL each time it runs; if a ping "+
-					"doesn't arrive within the period and grace you set, Soteria "+
+					"doesn't arrive within the period and grace you set, Selket "+
 					"marks the monitor down and alerts you by email and webhook. "+
 					"Drills prove a backup restores — check-ins prove the job ran "+
 					"at all.").Render(ctx, templ_7745c5c3_Buffer)
@@ -88,7 +88,7 @@ func HelpPage(lc LayoutCtx) templ.Component {
 				"Go to Check-ins → New monitor and set how often you expect the "+
 					"job to run plus a grace window. Copy the ping URL and call it "+
 					"at the end of your backup script — e.g. add "+
-					"'curl -fsS https://app.soteria.io/ping/<token>' after a "+
+					"'curl -fsS https://app.selket.io/ping/<token>' after a "+
 					"successful run. Send /fail instead to report a failure "+
 					"immediately, or /start to record that the job began.").Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
