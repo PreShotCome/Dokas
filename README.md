@@ -20,8 +20,9 @@ link and verification fails loudly.
    per-drill ephemeral Postgres on Fly Machines (or a temp DB on the
    local runner for dev). The signed PDF records every assertion's
    **kind, expected, actual, and pass/fail** — not just a verdict.
-   `row_count`, `table_exists`, `column_exists`, `no_nulls` today;
-   `sql_query` is on the roadmap so you can write the SQL yourself.
+   `row_count`, `table_exists`, `column_exists`, `no_nulls`, and
+   `sql_query` (write your own read-only SQL and capture the rows into
+   evidence).
 3. **Detached Ed25519 signature.** Every PDF is signed offline by the
    active Selket key. The signature attests `sha256(pdf) ‖
    signedAt(RFC3339Nano UTC)` — so a forgery has to match both the PDF
@@ -65,7 +66,7 @@ Implemented:
 - River-backed drill orchestrator: `provision → fetch → restore → assert → report → teardown`
 - LocalRunner sandbox: temp Postgres database per drill on the host cluster
 - FlyMachineRunner: per-drill Fly Machine running an ephemeral Postgres
-- Assertion kinds: `row_count`, `table_exists`, `column_exists`, `no_nulls`
+- Assertion kinds: `row_count`, `table_exists`, `column_exists`, `no_nulls`, `sql_query`
 - SHA-256 hash of the dump bytes (input anchor of the evidence chain)
 - Ed25519-signed evidence PDFs via `github.com/go-pdf/fpdf`
 - `cmd/selket-verify` — stdlib-only third-party verifier
