@@ -135,7 +135,7 @@ func HowItWorks(lc LayoutCtx) templ.Component {
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = explainStep("2", "Fetch", "Your backup dump is pulled from wherever it lives — a local path, Amazon S3, or Cloudflare R2.").Render(ctx, templ_7745c5c3_Buffer)
+				templ_7745c5c3_Err = explainStep("2", "Fetch", "Selket reads your backup dump and records its SHA-256 hash, anchoring the evidence to the exact bytes it drilled.").Render(ctx, templ_7745c5c3_Buffer)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}

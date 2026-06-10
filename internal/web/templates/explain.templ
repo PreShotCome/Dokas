@@ -64,7 +64,7 @@ templ HowItWorks(lc LayoutCtx) {
 					</p>
 					<div class="space-y-3 pt-1">
 						@explainStep("1", "Provision", "A clean, isolated sandbox database is created just for this drill.")
-						@explainStep("2", "Fetch", "Your backup dump is pulled from wherever it lives — a local path, Amazon S3, or Cloudflare R2.")
+						@explainStep("2", "Fetch", "Selket reads your backup dump and records its SHA-256 hash, anchoring the evidence to the exact bytes it drilled.")
 						@explainStep("3", "Restore", "The dump is restored into the sandbox, exactly the way a real recovery would run it.")
 						@explainStep("4", "Assert", "Your checks run against the restored data: row counts, required tables, non-null columns, and more.")
 						@explainStep("5", "Report", "A cryptographically signed PDF and an immutable audit record capture exactly what was verified.")

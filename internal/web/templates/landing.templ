@@ -101,7 +101,7 @@ templ landingHow() {
 	<section>
 		@sectionHead("How it works", "A drill, start to finish")
 		<div class="grid gap-6 sm:grid-cols-3">
-			@howCard("1", "Connect a database", "Point Selket at the dump your backup job already produces — a local path, S3, or R2. We never touch your production database.")
+			@howCard("1", "Connect a database", "Point Selket at the dump your backup job already produces. We never touch your production database.")
 			@howCard("2", "Selket runs the drill", "On your schedule we spin up an isolated sandbox, restore the dump, and run your assertions: row counts, required tables, no-null checks.")
 			@howCard("3", "Collect signed evidence", "Every drill produces a signed PDF and an immutable audit entry — the proof auditors and customers ask to see.")
 		</div>

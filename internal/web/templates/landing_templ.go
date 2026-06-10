@@ -337,7 +337,7 @@ func landingHow() templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = howCard("1", "Connect a database", "Point Selket at the dump your backup job already produces — a local path, S3, or R2. We never touch your production database.").Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = howCard("1", "Connect a database", "Point Selket at the dump your backup job already produces. We never touch your production database.").Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
