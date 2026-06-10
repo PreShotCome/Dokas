@@ -7,11 +7,14 @@ templ HowItWorks(lc LayoutCtx) {
 		<article class="mx-auto max-w-3xl">
 			<header class="mb-12">
 				<p class="text-sm font-semibold uppercase tracking-wide text-brand-600 dark:text-brand-400">The basics</p>
-				<h1 class="mt-1 text-3xl font-semibold tracking-tight sm:text-4xl">Backup drilling, explained</h1>
+				<h1 class="mt-1 text-3xl font-semibold tracking-tight sm:text-4xl">Prove your backups restore</h1>
 				<p class="mt-4 text-lg text-zinc-600 dark:text-zinc-400">
-					Most teams trust backups they have never actually restored.
-					Selket exists to fix that. Here is what backup drilling is, why
-					it matters, and how Selket does it for you.
+					Most teams trust backups they have never actually restored —
+					and from 2026, auditors and cyber-insurance carriers want
+					<span class="font-medium text-zinc-900 dark:text-zinc-100">proof</span> you
+					have. Selket restore-tests your PostgreSQL backups on a schedule
+					and hands you signed, independently verifiable evidence. Here is
+					what that means and how it works.
 				</p>
 			</header>
 			<div class="space-y-12">
@@ -68,6 +71,30 @@ templ HowItWorks(lc LayoutCtx) {
 						@explainStep("6", "Teardown", "The sandbox and the working copy of your dump are destroyed.")
 					</div>
 				}
+				@explainSection("Evidence you can prove independently") {
+					<p>
+						A green checkmark in a dashboard is worth little to an
+						auditor or an underwriter — they have only your word for it.
+						Selket's evidence is different: every drill produces a
+						<span class="font-medium text-zinc-900 dark:text-zinc-100">Proof-of-Recovery PDF</span> that
+						is cryptographically signed, and that anyone can verify
+						without trusting Selket at all.
+					</p>
+					<ul class="space-y-1.5">
+						@explainBullet("The PDF records the source, its SHA-256 hash, every assertion's expected-vs-actual result, the restore duration, and the operator.")
+						@explainBullet("It carries a detached Ed25519 signature over the document's digest — change one byte and verification fails.")
+						@explainBullet("The signing public key is published at a stable URL, and an open-source verifier (selket-verify) checks any PDF against it offline.")
+						@explainBullet("Evidence is retained for seven years to match the audit window.")
+					</ul>
+					<p class="text-sm">
+						To be precise about what this is: the signature proves the
+						evidence is tamper-evident and was produced by Selket's key.
+						It is not yet a third-party trusted timestamp (RFC 3161) or a
+						certificate-authority document signature — those are on the
+						roadmap, and we describe the current model plainly rather than
+						overclaim it.
+					</p>
+				}
 				@explainSection("How Selket helps") {
 					<p>
 						Doing all of this by hand is tedious — so it does not get
@@ -86,19 +113,22 @@ templ HowItWorks(lc LayoutCtx) {
 					<p>
 						Selket is built for engineering teams running managed
 						PostgreSQL who cannot afford to learn their backups are broken
-						the hard way — and especially for teams going through SOC 2,
-						HIPAA, or ISO 27001, where evidence that backups are tested and
-						restorable is a control an auditor will ask you to demonstrate.
+						the hard way. It is sharpest for two moments:
 					</p>
+					<ul class="space-y-1.5">
+						@explainBullet("A SOC 2 or ISO 27001 push — recovery testing is an expected control (ISO/IEC 27001:2022 Annex A 8.13; SOC 2 Availability A1.3), and Selket's report is drop-in audit evidence.")
+						@explainBullet("A cyber-insurance renewal — carriers increasingly require proof you restored from backup within the last 12 months; Selket produces exactly that, dated and signed.")
+					</ul>
 				}
 			</div>
 			<div class="mt-14 overflow-hidden rounded-2xl bg-gradient-to-br from-brand-700 to-brand-900 px-6 py-10 text-center">
-				<h2 class="text-2xl font-semibold tracking-tight text-white">See it on your own backups</h2>
+				<h2 class="text-2xl font-semibold tracking-tight text-white">See the signed evidence yourself</h2>
 				<p class="mx-auto mt-2 max-w-md text-brand-100">
-					Connect a database and run your first drill in minutes. Free to start.
+					Sign up and run a drill on our sample dataset — no card — and
+					download the Proof-of-Recovery PDF in minutes.
 				</p>
 				<div class="mt-6 flex flex-wrap justify-center gap-3">
-					<a href="/signup" class="rounded-md bg-white px-5 py-2.5 font-medium text-brand-800 transition-colors hover:bg-brand-50">Start free</a>
+					<a href="/signup" class="rounded-md bg-white px-5 py-2.5 font-medium text-brand-800 transition-colors hover:bg-brand-50">Try the sample drill</a>
 					<a href="/pricing" class="rounded-md border border-white/30 px-5 py-2.5 font-medium text-white transition-colors hover:bg-white/10">View pricing</a>
 				</div>
 			</div>

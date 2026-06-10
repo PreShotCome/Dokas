@@ -8,31 +8,49 @@ import (
 )
 
 // Pricing is the public pricing page. starterLabel / proLabel are the
-// headline monthly prices (display-only — Stripe holds the real amount)
-// for the Standard and VIP tiers respectively. The internal plan IDs
-// remain "starter" and "pro" so existing Stripe products / DB values
-// keep working; only the user-facing names change.
+// headline monthly prices (display-only — Stripe holds the real amount) for
+// the Starter and Growth tiers respectively. The internal plan IDs remain
+// "starter" and "pro" so existing Stripe products / DB values keep working;
+// only the user-facing names change (Starter, Growth). The Compliance tier
+// is sales-led at launch — a contact card, not a self-serve checkout.
+//
 // stripeEnabled is false when no Stripe keys are configured, in which case
 // the subscribe action is replaced with a notice.
 templ Pricing(lc LayoutCtx, starterLabel, proLabel string, stripeEnabled bool) {
 	@LayoutWith("Pricing", lc) {
-		<div class="mx-auto max-w-4xl">
-			<div class="mb-10 text-center">
-				<h1 class="text-3xl font-semibold tracking-tight">Pricing by how often you verify</h1>
+		<div class="mx-auto max-w-5xl">
+			<div class="mb-8 text-center">
+				<h1 class="text-3xl font-semibold tracking-tight">Pricing that pays for itself at one audit</h1>
 				<p class="mx-auto mt-3 max-w-2xl text-zinc-600 dark:text-zinc-400">
-					Every plan includes signed PDF evidence, the full assertion
-					suite, backup check-in monitors, the versioned JSON API, and
-					webhooks. Plans differ by how often Selket drills your databases
-					— the more critical your data, the more frequently you verify it.
+					Every plan produces signed, independently verifiable
+					Proof-of-Recovery evidence for SOC 2, ISO 27001, and
+					cyber-insurance renewals. Plans differ by how often Selket
+					drills your databases and how many you run — the more critical
+					your data, the more often you verify it.
 				</p>
 			</div>
+
+			<div class="mb-8 rounded-xl border border-brand-200 bg-brand-50 px-6 py-5 text-center dark:border-brand-800 dark:bg-brand-900/40">
+				<p class="font-semibold text-brand-900 dark:text-brand-100">
+					Try it free on sample data — no card.
+				</p>
+				<p class="mx-auto mt-1 max-w-2xl text-sm text-brand-800 dark:text-brand-200">
+					Sign up and run a drill against our built-in dataset, then
+					download the signed Proof-of-Recovery PDF. When you are ready for
+					your own backups, every paid plan starts with a guided first
+					drill on your data — $49, credited to your first month.
+				</p>
+				if lc.User == nil {
+					<a href="/signup" class="btn-primary mt-3 inline-block">Try the sample drill</a>
+				}
+			</div>
+
 			<div class="grid gap-6 pt-3 sm:grid-cols-3">
-				@pricingCard(lc, "trial", "Trial", "Free", "", false, stripeEnabled,
-					account.LimitsFor(account.PlanTrial))
-				@pricingCard(lc, "starter", "Standard", starterLabel, "/mo", false, stripeEnabled,
+				@pricingCard(lc, "starter", "Starter", starterLabel, "/mo", false, stripeEnabled,
 					account.LimitsFor(account.PlanStarter))
-				@pricingCard(lc, "pro", "VIP", proLabel, "/mo", true, stripeEnabled,
+				@pricingCard(lc, "pro", "Growth", proLabel, "/mo", true, stripeEnabled,
 					account.LimitsFor(account.PlanPro))
+				@pricingComplianceCard()
 			</div>
 			<p class="mt-8 text-center text-xs text-zinc-500">
 				Paid plans are billed monthly through Stripe — no card details
@@ -42,10 +60,10 @@ templ Pricing(lc LayoutCtx, starterLabel, proLabel string, stripeEnabled bool) {
 	}
 }
 
-// pricingCard renders one plan tier. Drill frequency is the headline; the
-// database count is a fair-use allowance below it. `popular` adds the
-// gold border + "MOST POPULAR" badge — exactly one tier should be marked
-// popular at a time.
+// pricingCard renders one self-serve plan tier. Drill frequency is the
+// headline; the database count is a fair-use allowance below it. `popular`
+// adds the gold border + "MOST POPULAR" badge — exactly one tier should be
+// marked popular at a time.
 templ pricingCard(lc LayoutCtx, plan, name, price, period string, popular, stripeEnabled bool, limits account.Limits) {
 	<div class={ "flex flex-col gap-5 rounded-lg p-6 shadow-sm relative bg-white dark:bg-zinc-900",
 		templ.KV("border-2 border-gold-500 dark:border-gold-400 shadow-lg", popular),
@@ -63,15 +81,10 @@ templ pricingCard(lc LayoutCtx, plan, name, price, period string, popular, strip
 			</p>
 		</div>
 		<div class="rounded-lg bg-brand-50 px-3 py-2 text-center dark:bg-brand-900/40">
-			if plan == "trial" {
-				<p class="text-[11px] font-medium uppercase tracking-wide text-brand-600 dark:text-brand-300">Free for 14 days</p>
-				<p class="font-semibold text-brand-800 dark:text-brand-100">Daily drills, full access</p>
-			} else {
-				<p class="text-[11px] font-medium uppercase tracking-wide text-brand-600 dark:text-brand-300">Drill frequency</p>
-				<p class="font-semibold text-brand-800 dark:text-brand-100">
-					{ cadenceLabel(account.TopCadence(account.Plan(plan))) } drills
-				</p>
-			}
+			<p class="text-[11px] font-medium uppercase tracking-wide text-brand-600 dark:text-brand-300">Drill frequency</p>
+			<p class="font-semibold text-brand-800 dark:text-brand-100">
+				{ cadenceLabel(account.TopCadence(account.Plan(plan))) } drills
+			</p>
 		</div>
 		<ul class="flex-1 space-y-2 text-sm text-zinc-600 dark:text-zinc-400">
 			@pricingFeature(limitText(limits.Databases, "database"))
@@ -82,6 +95,34 @@ templ pricingCard(lc LayoutCtx, plan, name, price, period string, popular, strip
 			@pricingFeature(supportLevel(plan))
 		</ul>
 		@pricingCTA(lc, plan, stripeEnabled)
+	</div>
+}
+
+// pricingComplianceCard is the top, sales-led tier. It is not a self-serve
+// plan key — onboarding is hands-on — so it shows a "Talk to us" contact CTA
+// rather than a Stripe checkout. Features listed are real or clearly marked
+// as roadmap, so the page never overpromises.
+templ pricingComplianceCard() {
+	<div class="flex flex-col gap-5 rounded-lg border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+		<div>
+			<h2 class="text-lg font-semibold">Compliance</h2>
+			<p class="mt-1">
+				<span class="text-3xl font-semibold tracking-tight">From $499</span>
+				<span class="text-sm text-zinc-500">/mo</span>
+			</p>
+		</div>
+		<div class="rounded-lg bg-brand-50 px-3 py-2 text-center dark:bg-brand-900/40">
+			<p class="text-[11px] font-medium uppercase tracking-wide text-brand-600 dark:text-brand-300">For audit programs</p>
+			<p class="font-semibold text-brand-800 dark:text-brand-100">Everything in Growth</p>
+		</div>
+		<ul class="flex-1 space-y-2 text-sm text-zinc-600 dark:text-zinc-400">
+			@pricingFeature("Higher database & drill volume")
+			@pricingFeature("Quarterly evidence bundle for your auditor")
+			@pricingFeature("Longer evidence retention on request")
+			@pricingFeature("Priority support & onboarding")
+			@pricingFeature("SSO and auditor read-only access (roadmap)")
+		</ul>
+		<a href="mailto:sales@selket.io?subject=Selket%20Compliance%20plan" class="btn-primary w-full">Talk to us</a>
 	</div>
 }
 
@@ -99,15 +140,9 @@ templ pricingFeature(text string) {
 // sees an explanatory note instead of a dead button.
 templ pricingCTA(lc LayoutCtx, plan string, stripeEnabled bool) {
 	if lc.User == nil {
-		if plan == "trial" {
-			<a href="/signup" class="btn-primary w-full">Start free trial</a>
-		} else {
-			<a href="/signup?next=/pricing" class="btn-primary w-full">Get started</a>
-		}
+		<a href="/signup?next=/pricing" class="btn-primary w-full">Get started</a>
 	} else if lc.Account != nil && string(lc.Account.Plan) == plan {
 		<span class="btn-ghost w-full cursor-default" aria-disabled="true">Current plan</span>
-	} else if plan == "trial" {
-		<span class="block text-center text-xs text-zinc-500">Included with every account</span>
 	} else if lc.Membership != nil && auth.Allowed(lc.Membership.Role, auth.ActionBillingWrite) {
 		if stripeEnabled {
 			<form method="POST" action="/account/billing/checkout">
@@ -124,7 +159,7 @@ templ pricingCTA(lc LayoutCtx, plan string, stripeEnabled bool) {
 }
 
 // limitText renders a resource cap: "1 database", "10 databases", or
-// "Unlimited databases" for an uncapped (VIP) tier.
+// "Unlimited databases" for an uncapped (Growth) tier.
 func limitText(n int, singular string) string {
 	switch {
 	case n == account.Unlimited:
