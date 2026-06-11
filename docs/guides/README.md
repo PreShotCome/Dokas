@@ -36,7 +36,7 @@ Once you have a `pg_dump` file, the rest is the same:
    renewals commonly want proof of a restore within the last 90 days — a
    weekly drill clears that with room to spare.
 6. **Download + verify the evidence.** Grab the Proof-of-Recovery PDF. Verify
-   it independently with `selket-verify` against the published key — see
+   it independently with `vesta-verify` against the published key — see
    [../sample-evidence/README.md](../sample-evidence/README.md).
 
 ## Two things that bite everyone

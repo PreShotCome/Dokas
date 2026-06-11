@@ -760,7 +760,7 @@ textbox(s, Inches(1.1), Inches(5.75), Inches(6), Inches(0.4),
 textbox(s, Inches(1.1), Inches(6.05), Inches(6), Inches(0.4),
         'ianrocks62@gmail.com', size=16, bold=True, color=WHITE)
 textbox(s, Inches(1.1), Inches(6.45), Inches(6), Inches(0.4),
-        'github.com/preshotcome/anything', size=12, color=BRAND_100, font='Consolas')
+        'github.com/preshotcome/vesta', size=12, color=BRAND_100, font='Consolas')
 
 
 # ---- save ----

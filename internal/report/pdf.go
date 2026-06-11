@@ -10,8 +10,8 @@ import (
 
 	"github.com/go-pdf/fpdf"
 
-	"github.com/preshotcome/anything/internal/branding"
-	"github.com/preshotcome/anything/internal/drill"
+	"github.com/preshotcome/vesta/internal/branding"
+	"github.com/preshotcome/vesta/internal/drill"
 )
 
 // Data is everything the renderer needs to lay out one drill's PDF.
@@ -112,7 +112,7 @@ func Render(out io.Writer, d Data) error {
 	pdf.MultiCell(0, 4,
 		"This report is sealed with a detached cryptographic signature over "+
 			"its SHA-256 digest; verify it from the drill detail page or with "+
-			"the open-source selket-verify tool against the published signing key.", "", "L", false)
+			"the open-source vesta-verify tool against the published signing key.", "", "L", false)
 
 	pdf.Ln(2)
 	pdf.SetFont("Helvetica", "B", 8)

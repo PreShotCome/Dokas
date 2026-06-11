@@ -1,4 +1,4 @@
-// Command selket-verify independently checks a Selket evidence PDF
+// Command vesta-verify independently checks a Selket evidence PDF
 // against its detached Ed25519 signature and a public key. It depends on
 // the Go standard library only (crypto/ed25519, crypto/sha256, encoding/
 // pem, encoding/json) — no Selket-specific code path — so any auditor
@@ -6,7 +6,7 @@
 //
 // Usage:
 //
-//	selket-verify --pdf=evidence.pdf --sig=signature.json --pubkey=selket.pem
+//	vesta-verify --pdf=evidence.pdf --sig=signature.json --pubkey=vesta.pem
 //
 //	  --pdf      path to the evidence PDF downloaded from /v1/drills/{id}/evidence
 //	  --sig      path to the signature JSON downloaded from /v1/drills/{id}/signature
@@ -62,7 +62,7 @@ func main() {
 	flag.Parse()
 
 	if *pdfPath == "" || *sigPath == "" || *pubPath == "" {
-		fmt.Fprintln(os.Stderr, "usage: selket-verify --pdf=PDF --sig=JSON --pubkey=PEM")
+		fmt.Fprintln(os.Stderr, "usage: vesta-verify --pdf=PDF --sig=JSON --pubkey=PEM")
 		os.Exit(2)
 	}
 

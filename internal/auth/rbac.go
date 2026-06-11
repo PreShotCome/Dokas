@@ -5,7 +5,7 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/preshotcome/anything/internal/account"
+	"github.com/preshotcome/vesta/internal/account"
 )
 
 // Action is the verb-on-resource enum the Authorize matrix is keyed on.

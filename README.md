@@ -29,7 +29,7 @@ link and verification fails loudly.
    bytes and the recorded timestamp, not one or the other. Past keys
    are kept as verification-only so evidence signed before a key
    rotation still verifies.
-4. **Open-source verifier.** [`cmd/selket-verify`](cmd/selket-verify)
+4. **Open-source verifier.** [`cmd/vesta-verify`](cmd/vesta-verify)
    is a single Go file that depends on `crypto/ed25519` and nothing of
    ours. Build it from this source, point it at the PDF, the signature
    JSON, and our published public key, and exit code 0 means the chain
@@ -41,8 +41,8 @@ link and verification fails loudly.
 # Independently verify a drill:
 curl -H "Authorization: Bearer $KEY" https://app.vesta.io/v1/drills/$ID/evidence  > drill.pdf
 curl -H "Authorization: Bearer $KEY" https://app.vesta.io/v1/drills/$ID/signature > sig.json
-curl https://vesta.io/.well-known/evidence-signing-keys.pem > selket.pem
-go run ./cmd/selket-verify --pdf=drill.pdf --sig=sig.json --pubkey=selket.pem
+curl https://vesta.io/.well-known/evidence-signing-keys.pem > vesta.pem
+go run ./cmd/vesta-verify --pdf=drill.pdf --sig=sig.json --pubkey=vesta.pem
 # OK  key=9f2c4b…a17b  signed_at=2026-05-25T04:11:02Z  retain_until=2033-05-25T04:11:02Z
 ```
 
@@ -58,7 +58,7 @@ verifier CLI ships here so the chain stays in one auditable place.
 ## Status
 
 All 11 rubric layers are built. Latest: hashed input + the
-`selket-verify` CLI close the verifiability chain end-to-end.
+`vesta-verify` CLI close the verifiability chain end-to-end.
 
 Implemented:
 - Chi + Templ + HTMX + Tailwind monolith
@@ -69,7 +69,7 @@ Implemented:
 - Assertion kinds: `row_count`, `table_exists`, `column_exists`, `no_nulls`, `sql_query`
 - SHA-256 hash of the dump bytes (input anchor of the evidence chain)
 - Ed25519-signed evidence PDFs via `github.com/go-pdf/fpdf`
-- `cmd/selket-verify` — stdlib-only third-party verifier
+- `cmd/vesta-verify` — stdlib-only third-party verifier
 - Idempotency on `POST /drills` (per-account, per-key)
 - Multi-tenant accounts + memberships; signup auto-creates a personal account
 - RBAC (`owner`/`admin`/`member`/`viewer`) via a single `Authorize` matrix
@@ -142,7 +142,7 @@ To exercise a drill end-to-end:
 4. Go to `/drills`, pick the target, click **Run drill**, watch the steps
    tick through (HTMX polls every 2 s until terminal).
 5. Download the PDF, fetch the signature JSON from `/v1/drills/{id}/signature`,
-   and verify with `go run ./cmd/selket-verify`.
+   and verify with `go run ./cmd/vesta-verify`.
 
 ## Tests
 
@@ -160,7 +160,7 @@ skips.
 ```
 cmd/server               HTTP + River worker entrypoint
 cmd/migrate              goose + River migration CLI
-cmd/selket-verify       stdlib-only third-party evidence verifier
+cmd/vesta-verify       stdlib-only third-party evidence verifier
 internal/auth            sessions, password hashing, RBAC, MFA, magic-link
 internal/apikey          /v1 API-key issuance + verification
 internal/account         accounts, memberships, invitations, trial window

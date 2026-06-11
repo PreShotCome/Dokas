@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/preshotcome/anything/internal/branding"
+	"github.com/preshotcome/vesta/internal/branding"
 )
 
 type Config struct {
@@ -77,6 +77,12 @@ type Config struct {
 
 	StaffEmails  []string
 	MetricsToken string
+
+	// FirebaseServiceAccount is the Firebase Cloud Messaging service-account
+	// JSON used by the responder app's push channel. Either inline JSON or a
+	// path to the JSON file. Empty disables real push — the LogSender is used
+	// instead and registrations + dispatches are observable without Firebase.
+	FirebaseServiceAccount string
 }
 
 func Load() (Config, error) {
@@ -126,6 +132,8 @@ func Load() (Config, error) {
 
 		StaffEmails:  parseList(os.Getenv("STAFF_EMAILS")),
 		MetricsToken: os.Getenv("METRICS_TOKEN"),
+
+		FirebaseServiceAccount: os.Getenv("FIREBASE_SERVICE_ACCOUNT"),
 	}
 
 	if c.DatabaseURL == "" {

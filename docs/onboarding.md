@@ -112,17 +112,17 @@ app**.
 Fetch Vesta's public signing keys:
 
 ```sh
-curl -fL https://app.vesta.io/.well-known/evidence-signing-keys.pem -o selket.pem
+curl -fL https://app.vesta.io/.well-known/evidence-signing-keys.pem -o vesta.pem
 ```
 
 Each key block in that file is preceded by a `# PublicKeyID:` comment.
 Match the `public_key_id` in your signature JSON to one of them. Then run
-the standalone verifier (`selket-verify`, a stdlib-only Go program — see
+the standalone verifier (`vesta-verify`, a stdlib-only Go program — see
 launch-readiness item #9 for the released binaries, or build it from
-`cmd/selket-verify`):
+`cmd/vesta-verify`):
 
 ```sh
-selket-verify --pdf=evidence.pdf --sig=signature.json --pubkey=selket.pem
+vesta-verify --pdf=evidence.pdf --sig=signature.json --pubkey=vesta.pem
 ```
 
 Exit code `0` and `signature is valid` means: this exact PDF was signed
@@ -144,7 +144,7 @@ in CI with the `e2e-smoke` harness — if you hit one, it's worth reporting.
 | Your assertion silently never takes effect / insert rejected | A new assertion enum value not added to the database `CHECK` constraint. | Our bug — migrations and enum values must move together. Report it. |
 | PDF says **FAILED** but the drill clearly **PASSED** (or vice-versa) | In-memory status drift between the drill record and the rendered PDF. | Our bug, and a serious one — report it immediately with the `drill_id`. |
 | PDF text shows garbled characters (e.g. `â€"` where a dash should be) | Mojibake: a UTF-8 character (em-dash, smart quote) rendered in a Latin-1 PDF font. | Our bug; the report renderer must handle non-Latin-1 input. Report it. |
-| `selket-verify` says invalid, but the PDF looks right | Wrong public key, or the PDF/signature was modified after download (even re-saving can do it). | Re-download all three files fresh; match the `public_key_id` to the right key block in `selket.pem`. |
+| `vesta-verify` says invalid, but the PDF looks right | Wrong public key, or the PDF/signature was modified after download (even re-saving can do it). | Re-download all three files fresh; match the `public_key_id` to the right key block in `vesta.pem`. |
 
 If a verdict is ever wrong in either direction, that's our most serious
 class of bug — see `docs/runbooks/customer-drill-failure-response.md` —

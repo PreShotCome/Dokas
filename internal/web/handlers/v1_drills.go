@@ -9,10 +9,10 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
 
-	"github.com/preshotcome/anything/internal/auth"
-	"github.com/preshotcome/anything/internal/branding"
-	"github.com/preshotcome/anything/internal/drill"
-	"github.com/preshotcome/anything/internal/evidence"
+	"github.com/preshotcome/vesta/internal/auth"
+	"github.com/preshotcome/vesta/internal/branding"
+	"github.com/preshotcome/vesta/internal/drill"
+	"github.com/preshotcome/vesta/internal/evidence"
 )
 
 // apiDrill is the /v1 representation of a drill (list view).
@@ -221,7 +221,7 @@ func (h *Handlers) v1GetEvidence(w http.ResponseWriter, r *http.Request) {
 }
 
 // apiSignature is the detached signature shape served over the API: the
-// fields a third-party verifier (selket-verify) needs to re-prove the
+// fields a third-party verifier (vesta-verify) needs to re-prove the
 // PDF, plus a retention horizon so the customer knows the window.
 type apiSignature struct {
 	Algorithm   string    `json:"algorithm"`
@@ -274,7 +274,7 @@ func (h *Handlers) v1GetLogs(w http.ResponseWriter, r *http.Request) {
 
 // v1GetSignature returns the detached signature record for a drill as
 // JSON. Pair the bytes with the evidence PDF (/drills/{id}/evidence)
-// and feed both to `selket-verify` along with the published public
+// and feed both to `vesta-verify` along with the published public
 // key — the verifier needs no Vesta-specific code.
 func (h *Handlers) v1GetSignature(w http.ResponseWriter, r *http.Request) {
 	acct, _ := auth.CurrentAccountFromContext(r.Context())

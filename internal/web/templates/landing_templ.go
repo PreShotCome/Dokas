@@ -8,7 +8,7 @@ package templates
 import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
-import "github.com/preshotcome/anything/internal/branding"
+import "github.com/preshotcome/vesta/internal/branding"
 
 // Landing is the public home page shown at "/" to signed-out visitors.
 // Signed-in users are redirected to their dashboard before this renders.

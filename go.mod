@@ -1,4 +1,4 @@
-module github.com/preshotcome/anything
+module github.com/preshotcome/vesta
 
 go 1.25.11
 

@@ -12,7 +12,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/preshotcome/anything/internal/apikey"
+	"github.com/preshotcome/vesta/internal/apikey"
 )
 
 // scopeOption pairs a scope value with its human label for the create form.

@@ -22,16 +22,16 @@ import (
 	"github.com/riverqueue/river"
 	"github.com/riverqueue/river/rivertype"
 
-	"github.com/preshotcome/anything/internal/account"
-	"github.com/preshotcome/anything/internal/analytics"
-	"github.com/preshotcome/anything/internal/assertions"
-	"github.com/preshotcome/anything/internal/audit"
-	"github.com/preshotcome/anything/internal/drill"
-	"github.com/preshotcome/anything/internal/evidence"
-	"github.com/preshotcome/anything/internal/obs"
-	"github.com/preshotcome/anything/internal/report"
-	"github.com/preshotcome/anything/internal/runner"
-	"github.com/preshotcome/anything/internal/webhooks"
+	"github.com/preshotcome/vesta/internal/account"
+	"github.com/preshotcome/vesta/internal/analytics"
+	"github.com/preshotcome/vesta/internal/assertions"
+	"github.com/preshotcome/vesta/internal/audit"
+	"github.com/preshotcome/vesta/internal/drill"
+	"github.com/preshotcome/vesta/internal/evidence"
+	"github.com/preshotcome/vesta/internal/obs"
+	"github.com/preshotcome/vesta/internal/report"
+	"github.com/preshotcome/vesta/internal/runner"
+	"github.com/preshotcome/vesta/internal/webhooks"
 )
 
 // Deps is the bundle of dependencies every step worker needs.
@@ -56,6 +56,10 @@ type Deps struct {
 	// Accounts resolves an account's Stripe customer for usage reporting.
 	// Optional: nil disables usage reporting.
 	Accounts AccountLookup
+	// Notify pushes a human-facing alert (e.g. FCM to the responder app) when a
+	// drill finishes. Optional: nil disables it. Errors are best-effort —
+	// a notification problem must never fail a drill.
+	Notify drill.Notifier
 }
 
 // UsageReporter records billable drill usage with the billing provider.
@@ -84,6 +88,16 @@ func (d Deps) reportUsage(ctx context.Context, dr drill.Drill) {
 		return
 	}
 	_ = d.Billing.ReportUsage(ctx, *acct.StripeCustomerID, dr.ID.String())
+}
+
+// notifyDrill fires a push notification for a terminal drill outcome, if a
+// notifier is wired. Best-effort — a notification failure must never fail a
+// drill, so the error is swallowed.
+func (d Deps) notifyDrill(ctx context.Context, dr drill.Drill, event, reason string) {
+	if d.Notify == nil {
+		return
+	}
+	_ = d.Notify.NotifyDrill(ctx, dr, event, reason)
 }
 
 // captureDrill records a drill funnel event, if analytics is wired.
@@ -462,10 +476,10 @@ func (q pgxQuerier) Query(ctx context.Context, sql string, args ...any) (asserti
 // pgxRows narrows pgx.Rows to the minimal surface assertions.Rows needs.
 type pgxRows struct{ rows pgx.Rows }
 
-func (r pgxRows) Next() bool                  { return r.rows.Next() }
-func (r pgxRows) Values() ([]any, error)      { return r.rows.Values() }
-func (r pgxRows) Err() error                  { return r.rows.Err() }
-func (r pgxRows) Close()                      { r.rows.Close() }
+func (r pgxRows) Next() bool             { return r.rows.Next() }
+func (r pgxRows) Values() ([]any, error) { return r.rows.Values() }
+func (r pgxRows) Err() error             { return r.rows.Err() }
+func (r pgxRows) Close()                 { r.rows.Close() }
 func (r pgxRows) FieldDescriptions() []assertions.FieldDescription {
 	fds := r.rows.FieldDescriptions()
 	out := make([]assertions.FieldDescription, len(fds))
@@ -644,6 +658,7 @@ func (w *TeardownWorker) Work(ctx context.Context, job *river.Job[drill.Teardown
 			"drill_id": drillID.String(),
 			"reason":   job.Args.FailureReason,
 		})
+		w.D.notifyDrill(ctx, dr, drill.EventFailed, job.Args.FailureReason)
 		return nil
 	}
 	if dr.Status == drill.StatusFailed {
@@ -654,6 +669,7 @@ func (w *TeardownWorker) Work(ctx context.Context, job *river.Job[drill.Teardown
 			"drill_id": drillID.String(),
 			"reason":   "assertion_failed",
 		})
+		w.D.notifyDrill(ctx, dr, drill.EventFailed, "assertion_failed")
 		return nil
 	}
 
@@ -680,6 +696,7 @@ func (w *TeardownWorker) Work(ctx context.Context, job *river.Job[drill.Teardown
 		"drill_id": drillID.String(),
 		"status":   "succeeded",
 	})
+	w.D.notifyDrill(ctx, dr2, drill.EventCompleted, "")
 	return nil
 }
 

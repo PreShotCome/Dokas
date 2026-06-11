@@ -36,7 +36,7 @@ without taking anyone's word for it.*
 | 6 | First Fly deploy with production secrets | ⬜ TODO | — |
 | 7 | Production Postgres + automated backups | ⬜ TODO | — |
 | 8 | Public signing-key endpoint at `.well-known/evidence-signing-keys.pem` | ✅ DONE | 2026-06-09 |
-| 9 | `selket-verify` CLI binaries on GitHub Releases | 🟡 IN PROGRESS | 2026-06-09 |
+| 9 | `vesta-verify` CLI binaries on GitHub Releases | 🟡 IN PROGRESS | 2026-06-09 |
 | 10 | Terms / Privacy / DPA — rebranded + sub-processor list | 🟡 IN PROGRESS | 2026-06-09 |
 | 11 | Evidence-key backup procedure (signing + encryption) | ⬜ TODO | — |
 | 12 | Status page at `status.vesta.io` | ⬜ TODO | — |
@@ -94,17 +94,17 @@ one-hour cache so a rotation propagates within the day.
 
 ---
 
-## 9. `selket-verify` release binaries
+## 9. `vesta-verify` release binaries
 
 An auditor must be able to *download and run* the verifier — "compile it
 yourself with `go build`" is not an auditor-friendly answer. The release
 automation is now in place; the binaries land on GitHub Releases the
 moment the first tag is pushed.
 
-`.github/workflows/release-verify.yml` cross-compiles `cmd/selket-verify`
+`.github/workflows/release-verify.yml` cross-compiles `cmd/vesta-verify`
 for macOS, Linux, and Windows (amd64 + arm64), writes a `SHA256SUMS`
 file, and attaches all of it to the Release for a pushed `verify-v*` tag.
-`selket-verify` is standard-library-only, so every target builds
+`vesta-verify` is standard-library-only, so every target builds
 statically with `CGO_ENABLED=0`. The release body tells the auditor how
 to fetch the public key from `/.well-known/evidence-signing-keys.pem`
 (item #8) and run the check.
@@ -252,7 +252,7 @@ CI path can't silently diverge.
 `docs/onboarding.md` is the 7-step walkthrough: signup → download the
 fixture → connect it as a source → add a `table_exists` assertion → run
 the drill (watching provision→…→teardown) → download the signed PDF →
-verify it with `selket-verify` against the published key. It opens with
+verify it with `vesta-verify` against the published key. It opens with
 the Windows `Invoke-WebRequest -OutFile` caution (PowerShell `>` corrupts
 the binary dump) and closes with a troubleshooting table covering the
 same five seam bugs the e2e-smoke harness guards.

@@ -3,7 +3,7 @@ package email
 import (
 	"fmt"
 
-	"github.com/preshotcome/anything/internal/branding"
+	"github.com/preshotcome/vesta/internal/branding"
 )
 
 // InvitationMessage builds the email sent to an invited teammate.

@@ -8,7 +8,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/riverqueue/river"
 
-	"github.com/preshotcome/anything/internal/audit"
+	"github.com/preshotcome/vesta/internal/audit"
 )
 
 // Event names emitted to webhooks and the audit log. The "up" edge is fired by

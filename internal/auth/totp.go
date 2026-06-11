@@ -11,7 +11,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/preshotcome/anything/internal/branding"
+	"github.com/preshotcome/vesta/internal/branding"
 )
 
 // TOTP parameters — the defaults every authenticator app expects (RFC 6238).

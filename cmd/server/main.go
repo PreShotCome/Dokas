@@ -16,32 +16,32 @@ import (
 	"github.com/riverqueue/river"
 	"github.com/riverqueue/river/riverdriver/riverpgxv5"
 
-	"github.com/preshotcome/anything/internal/account"
-	"github.com/preshotcome/anything/internal/analytics"
-	"github.com/preshotcome/anything/internal/apikey"
-	"github.com/preshotcome/anything/internal/audit"
-	"github.com/preshotcome/anything/internal/auth"
-	"github.com/preshotcome/anything/internal/billing"
-	"github.com/preshotcome/anything/internal/compliance"
-	"github.com/preshotcome/anything/internal/config"
-	"github.com/preshotcome/anything/internal/db"
-	"github.com/preshotcome/anything/internal/drill"
-	"github.com/preshotcome/anything/internal/drill/steps"
-	"github.com/preshotcome/anything/internal/email"
-	"github.com/preshotcome/anything/internal/evidence"
-	"github.com/preshotcome/anything/internal/flags"
-	"github.com/preshotcome/anything/internal/fly"
-	"github.com/preshotcome/anything/internal/heartbeat"
-	heartbeatnotify "github.com/preshotcome/anything/internal/heartbeat/notify"
-	"github.com/preshotcome/anything/internal/mobileauth"
-	"github.com/preshotcome/anything/internal/oauth"
-	"github.com/preshotcome/anything/internal/obs"
-	"github.com/preshotcome/anything/internal/push"
-	"github.com/preshotcome/anything/internal/ratelimit"
-	"github.com/preshotcome/anything/internal/runner"
-	"github.com/preshotcome/anything/internal/web/csrf"
-	"github.com/preshotcome/anything/internal/web/handlers"
-	"github.com/preshotcome/anything/internal/webhooks"
+	"github.com/preshotcome/vesta/internal/account"
+	"github.com/preshotcome/vesta/internal/analytics"
+	"github.com/preshotcome/vesta/internal/apikey"
+	"github.com/preshotcome/vesta/internal/audit"
+	"github.com/preshotcome/vesta/internal/auth"
+	"github.com/preshotcome/vesta/internal/billing"
+	"github.com/preshotcome/vesta/internal/compliance"
+	"github.com/preshotcome/vesta/internal/config"
+	"github.com/preshotcome/vesta/internal/db"
+	"github.com/preshotcome/vesta/internal/drill"
+	"github.com/preshotcome/vesta/internal/drill/steps"
+	"github.com/preshotcome/vesta/internal/email"
+	"github.com/preshotcome/vesta/internal/evidence"
+	"github.com/preshotcome/vesta/internal/flags"
+	"github.com/preshotcome/vesta/internal/fly"
+	"github.com/preshotcome/vesta/internal/heartbeat"
+	heartbeatnotify "github.com/preshotcome/vesta/internal/heartbeat/notify"
+	"github.com/preshotcome/vesta/internal/mobileauth"
+	"github.com/preshotcome/vesta/internal/oauth"
+	"github.com/preshotcome/vesta/internal/obs"
+	"github.com/preshotcome/vesta/internal/push"
+	"github.com/preshotcome/vesta/internal/ratelimit"
+	"github.com/preshotcome/vesta/internal/runner"
+	"github.com/preshotcome/vesta/internal/web/csrf"
+	"github.com/preshotcome/vesta/internal/web/handlers"
+	"github.com/preshotcome/vesta/internal/webhooks"
 )
 
 func main() {
@@ -119,15 +119,26 @@ func main() {
 	} else {
 		logger.Info("email disabled (no POSTMARK_TOKEN) — using log mailer")
 	}
-	// Heartbeat alerts fan out to email (an account's members) and mobile push
-	// (registered devices). Email uses the same Mailer (LogMailer in dev); push
-	// uses a LogSender until a Firebase service account is configured — both
-	// work without external credentials.
+	// Heartbeat + drill alerts fan out to email (an account's members) and
+	// mobile push (registered devices). Email uses the same Mailer (LogMailer
+	// in dev); push uses the FCM HTTP v1 transport when FIREBASE_SERVICE_ACCOUNT
+	// is configured, else a LogSender so the pipeline is observable in dev.
 	pushDevices := push.NewStore(pool)
+	var pushSender push.Sender = push.LogSender{Logger: logger}
+	if fcm, err := push.NewFCMSender(cfg.FirebaseServiceAccount, logger); err != nil {
+		logger.Error("fcm sender init", "err", err)
+		os.Exit(1)
+	} else if fcm != nil {
+		pushSender = fcm
+		logger.Info("push enabled (fcm)")
+	} else {
+		logger.Info("push disabled (no FIREBASE_SERVICE_ACCOUNT) — using log sender")
+	}
 	heartbeatNotifier := heartbeat.MultiNotifier{
 		heartbeatnotify.New(mailer, accountStore, cfg.BaseURL, logger),
-		push.NewHeartbeatNotifier(pushDevices, push.LogSender{Logger: logger}, logger),
+		push.NewHeartbeatNotifier(pushDevices, pushSender, logger),
 	}
+	drillNotifier := push.NewDrillNotifier(pushDevices, pushSender, logger)
 	analyticsClient := analytics.New(cfg.PostHogAPIKey, cfg.PostHogHost, logger)
 	featureFlags := flags.New(cfg.PostHogAPIKey, cfg.PostHogHost, logger)
 	oauthRegistry := oauth.NewRegistry(
@@ -193,6 +204,7 @@ func main() {
 		Analytics: analyticsClient,
 		Billing:   billingCustomers,
 		Accounts:  accountStore,
+		Notify:    drillNotifier,
 	})
 	deliverWorker := webhooks.NewDeliverWorker(webhookStore, cfg.IsProduction())
 	deliverWorker.Metrics = observ.Metrics

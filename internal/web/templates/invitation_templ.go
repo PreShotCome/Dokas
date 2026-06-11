@@ -9,9 +9,9 @@ import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
 import (
-	"github.com/preshotcome/anything/internal/account"
-	"github.com/preshotcome/anything/internal/auth"
-	"github.com/preshotcome/anything/internal/branding"
+	"github.com/preshotcome/vesta/internal/account"
+	"github.com/preshotcome/vesta/internal/auth"
+	"github.com/preshotcome/vesta/internal/branding"
 )
 
 func InvitationAccept(user *auth.User, isLoggedIn bool, acct account.Account, inv account.Invitation, token string) templ.Component {

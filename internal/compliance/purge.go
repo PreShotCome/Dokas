@@ -10,8 +10,8 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/riverqueue/river"
 
-	"github.com/preshotcome/anything/internal/audit"
-	"github.com/preshotcome/anything/internal/evidence"
+	"github.com/preshotcome/vesta/internal/audit"
+	"github.com/preshotcome/vesta/internal/evidence"
 )
 
 // ErrNotEligible means an account isn't in a state where a hard delete can

@@ -12,10 +12,10 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
 
-	"github.com/preshotcome/anything/internal/account"
-	"github.com/preshotcome/anything/internal/assertions"
-	"github.com/preshotcome/anything/internal/auth"
-	"github.com/preshotcome/anything/internal/drill"
+	"github.com/preshotcome/vesta/internal/account"
+	"github.com/preshotcome/vesta/internal/assertions"
+	"github.com/preshotcome/vesta/internal/auth"
+	"github.com/preshotcome/vesta/internal/drill"
 )
 
 // apiDatabase is the /v1 representation of a database target.

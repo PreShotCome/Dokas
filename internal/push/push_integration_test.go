@@ -8,9 +8,10 @@ import (
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
 
-	"github.com/preshotcome/anything/internal/account"
-	"github.com/preshotcome/anything/internal/heartbeat"
-	"github.com/preshotcome/anything/internal/push"
+	"github.com/preshotcome/vesta/internal/account"
+	"github.com/preshotcome/vesta/internal/drill"
+	"github.com/preshotcome/vesta/internal/heartbeat"
+	"github.com/preshotcome/vesta/internal/push"
 )
 
 func seed(t *testing.T, ctx context.Context, pool *pgxpool.Pool) (userID, accountID uuid.UUID) {
@@ -109,5 +110,40 @@ func TestHeartbeatNotifierPushesToAccountDevices(t *testing.T) {
 	}
 	if fake.notif.Title != "Backup check-in DOWN" {
 		t.Fatalf("title = %q", fake.notif.Title)
+	}
+}
+
+func TestDrillNotifierPushesToAccountDevices(t *testing.T) {
+	pool, ctx := pgPool(t)
+	userID, accountID := seed(t, ctx, pool)
+	store := push.NewStore(pool)
+	if _, err := store.Register(ctx, userID, accountID, "tok-drill", "android"); err != nil {
+		t.Fatalf("register: %v", err)
+	}
+
+	fake := &fakeSender{}
+	n := push.NewDrillNotifier(store, fake, nil)
+	dr := drill.Drill{ID: uuid.New(), AccountID: accountID}
+
+	if err := n.NotifyDrill(ctx, dr, drill.EventFailed, "assertion_failed"); err != nil {
+		t.Fatalf("notify: %v", err)
+	}
+	if len(fake.tokens) != 1 || fake.tokens[0] != "tok-drill" {
+		t.Fatalf("sent to %v", fake.tokens)
+	}
+	if fake.notif.Data["type"] != "drill" || fake.notif.Data["id"] != dr.ID.String() ||
+		fake.notif.Data["reason"] != "assertion_failed" {
+		t.Fatalf("data = %v", fake.notif.Data)
+	}
+	if fake.notif.Title != "Drill FAILED" {
+		t.Fatalf("title = %q", fake.notif.Title)
+	}
+
+	// Completed event: no reason in data, friendlier title.
+	if err := n.NotifyDrill(ctx, dr, drill.EventCompleted, ""); err != nil {
+		t.Fatalf("notify completed: %v", err)
+	}
+	if fake.notif.Title != "Drill passed" || fake.notif.Data["reason"] != "" {
+		t.Fatalf("completed notif wrong: title=%q data=%v", fake.notif.Title, fake.notif.Data)
 	}
 }

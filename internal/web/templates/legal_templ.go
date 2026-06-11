@@ -8,7 +8,7 @@ package templates
 import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
-import "github.com/preshotcome/anything/internal/branding"
+import "github.com/preshotcome/vesta/internal/branding"
 
 // LegalPage wraps a legal document body in the standard layout.
 func LegalPage(lc LayoutCtx, title string, body templ.Component) templ.Component {

@@ -5,9 +5,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/preshotcome/anything/internal/audit"
-	"github.com/preshotcome/anything/internal/auth"
-	"github.com/preshotcome/anything/internal/web/templates"
+	"github.com/preshotcome/vesta/internal/audit"
+	"github.com/preshotcome/vesta/internal/auth"
+	"github.com/preshotcome/vesta/internal/web/templates"
 )
 
 // mfaSetupPage shows the MFA section of account settings: an enrollment form

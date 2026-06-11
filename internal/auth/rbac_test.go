@@ -3,7 +3,7 @@ package auth
 import (
 	"testing"
 
-	"github.com/preshotcome/anything/internal/account"
+	"github.com/preshotcome/vesta/internal/account"
 )
 
 func TestRoleMatrix(t *testing.T) {

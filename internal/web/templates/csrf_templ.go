@@ -8,7 +8,7 @@ package templates
 import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
-import "github.com/preshotcome/anything/internal/web/csrf"
+import "github.com/preshotcome/vesta/internal/web/csrf"
 
 // CSRFField renders the hidden token every POST form needs. It reads the
 // token from the request context (stamped by the csrf middleware) — templ
