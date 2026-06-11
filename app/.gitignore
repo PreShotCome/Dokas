@@ -1,0 +1,17 @@
+# Flutter / Dart
+.dart_tool/
+.packages
+build/
+.flutter-plugins
+.flutter-plugins-dependencies
+pubspec.lock
+
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# Firebase config (per-project; add your own — see README)
+**/google-services.json
+**/GoogleService-Info.plist
+lib/firebase_options.dart

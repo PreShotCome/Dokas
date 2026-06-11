@@ -34,11 +34,11 @@ Disallow: /invitations/
 `))
 }
 
-// evidenceSigningKeys publishes the public halves of every key Selket signs
+// evidenceSigningKeys publishes the public halves of every key Vesta signs
 // or verifies evidence with, as a PEM document at a well-known path. A
-// customer (or an auditor, or a court) holding a Selket-issued PDF can fetch
+// customer (or an auditor, or a court) holding a Vesta-issued PDF can fetch
 // this, pick the block whose PublicKeyID matches the signature, and verify
-// the detached signature with stock OpenSSL — no Selket software in the loop.
+// the detached signature with stock OpenSSL — no Vesta software in the loop.
 // Served with a short cache so a key rotation propagates within the day.
 func (h *Handlers) evidenceSigningKeys(w http.ResponseWriter, r *http.Request) {
 	pem, err := h.signer.AllPublicKeysPEM()

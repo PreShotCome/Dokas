@@ -1,7 +1,9 @@
 package templates
 
+import "github.com/preshotcome/anything/internal/branding"
+
 // HowItWorks is the public explainer page: what backup drilling is, why it
-// matters, and how Selket does it. Linked from the nav and footer.
+// matters, and how Vesta does it. Linked from the nav and footer.
 templ HowItWorks(lc LayoutCtx) {
 	@LayoutWith("How it works", lc) {
 		<article class="mx-auto max-w-3xl">
@@ -12,7 +14,7 @@ templ HowItWorks(lc LayoutCtx) {
 					Most teams trust backups they have never actually restored —
 					and from 2026, auditors and cyber-insurance carriers want
 					<span class="font-medium text-zinc-900 dark:text-zinc-100">proof</span> you
-					have. Selket restore-tests your PostgreSQL backups on a schedule
+					have. { branding.ProductName } restore-tests your PostgreSQL backups on a schedule
 					and hands you signed, independently verifiable evidence. Here is
 					what that means and how it works.
 				</p>
@@ -59,12 +61,12 @@ templ HowItWorks(lc LayoutCtx) {
 				}
 				@explainSection("What happens in a drill") {
 					<p>
-						Every Selket drill runs the same six steps, inside an
+						Every { branding.ProductName } drill runs the same six steps, inside an
 						isolated sandbox that never touches your production database:
 					</p>
 					<div class="space-y-3 pt-1">
 						@explainStep("1", "Provision", "A clean, isolated sandbox database is created just for this drill.")
-						@explainStep("2", "Fetch", "Selket reads your backup dump and records its SHA-256 hash, anchoring the evidence to the exact bytes it drilled.")
+						@explainStep("2", "Fetch", branding.ProductName+" reads your backup dump and records its SHA-256 hash, anchoring the evidence to the exact bytes it drilled.")
 						@explainStep("3", "Restore", "The dump is restored into the sandbox, exactly the way a real recovery would run it.")
 						@explainStep("4", "Assert", "Your checks run against the restored data: row counts, required tables, non-null columns, and more.")
 						@explainStep("5", "Report", "A cryptographically signed PDF and an immutable audit record capture exactly what was verified.")
@@ -75,10 +77,10 @@ templ HowItWorks(lc LayoutCtx) {
 					<p>
 						A green checkmark in a dashboard is worth little to an
 						auditor or an underwriter — they have only your word for it.
-						Selket's evidence is different: every drill produces a
+						{ branding.ProductName }'s evidence is different: every drill produces a
 						<span class="font-medium text-zinc-900 dark:text-zinc-100">Proof-of-Recovery PDF</span> that
 						is cryptographically signed, and that anyone can verify
-						without trusting Selket at all.
+						without trusting { branding.ProductName } at all.
 					</p>
 					<ul class="space-y-1.5">
 						@explainBullet("The PDF records the source, its SHA-256 hash, every assertion's expected-vs-actual result, the restore duration, and the operator.")
@@ -88,22 +90,22 @@ templ HowItWorks(lc LayoutCtx) {
 					</ul>
 					<p class="text-sm">
 						To be precise about what this is: the signature proves the
-						evidence is tamper-evident and was produced by Selket's key.
+						evidence is tamper-evident and was produced by { branding.ProductName }'s key.
 						It is not yet a third-party trusted timestamp (RFC 3161) or a
 						certificate-authority document signature — those are on the
 						roadmap, and we describe the current model plainly rather than
 						overclaim it.
 					</p>
 				}
-				@explainSection("How Selket helps") {
+				@explainSection("How "+branding.ProductName+" helps") {
 					<p>
 						Doing all of this by hand is tedious — so it does not get
-						done. Selket turns backup drilling into something that simply
+						done. { branding.ProductName } turns backup drilling into something that simply
 						happens:
 					</p>
 					<ul class="space-y-2.5">
 						@explainFeature("On a schedule", "drills run on the cadence you set, so a broken backup surfaces within days, not during a recovery.")
-						@explainFeature("Isolated and safe", "every drill runs in an ephemeral sandbox destroyed when it finishes. Selket never connects to your production database.")
+						@explainFeature("Isolated and safe", "every drill runs in an ephemeral sandbox destroyed when it finishes. "+branding.ProductName+" never connects to your production database.")
 						@explainFeature("Real assertions", "go past \"it restored\" — assert row counts, that key tables and columns exist, and that critical columns contain no nulls.")
 						@explainFeature("Signed evidence", "every drill produces a signed PDF and an immutable audit entry, retained for seven years with a live tamper-check.")
 						@explainFeature("In your workflow", "a versioned JSON API and signed webhooks push drill results into your own alerting and dashboards.")
@@ -111,13 +113,13 @@ templ HowItWorks(lc LayoutCtx) {
 				}
 				@explainSection("Who it is for") {
 					<p>
-						Selket is built for engineering teams running managed
+						{ branding.ProductName } is built for engineering teams running managed
 						PostgreSQL who cannot afford to learn their backups are broken
 						the hard way. It is sharpest for two moments:
 					</p>
 					<ul class="space-y-1.5">
-						@explainBullet("A SOC 2 or ISO 27001 push — recovery testing is an expected control (ISO/IEC 27001:2022 Annex A 8.13; SOC 2 Availability A1.3), and Selket's report is drop-in audit evidence.")
-						@explainBullet("A cyber-insurance renewal — carriers increasingly require proof you restored from backup within the last 12 months; Selket produces exactly that, dated and signed.")
+						@explainBullet("A SOC 2 or ISO 27001 push — recovery testing is an expected control (ISO/IEC 27001:2022 Annex A 8.13; SOC 2 Availability A1.3), and "+branding.ProductName+"'s report is drop-in audit evidence.")
+						@explainBullet("A cyber-insurance renewal — carriers increasingly require proof you restored from backup within the last 12 months; "+branding.ProductName+" produces exactly that, dated and signed.")
 					</ul>
 				}
 			</div>
@@ -167,7 +169,7 @@ templ explainStep(num, name, body string) {
 	</div>
 }
 
-// explainFeature is one "how Selket helps" item: a bold lead-in plus prose.
+// explainFeature is one "how Vesta helps" item: a bold lead-in plus prose.
 templ explainFeature(title, body string) {
 	<li class="flex items-start gap-2.5">
 		<span class="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-300">

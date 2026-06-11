@@ -34,6 +34,7 @@ const (
 	ScopeDatabasesWrite = "databases:write"
 	ScopeDrillsRead     = "drills:read"
 	ScopeDrillsWrite    = "drills:write"
+	ScopeHeartbeatsRead = "heartbeats:read"
 	// ScopeAccountDelete authorises irreversible erasure of the entire
 	// account via DELETE /v1/accounts/{id}. It is deliberately NOT part of
 	// AllScopes (the default fallback set): a key holds it only when it was
@@ -47,6 +48,7 @@ const (
 // account-deletion scope. Listed in canonical order.
 var AllScopes = []string{
 	ScopeDatabasesRead, ScopeDatabasesWrite, ScopeDrillsRead, ScopeDrillsWrite,
+	ScopeHeartbeatsRead,
 }
 
 // GrantableScopes is every scope a key MAY carry when explicitly requested —
@@ -55,6 +57,7 @@ var AllScopes = []string{
 // grantable but never default.
 var GrantableScopes = []string{
 	ScopeDatabasesRead, ScopeDatabasesWrite, ScopeDrillsRead, ScopeDrillsWrite,
+	ScopeHeartbeatsRead,
 	ScopeAccountDelete,
 }
 
@@ -62,7 +65,7 @@ var GrantableScopes = []string{
 func ValidScope(s string) bool {
 	switch s {
 	case ScopeDatabasesRead, ScopeDatabasesWrite, ScopeDrillsRead, ScopeDrillsWrite,
-		ScopeAccountDelete:
+		ScopeHeartbeatsRead, ScopeAccountDelete:
 		return true
 	default:
 		return false

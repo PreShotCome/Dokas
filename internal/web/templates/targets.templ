@@ -7,6 +7,7 @@ import (
 	"github.com/preshotcome/anything/internal/account"
 	"github.com/preshotcome/anything/internal/assertions"
 	"github.com/preshotcome/anything/internal/auth"
+	"github.com/preshotcome/anything/internal/branding"
 	"github.com/preshotcome/anything/internal/drill"
 )
 
@@ -174,9 +175,9 @@ templ scheduleCard(lc LayoutCtx, t drill.Target) {
 		<h2 class="text-sm font-semibold">Drill schedule</h2>
 		<p class="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
 			if cadenceValue(t.DrillCadence) == "off" {
-				This database is drilled manually. Pick a cadence to have Selket verify it automatically.
+				This database is drilled manually. Pick a cadence to have { branding.ProductName } verify it automatically.
 			} else {
-				Selket drills this database automatically { cadenceAdverb(t.DrillCadence) }.
+				{ branding.ProductName } drills this database automatically { cadenceAdverb(t.DrillCadence) }.
 			}
 		</p>
 		if lc.Membership != nil && lc.Account != nil && auth.Allowed(lc.Membership.Role, auth.ActionTargetWrite) {

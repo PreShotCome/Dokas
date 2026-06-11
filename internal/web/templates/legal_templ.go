@@ -8,6 +8,8 @@ package templates
 import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
+import "github.com/preshotcome/anything/internal/branding"
+
 // LegalPage wraps a legal document body in the standard layout.
 func LegalPage(lc LayoutCtx, title string, body templ.Component) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
@@ -49,7 +51,7 @@ func LegalPage(lc LayoutCtx, title string, body templ.Component) templ.Component
 			var templ_7745c5c3_Var3 string
 			templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(title)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/templates/legal.templ`, Line: 7, Col: 65}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/templates/legal.templ`, Line: 9, Col: 65}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
 			if templ_7745c5c3_Err != nil {
@@ -98,7 +100,85 @@ func LegalTerms() templ.Component {
 			templ_7745c5c3_Var4 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "<div class=\"space-y-3 text-sm text-zinc-700 dark:text-zinc-300\"><p>These Terms of Service (the \"Terms\") form a binding agreement between you and Selket (\"Selket\", \"we\", \"us\") governing your use of the Selket backup-verification service (the \"Service\"). By creating an account or using the Service you agree to these Terms. If you are entering into them for an organisation, you confirm you have authority to bind that organisation.</p><h2 class=\"text-base font-semibold\">1. The Service</h2><p>Selket periodically restores the database dumps you register into an isolated, ephemeral sandbox, runs the assertions you configure, and produces signed evidence of the result. The Service verifies backups; it does not create them. We may add, change, or remove features over time.</p><h2 class=\"text-base font-semibold\">2. Accounts and eligibility</h2><p>You must provide accurate registration details and keep your credentials confidential. You are responsible for all activity under your account, including that of users you invite. You must be at least 18 years old and able to form a binding contract. We recommend enabling two-factor authentication.</p><h2 class=\"text-base font-semibold\">3. Your data and responsibilities</h2><p>You retain all rights to the database dumps and other content you provide (\"Customer Data\"). You grant us a limited licence to process Customer Data solely to provide the Service. You are responsible for having the rights to that data, for the lawfulness of the data it contains, and for not registering dumps that you are not authorised to process.</p><h2 class=\"text-base font-semibold\">4. Acceptable use</h2><p>You agree not to misuse the Service: no unlawful content, no infringement of others' rights, no attempts to breach security or access other tenants' data, no probing or load-testing outside your own account, and no use of the Service to build a competing product. We may investigate and act on suspected violations.</p><h2 class=\"text-base font-semibold\">5. Fees, billing, and trials</h2><p>Paid plans are billed monthly in advance through our payment processor, Stripe. Fees are non-refundable except where required by law or expressly stated. We may change pricing on notice effective at your next renewal. A free trial, where offered, may be limited in capacity and converts to no charge if you do not subscribe. You are responsible for applicable taxes.</p><h2 class=\"text-base font-semibold\">6. Suspension and termination</h2><p>You may cancel at any time from Account → Billing; cancellation takes effect at the end of the current billing period. We may suspend or terminate access for material breach, non-payment, or to comply with law, and will give reasonable notice where practicable. On termination you may export your data for 30 days, after which it is deleted in line with our Privacy Policy.</p><h2 class=\"text-base font-semibold\">7. Service availability</h2><p>We aim for high availability but do not guarantee the Service will be uninterrupted or error-free. Any service-level commitments apply only where set out in a separate written agreement. We may perform maintenance and will seek to minimise disruption.</p><h2 class=\"text-base font-semibold\">8. Disclaimers</h2><p>The Service is provided \"as is\" and \"as available\". To the fullest extent permitted by law we disclaim all implied warranties, including merchantability, fitness for a particular purpose, and non-infringement. Drill results and evidence describe the verification we performed and are not a guarantee about the condition of any production system.</p><h2 class=\"text-base font-semibold\">9. Limitation of liability</h2><p>To the fullest extent permitted by law, neither party is liable for indirect, incidental, special, consequential, or exemplary damages, or for lost profits or data. Our total aggregate liability arising out of or relating to these Terms is limited to the fees you paid for the Service in the 12 months before the event giving rise to the claim.</p><h2 class=\"text-base font-semibold\">10. Indemnification</h2><p>You will defend and indemnify Selket against third-party claims arising from your Customer Data or your use of the Service in breach of these Terms, except to the extent caused by us.</p><h2 class=\"text-base font-semibold\">11. Changes to these Terms</h2><p>We may update these Terms. For material changes we will give notice by email or in the application before they take effect. Continued use after the effective date constitutes acceptance.</p><h2 class=\"text-base font-semibold\">12. Governing law</h2><p>These Terms are governed by the law of the jurisdiction in which the Selket operating entity is established, without regard to conflict-of-laws rules, and the courts of that jurisdiction have exclusive jurisdiction over disputes. Nothing in these Terms limits mandatory consumer-protection rights available to you locally.</p><h2 class=\"text-base font-semibold\">13. Contact</h2><p>Questions about these Terms: <a class=\"underline\" href=\"mailto:legal@selket.io\">legal@selket.io</a>.</p></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "<div class=\"space-y-3 text-sm text-zinc-700 dark:text-zinc-300\"><p>These Terms of Service (the \"Terms\") form a binding agreement between you and ")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var5 string
+		templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(branding.ProductName)
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/templates/legal.templ`, Line: 20, Col: 41}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, " (\"")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var6 string
+		templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(branding.ProductName)
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/templates/legal.templ`, Line: 20, Col: 68}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "\", \"we\", \"us\") governing your use of the ")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var7 string
+		templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinStringErrs(branding.ProductName)
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/templates/legal.templ`, Line: 21, Col: 51}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var7))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, " backup-verification service (the \"Service\"). By creating an account or using the Service you agree to these Terms. If you are entering into them for an organisation, you confirm you have authority to bind that organisation.</p><h2 class=\"text-base font-semibold\">1. The Service</h2><p>")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var8 string
+		templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(branding.ProductName)
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/templates/legal.templ`, Line: 29, Col: 25}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var8))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, " periodically restores the database dumps you register into an isolated, ephemeral sandbox, runs the assertions you configure, and produces signed evidence of the result. The Service verifies backups; it does not create them. We may add, change, or remove features over time.</p><h2 class=\"text-base font-semibold\">2. Accounts and eligibility</h2><p>You must provide accurate registration details and keep your credentials confidential. You are responsible for all activity under your account, including that of users you invite. You must be at least 18 years old and able to form a binding contract. We recommend enabling two-factor authentication.</p><h2 class=\"text-base font-semibold\">3. Your data and responsibilities</h2><p>You retain all rights to the database dumps and other content you provide (\"Customer Data\"). You grant us a limited licence to process Customer Data solely to provide the Service. You are responsible for having the rights to that data, for the lawfulness of the data it contains, and for not registering dumps that you are not authorised to process.</p><h2 class=\"text-base font-semibold\">4. Acceptable use</h2><p>You agree not to misuse the Service: no unlawful content, no infringement of others' rights, no attempts to breach security or access other tenants' data, no probing or load-testing outside your own account, and no use of the Service to build a competing product. We may investigate and act on suspected violations.</p><h2 class=\"text-base font-semibold\">5. Fees, billing, and trials</h2><p>Paid plans are billed monthly in advance through our payment processor, Stripe. Fees are non-refundable except where required by law or expressly stated. We may change pricing on notice effective at your next renewal. A free trial, where offered, may be limited in capacity and converts to no charge if you do not subscribe. You are responsible for applicable taxes.</p><h2 class=\"text-base font-semibold\">6. Suspension and termination</h2><p>You may cancel at any time from Account → Billing; cancellation takes effect at the end of the current billing period. We may suspend or terminate access for material breach, non-payment, or to comply with law, and will give reasonable notice where practicable. On termination you may export your data for 30 days, after which it is deleted in line with our Privacy Policy.</p><h2 class=\"text-base font-semibold\">7. Service availability</h2><p>We aim for high availability but do not guarantee the Service will be uninterrupted or error-free. Any service-level commitments apply only where set out in a separate written agreement. We may perform maintenance and will seek to minimise disruption.</p><h2 class=\"text-base font-semibold\">8. Disclaimers</h2><p>The Service is provided \"as is\" and \"as available\". To the fullest extent permitted by law we disclaim all implied warranties, including merchantability, fitness for a particular purpose, and non-infringement. Drill results and evidence describe the verification we performed and are not a guarantee about the condition of any production system.</p><h2 class=\"text-base font-semibold\">9. Limitation of liability</h2><p>To the fullest extent permitted by law, neither party is liable for indirect, incidental, special, consequential, or exemplary damages, or for lost profits or data. Our total aggregate liability arising out of or relating to these Terms is limited to the fees you paid for the Service in the 12 months before the event giving rise to the claim.</p><h2 class=\"text-base font-semibold\">10. Indemnification</h2><p>You will defend and indemnify ")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var9 string
+		templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs(branding.ProductName)
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/templates/legal.templ`, Line: 105, Col: 55}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var9))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, " against third-party claims arising from your Customer Data or your use of the Service in breach of these Terms, except to the extent caused by us.</p><h2 class=\"text-base font-semibold\">11. Changes to these Terms</h2><p>We may update these Terms. For material changes we will give notice by email or in the application before they take effect. Continued use after the effective date constitutes acceptance.</p><h2 class=\"text-base font-semibold\">12. Governing law</h2><p>These Terms are governed by the law of the jurisdiction in which the ")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var10 string
+		templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.JoinStringErrs(branding.ProductName)
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/templates/legal.templ`, Line: 118, Col: 29}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var10))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, " operating entity is established, without regard to conflict-of-laws rules, and the courts of that jurisdiction have exclusive jurisdiction over disputes. Nothing in these Terms limits mandatory consumer-protection rights available to you locally.</p><h2 class=\"text-base font-semibold\">13. Contact</h2><p>Questions about these Terms: <a class=\"underline\" href=\"mailto:legal@vesta.io\">legal@vesta.io</a>.</p></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -122,12 +202,38 @@ func LegalPrivacy() templ.Component {
 			}()
 		}
 		ctx = templ.InitializeContext(ctx)
-		templ_7745c5c3_Var5 := templ.GetChildren(ctx)
-		if templ_7745c5c3_Var5 == nil {
-			templ_7745c5c3_Var5 = templ.NopComponent
+		templ_7745c5c3_Var11 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var11 == nil {
+			templ_7745c5c3_Var11 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "<div class=\"space-y-3 text-sm text-zinc-700 dark:text-zinc-300\"><p>This Privacy Policy explains what personal data Selket collects, how we use it, and the rights you have. It covers the Selket application and website.</p><h2 class=\"text-base font-semibold\">1. Data we collect</h2><p><span class=\"font-medium\">Account data</span> — names, email addresses, and organisation details for you and the users you invite. <span class=\"font-medium\">Service data</span> — the database targets you register, drill results, signed evidence, webhook delivery records, and an immutable audit log. <span class=\"font-medium\">Billing data</span> — a billing contact and subscription status; card details are handled by Stripe and never reach our servers. <span class=\"font-medium\">Technical data</span> — IP address, user agent, and request logs, used for security and diagnostics.</p><h2 class=\"text-base font-semibold\">2. Customer database content</h2><p>The database dumps you register may contain personal data. We process that content only to perform the verification you request, in an isolated sandbox, and we delete the transient working copy as soon as a drill finishes. For this content we act as a processor on your behalf — see our Data Processing Addendum.</p><h2 class=\"text-base font-semibold\">3. How we use data</h2><p>We use personal data to provide and secure the Service, authenticate users, process billing, send transactional email (verification, invitations, drill notifications), prevent abuse, meet legal obligations, and improve the product. We do not sell personal data and we do not use it for advertising.</p><h2 class=\"text-base font-semibold\">4. Legal bases</h2><p>Where the GDPR applies, we rely on: performance of a contract (to provide the Service), legitimate interests (security, abuse prevention, product improvement), legal obligation (tax and accounting records), and consent where specifically requested.</p><h2 class=\"text-base font-semibold\">5. Sharing and sub-processors</h2><p>We share data only with the sub-processors needed to run the Service — listed on our <a class=\"underline\" href=\"/legal/subprocessors\">Sub-processors</a> page — and where required by law. We do not otherwise disclose personal data to third parties.</p><h2 class=\"text-base font-semibold\">6. International transfers</h2><p>Where personal data is transferred outside its country of origin, we rely on appropriate safeguards such as the Standard Contractual Clauses with our sub-processors.</p><h2 class=\"text-base font-semibold\">7. Retention</h2><p>Drill evidence and audit logs are retained for seven years to meet auditor requirements. Login-attempt records are kept for 30 days. Transient working copies of your dumps are destroyed as soon as a drill finishes. Account and user records are retained while your account is active and deleted after closure as described below.</p><h2 class=\"text-base font-semibold\">8. Security</h2><p>Passwords are hashed with Argon2id, sessions are protected with secure cookies and CSRF defences, evidence is encrypted at rest with per-account keys, and drills run in isolated ephemeral sandboxes. Access to production data is restricted and audited.</p><h2 class=\"text-base font-semibold\">9. Your rights</h2><p>Depending on your location you may have rights to access, correct, export, or delete your personal data, and to object to or restrict certain processing. You can export everything we hold for your account as JSON from Account → Export, and close your account from Account → Danger zone. Closure is a soft delete followed by a permanent hard delete after a 30-day grace period, which crypto-shreds your evidence encryption keys. To exercise any other right, contact us.</p><h2 class=\"text-base font-semibold\">10. Cookies</h2><p>The application sets only strictly-necessary cookies — see our <a class=\"underline\" href=\"/legal/cookies\">Cookie Policy</a>.</p><h2 class=\"text-base font-semibold\">11. Changes</h2><p>We may update this Policy; material changes will be notified by email or in the application before they take effect.</p><h2 class=\"text-base font-semibold\">12. Contact</h2><p>Privacy questions or requests: <a class=\"underline\" href=\"mailto:privacy@selket.io\">privacy@selket.io</a>.</p></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "<div class=\"space-y-3 text-sm text-zinc-700 dark:text-zinc-300\"><p>This Privacy Policy explains what personal data ")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var12 string
+		templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.JoinStringErrs(branding.ProductName)
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/templates/legal.templ`, Line: 134, Col: 73}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var12))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, " collects, how we use it, and the rights you have. It covers the ")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var13 string
+		templ_7745c5c3_Var13, templ_7745c5c3_Err = templ.JoinStringErrs(branding.ProductName)
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/templates/legal.templ`, Line: 136, Col: 25}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var13))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, " application and website.</p><h2 class=\"text-base font-semibold\">1. Data we collect</h2><p><span class=\"font-medium\">Account data</span> — names, email addresses, and organisation details for you and the users you invite. <span class=\"font-medium\">Service data</span> — the database targets you register, drill results, signed evidence, webhook delivery records, and an immutable audit log. <span class=\"font-medium\">Billing data</span> — a billing contact and subscription status; card details are handled by Stripe and never reach our servers. <span class=\"font-medium\">Technical data</span> — IP address, user agent, and request logs, used for security and diagnostics.</p><h2 class=\"text-base font-semibold\">2. Customer database content</h2><p>The database dumps you register may contain personal data. We process that content only to perform the verification you request, in an isolated sandbox, and we delete the transient working copy as soon as a drill finishes. For this content we act as a processor on your behalf — see our Data Processing Addendum.</p><h2 class=\"text-base font-semibold\">3. How we use data</h2><p>We use personal data to provide and secure the Service, authenticate users, process billing, send transactional email (verification, invitations, drill notifications), prevent abuse, meet legal obligations, and improve the product. We do not sell personal data and we do not use it for advertising.</p><h2 class=\"text-base font-semibold\">4. Legal bases</h2><p>Where the GDPR applies, we rely on: performance of a contract (to provide the Service), legitimate interests (security, abuse prevention, product improvement), legal obligation (tax and accounting records), and consent where specifically requested.</p><h2 class=\"text-base font-semibold\">5. Sharing and sub-processors</h2><p>We share data only with the sub-processors needed to run the Service — listed on our <a class=\"underline\" href=\"/legal/subprocessors\">Sub-processors</a> page — and where required by law. We do not otherwise disclose personal data to third parties.</p><h2 class=\"text-base font-semibold\">6. International transfers</h2><p>Where personal data is transferred outside its country of origin, we rely on appropriate safeguards such as the Standard Contractual Clauses with our sub-processors.</p><h2 class=\"text-base font-semibold\">7. Retention</h2><p>Drill evidence and audit logs are retained for seven years to meet auditor requirements. Login-attempt records are kept for 30 days. Transient working copies of your dumps are destroyed as soon as a drill finishes. Account and user records are retained while your account is active and deleted after closure as described below.</p><h2 class=\"text-base font-semibold\">8. Security</h2><p>Passwords are hashed with Argon2id, sessions are protected with secure cookies and CSRF defences, evidence is encrypted at rest with per-account keys, and drills run in isolated ephemeral sandboxes. Access to production data is restricted and audited.</p><h2 class=\"text-base font-semibold\">9. Your rights</h2><p>Depending on your location you may have rights to access, correct, export, or delete your personal data, and to object to or restrict certain processing. You can export everything we hold for your account as JSON from Account → Export, and close your account from Account → Danger zone. Closure is a soft delete followed by a permanent hard delete after a 30-day grace period, which crypto-shreds your evidence encryption keys. To exercise any other right, contact us.</p><h2 class=\"text-base font-semibold\">10. Cookies</h2><p>The application sets only strictly-necessary cookies — see our <a class=\"underline\" href=\"/legal/cookies\">Cookie Policy</a>.</p><h2 class=\"text-base font-semibold\">11. Changes</h2><p>We may update this Policy; material changes will be notified by email or in the application before they take effect.</p><h2 class=\"text-base font-semibold\">12. Contact</h2><p>Privacy questions or requests: <a class=\"underline\" href=\"mailto:privacy@vesta.io\">privacy@vesta.io</a>.</p></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -151,12 +257,25 @@ func LegalSubprocessors() templ.Component {
 			}()
 		}
 		ctx = templ.InitializeContext(ctx)
-		templ_7745c5c3_Var6 := templ.GetChildren(ctx)
-		if templ_7745c5c3_Var6 == nil {
-			templ_7745c5c3_Var6 = templ.NopComponent
+		templ_7745c5c3_Var14 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var14 == nil {
+			templ_7745c5c3_Var14 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "<div class=\"space-y-3 text-sm text-zinc-700 dark:text-zinc-300\"><p>Selket uses the third-party services below to process data on your behalf. We notify customers in advance of material changes to this list.</p><div class=\"card overflow-x-auto p-0\"><table class=\"min-w-full divide-y divide-zinc-200 text-sm dark:divide-zinc-800\"><thead class=\"bg-zinc-50 dark:bg-zinc-900/50\"><tr><th class=\"px-4 py-2 text-left font-medium\">Sub-processor</th><th class=\"px-4 py-2 text-left font-medium\">Purpose</th><th class=\"px-4 py-2 text-left font-medium\">Data</th></tr></thead> <tbody class=\"divide-y divide-zinc-200 dark:divide-zinc-800\"><tr><td class=\"px-4 py-2 font-medium\">Managed Postgres host</td><td class=\"px-4 py-2\">Primary application database</td><td class=\"px-4 py-2\">Account, user, drill, and audit records</td></tr><tr><td class=\"px-4 py-2 font-medium\">Object storage</td><td class=\"px-4 py-2\">Evidence retention</td><td class=\"px-4 py-2\">Signed drill report PDFs</td></tr><tr><td class=\"px-4 py-2 font-medium\">Sandbox compute</td><td class=\"px-4 py-2\">Isolated restore execution</td><td class=\"px-4 py-2\">Your database dumps, transiently, during a drill</td></tr><tr><td class=\"px-4 py-2 font-medium\">Stripe</td><td class=\"px-4 py-2\">Billing</td><td class=\"px-4 py-2\">Billing contact + payment data (held by Stripe, not us)</td></tr><tr><td class=\"px-4 py-2 font-medium\">Postmark</td><td class=\"px-4 py-2\">Transactional email</td><td class=\"px-4 py-2\">Recipient email address + message content</td></tr><tr><td class=\"px-4 py-2 font-medium\">PostHog</td><td class=\"px-4 py-2\">Product analytics</td><td class=\"px-4 py-2\">Pseudonymous account/user IDs + event names</td></tr><tr><td class=\"px-4 py-2 font-medium\">Sentry</td><td class=\"px-4 py-2\">Error tracking</td><td class=\"px-4 py-2\">Error diagnostics tagged with an account ID</td></tr></tbody></table></div><p>Questions about a sub-processor: <a class=\"underline\" href=\"mailto:privacy@selket.io\">privacy@selket.io</a>.</p></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "<div class=\"space-y-3 text-sm text-zinc-700 dark:text-zinc-300\"><p>")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var15 string
+		templ_7745c5c3_Var15, templ_7745c5c3_Err = templ.JoinStringErrs(branding.ProductName)
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/templates/legal.templ`, Line: 233, Col: 25}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var15))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, " uses the third-party services below to process data on your behalf. We notify customers in advance of material changes to this list.</p><div class=\"card overflow-x-auto p-0\"><table class=\"min-w-full divide-y divide-zinc-200 text-sm dark:divide-zinc-800\"><thead class=\"bg-zinc-50 dark:bg-zinc-900/50\"><tr><th class=\"px-4 py-2 text-left font-medium\">Sub-processor</th><th class=\"px-4 py-2 text-left font-medium\">Purpose</th><th class=\"px-4 py-2 text-left font-medium\">Data</th></tr></thead> <tbody class=\"divide-y divide-zinc-200 dark:divide-zinc-800\"><tr><td class=\"px-4 py-2 font-medium\">Managed Postgres host</td><td class=\"px-4 py-2\">Primary application database</td><td class=\"px-4 py-2\">Account, user, drill, and audit records</td></tr><tr><td class=\"px-4 py-2 font-medium\">Object storage</td><td class=\"px-4 py-2\">Evidence retention</td><td class=\"px-4 py-2\">Signed drill report PDFs</td></tr><tr><td class=\"px-4 py-2 font-medium\">Sandbox compute</td><td class=\"px-4 py-2\">Isolated restore execution</td><td class=\"px-4 py-2\">Your database dumps, transiently, during a drill</td></tr><tr><td class=\"px-4 py-2 font-medium\">Stripe</td><td class=\"px-4 py-2\">Billing</td><td class=\"px-4 py-2\">Billing contact + payment data (held by Stripe, not us)</td></tr><tr><td class=\"px-4 py-2 font-medium\">Postmark</td><td class=\"px-4 py-2\">Transactional email</td><td class=\"px-4 py-2\">Recipient email address + message content</td></tr><tr><td class=\"px-4 py-2 font-medium\">PostHog</td><td class=\"px-4 py-2\">Product analytics</td><td class=\"px-4 py-2\">Pseudonymous account/user IDs + event names</td></tr><tr><td class=\"px-4 py-2 font-medium\">Sentry</td><td class=\"px-4 py-2\">Error tracking</td><td class=\"px-4 py-2\">Error diagnostics tagged with an account ID</td></tr></tbody></table></div><p>Questions about a sub-processor: <a class=\"underline\" href=\"mailto:privacy@vesta.io\">privacy@vesta.io</a>.</p></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -180,12 +299,25 @@ func LegalCookies() templ.Component {
 			}()
 		}
 		ctx = templ.InitializeContext(ctx)
-		templ_7745c5c3_Var7 := templ.GetChildren(ctx)
-		if templ_7745c5c3_Var7 == nil {
-			templ_7745c5c3_Var7 = templ.NopComponent
+		templ_7745c5c3_Var16 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var16 == nil {
+			templ_7745c5c3_Var16 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "<div class=\"space-y-3 text-sm text-zinc-700 dark:text-zinc-300\"><p>The Selket application sets only strictly-necessary cookies. We do not use advertising or cross-site tracking cookies, and product analytics is collected server-side — there is no analytics cookie in your browser.</p><p>Because every cookie below is strictly necessary to provide a service you asked for (a logged-in session), no consent banner is required under GDPR/ePrivacy.</p><div class=\"card overflow-x-auto p-0\"><table class=\"min-w-full divide-y divide-zinc-200 text-sm dark:divide-zinc-800\"><thead class=\"bg-zinc-50 dark:bg-zinc-900/50\"><tr><th class=\"px-4 py-2 text-left font-medium\">Cookie</th><th class=\"px-4 py-2 text-left font-medium\">Purpose</th><th class=\"px-4 py-2 text-left font-medium\">Category</th></tr></thead> <tbody class=\"divide-y divide-zinc-200 dark:divide-zinc-800\"><tr><td class=\"px-4 py-2 font-mono text-xs\">__Host-so_session</td><td class=\"px-4 py-2\">Keeps you signed in</td><td class=\"px-4 py-2\">Strictly necessary</td></tr><tr><td class=\"px-4 py-2 font-mono text-xs\">__Host-so_csrf</td><td class=\"px-4 py-2\">Protects forms against cross-site request forgery</td><td class=\"px-4 py-2\">Strictly necessary</td></tr></tbody></table></div><p class=\"text-xs text-zinc-500\">In local development the cookie names drop the <code>__Host-</code> prefix so they work without HTTPS.</p></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, "<div class=\"space-y-3 text-sm text-zinc-700 dark:text-zinc-300\"><p>The ")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var17 string
+		templ_7745c5c3_Var17, templ_7745c5c3_Err = templ.JoinStringErrs(branding.ProductName)
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/templates/legal.templ`, Line: 294, Col: 29}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var17))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 17, " application sets only strictly-necessary cookies. We do not use advertising or cross-site tracking cookies, and product analytics is collected server-side — there is no analytics cookie in your browser.</p><p>Because every cookie below is strictly necessary to provide a service you asked for (a logged-in session), no consent banner is required under GDPR/ePrivacy.</p><div class=\"card overflow-x-auto p-0\"><table class=\"min-w-full divide-y divide-zinc-200 text-sm dark:divide-zinc-800\"><thead class=\"bg-zinc-50 dark:bg-zinc-900/50\"><tr><th class=\"px-4 py-2 text-left font-medium\">Cookie</th><th class=\"px-4 py-2 text-left font-medium\">Purpose</th><th class=\"px-4 py-2 text-left font-medium\">Category</th></tr></thead> <tbody class=\"divide-y divide-zinc-200 dark:divide-zinc-800\"><tr><td class=\"px-4 py-2 font-mono text-xs\">__Host-so_session</td><td class=\"px-4 py-2\">Keeps you signed in</td><td class=\"px-4 py-2\">Strictly necessary</td></tr><tr><td class=\"px-4 py-2 font-mono text-xs\">__Host-so_csrf</td><td class=\"px-4 py-2\">Protects forms against cross-site request forgery</td><td class=\"px-4 py-2\">Strictly necessary</td></tr></tbody></table></div><p class=\"text-xs text-zinc-500\">In local development the cookie names drop the <code>__Host-</code> prefix so they work without HTTPS.</p></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -209,12 +341,116 @@ func LegalDPA() templ.Component {
 			}()
 		}
 		ctx = templ.InitializeContext(ctx)
-		templ_7745c5c3_Var8 := templ.GetChildren(ctx)
-		if templ_7745c5c3_Var8 == nil {
-			templ_7745c5c3_Var8 = templ.NopComponent
+		templ_7745c5c3_Var18 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var18 == nil {
+			templ_7745c5c3_Var18 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "<div class=\"space-y-3 text-sm text-zinc-700 dark:text-zinc-300\"><p>This Data Processing Addendum (\"DPA\") forms part of the Terms of Service between you (\"Controller\") and Selket (\"Processor\") and applies where Selket processes personal data contained in your Customer Data on your behalf.</p><h2 class=\"text-base font-semibold\">1. Roles</h2><p>For personal data within the database dumps you register, you are the controller and Selket is the processor. For account and billing data of your users, Selket is an independent controller, governed by the Privacy Policy.</p><h2 class=\"text-base font-semibold\">2. Subject matter, duration, nature, and purpose</h2><p>The subject matter is the provision of the backup-verification Service. Processing continues for the term of the Terms of Service. The nature and purpose of processing is restoring your database dumps in an isolated sandbox and running the assertions you configure to produce verification evidence.</p><h2 class=\"text-base font-semibold\">3. Categories of data and data subjects</h2><p>The categories of personal data and of data subjects are determined by the contents of the database dumps you choose to register, which are within your control. You must not register dumps containing special-category data unless your plan and a separate agreement expressly permit it.</p><h2 class=\"text-base font-semibold\">4. Processor obligations</h2><p>Selket processes Customer Data only on your documented instructions (including via the application), ensures personnel with access are bound by confidentiality, implements the security measures in clause 7, and assists you in meeting your own compliance obligations as set out below.</p><h2 class=\"text-base font-semibold\">5. Sub-processors</h2><p>You authorise Selket to engage the sub-processors listed on the <a class=\"underline\" href=\"/legal/subprocessors\">Sub-processors</a> page. We impose data-protection obligations on each sub-processor no less protective than this DPA, remain responsible for their performance, and give advance notice of any addition or replacement so you may object on reasonable grounds.</p><h2 class=\"text-base font-semibold\">6. Data-subject rights and assistance</h2><p>Taking into account the nature of processing, we assist you with data-subject requests and with data-protection impact assessments and breach obligations. The application's self-service export and deletion tools are the primary means of fulfilling access and erasure requests.</p><h2 class=\"text-base font-semibold\">7. Security measures</h2><p>Drills run in isolated, ephemeral sandboxes destroyed on completion. Evidence is encrypted at rest with per-account envelope encryption and is digitally signed. Access controls, audit logging, encrypted transport, and tenant isolation apply across the Service. Transient working copies of dumps are deleted as soon as a drill finishes.</p><h2 class=\"text-base font-semibold\">8. Personal data breach</h2><p>Selket notifies you without undue delay after becoming aware of a personal data breach affecting your Customer Data, with the information reasonably available to assist your own reporting obligations.</p><h2 class=\"text-base font-semibold\">9. International transfers</h2><p>Where processing involves a transfer of personal data across borders, the parties rely on the Standard Contractual Clauses or another lawful transfer mechanism, which are incorporated by reference.</p><h2 class=\"text-base font-semibold\">10. Audits</h2><p>On reasonable written request, and no more than once a year except following a breach or where required by a supervisory authority, Selket makes available the information necessary to demonstrate compliance with this DPA.</p><h2 class=\"text-base font-semibold\">11. Return and deletion</h2><p>On termination you may export your data for 30 days. After that, Customer Data is deleted; account closure crypto-shreds the per-account evidence encryption keys, rendering retained evidence permanently undecryptable, except where retention is required by law.</p><h2 class=\"text-base font-semibold\">12. Order of precedence</h2><p>In the event of a conflict between this DPA and the Terms of Service regarding the processing of personal data, this DPA prevails.</p><p>DPA questions or a signed copy: <a class=\"underline\" href=\"mailto:legal@selket.io\">legal@selket.io</a>.</p></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 18, "<div class=\"space-y-3 text-sm text-zinc-700 dark:text-zinc-300\"><p>This Data Processing Addendum (\"DPA\") forms part of the Terms of Service between you (\"Controller\") and ")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var19 string
+		templ_7745c5c3_Var19, templ_7745c5c3_Err = templ.JoinStringErrs(branding.ProductName)
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/templates/legal.templ`, Line: 338, Col: 64}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var19))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 19, " (\"Processor\") and applies where ")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var20 string
+		templ_7745c5c3_Var20, templ_7745c5c3_Err = templ.JoinStringErrs(branding.ProductName)
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/templates/legal.templ`, Line: 339, Col: 57}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var20))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 20, " processes personal data contained in your Customer Data on your behalf.</p><h2 class=\"text-base font-semibold\">1. Roles</h2><p>For personal data within the database dumps you register, you are the controller and ")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var21 string
+		templ_7745c5c3_Var21, templ_7745c5c3_Err = templ.JoinStringErrs(branding.ProductName)
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/templates/legal.templ`, Line: 345, Col: 44}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var21))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 21, " is the processor. For account and billing data of your users, ")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var22 string
+		templ_7745c5c3_Var22, templ_7745c5c3_Err = templ.JoinStringErrs(branding.ProductName)
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/templates/legal.templ`, Line: 346, Col: 53}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var22))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 22, " is an independent controller, governed by the Privacy Policy.</p><h2 class=\"text-base font-semibold\">2. Subject matter, duration, nature, and purpose</h2><p>The subject matter is the provision of the backup-verification Service. Processing continues for the term of the Terms of Service. The nature and purpose of processing is restoring your database dumps in an isolated sandbox and running the assertions you configure to produce verification evidence.</p><h2 class=\"text-base font-semibold\">3. Categories of data and data subjects</h2><p>The categories of personal data and of data subjects are determined by the contents of the database dumps you choose to register, which are within your control. You must not register dumps containing special-category data unless your plan and a separate agreement expressly permit it.</p><h2 class=\"text-base font-semibold\">4. Processor obligations</h2><p>")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var23 string
+		templ_7745c5c3_Var23, templ_7745c5c3_Err = templ.JoinStringErrs(branding.ProductName)
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/templates/legal.templ`, Line: 367, Col: 25}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var23))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 23, " processes Customer Data only on your documented instructions (including via the application), ensures personnel with access are bound by confidentiality, implements the security measures in clause 7, and assists you in meeting your own compliance obligations as set out below.</p><h2 class=\"text-base font-semibold\">5. Sub-processors</h2><p>You authorise ")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var24 string
+		templ_7745c5c3_Var24, templ_7745c5c3_Err = templ.JoinStringErrs(branding.ProductName)
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/templates/legal.templ`, Line: 375, Col: 39}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var24))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 24, " to engage the sub-processors listed on the <a class=\"underline\" href=\"/legal/subprocessors\">Sub-processors</a> page. We impose data-protection obligations on each sub-processor no less protective than this DPA, remain responsible for their performance, and give advance notice of any addition or replacement so you may object on reasonable grounds.</p><h2 class=\"text-base font-semibold\">6. Data-subject rights and assistance</h2><p>Taking into account the nature of processing, we assist you with data-subject requests and with data-protection impact assessments and breach obligations. The application's self-service export and deletion tools are the primary means of fulfilling access and erasure requests.</p><h2 class=\"text-base font-semibold\">7. Security measures</h2><p>Drills run in isolated, ephemeral sandboxes destroyed on completion. Evidence is encrypted at rest with per-account envelope encryption and is digitally signed. Access controls, audit logging, encrypted transport, and tenant isolation apply across the Service. Transient working copies of dumps are deleted as soon as a drill finishes.</p><h2 class=\"text-base font-semibold\">8. Personal data breach</h2><p>")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var25 string
+		templ_7745c5c3_Var25, templ_7745c5c3_Err = templ.JoinStringErrs(branding.ProductName)
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/templates/legal.templ`, Line: 401, Col: 25}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var25))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 25, " notifies you without undue delay after becoming aware of a personal data breach affecting your Customer Data, with the information reasonably available to assist your own reporting obligations.</p><h2 class=\"text-base font-semibold\">9. International transfers</h2><p>Where processing involves a transfer of personal data across borders, the parties rely on the Standard Contractual Clauses or another lawful transfer mechanism, which are incorporated by reference.</p><h2 class=\"text-base font-semibold\">10. Audits</h2><p>On reasonable written request, and no more than once a year except following a breach or where required by a supervisory authority, ")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var26 string
+		templ_7745c5c3_Var26, templ_7745c5c3_Err = templ.JoinStringErrs(branding.ProductName)
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/templates/legal.templ`, Line: 417, Col: 25}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var26))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 26, " makes available the information necessary to demonstrate compliance with this DPA.</p><h2 class=\"text-base font-semibold\">11. Return and deletion</h2><p>On termination you may export your data for 30 days. After that, Customer Data is deleted; account closure crypto-shreds the per-account evidence encryption keys, rendering retained evidence permanently undecryptable, except where retention is required by law.</p><h2 class=\"text-base font-semibold\">12. Order of precedence</h2><p>In the event of a conflict between this DPA and the Terms of Service regarding the processing of personal data, this DPA prevails.</p><p>DPA questions or a signed copy: <a class=\"underline\" href=\"mailto:legal@vesta.io\">legal@vesta.io</a>.</p></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

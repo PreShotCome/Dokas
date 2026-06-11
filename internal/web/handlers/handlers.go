@@ -22,8 +22,10 @@ import (
 	"github.com/preshotcome/anything/internal/evidence"
 	"github.com/preshotcome/anything/internal/flags"
 	"github.com/preshotcome/anything/internal/heartbeat"
+	"github.com/preshotcome/anything/internal/mobileauth"
 	"github.com/preshotcome/anything/internal/oauth"
 	"github.com/preshotcome/anything/internal/obs"
+	"github.com/preshotcome/anything/internal/push"
 	"github.com/preshotcome/anything/internal/ratelimit"
 	"github.com/preshotcome/anything/internal/web/csrf"
 	"github.com/preshotcome/anything/internal/web/templates"
@@ -61,6 +63,8 @@ type Handlers struct {
 	staffEmails          map[string]bool
 	metricsToken         string
 	apiKeys              *apikey.Store
+	mobileTokens         *mobileauth.Store
+	pushDevices          *push.Store
 	v1Limiter            *ratelimit.Limiter
 	sourceDir            string
 	oauth                *oauth.Registry
@@ -101,6 +105,8 @@ type Deps struct {
 	StaffEmails          []string
 	MetricsToken         string
 	APIKeys              *apikey.Store
+	MobileTokens         *mobileauth.Store
+	PushDevices          *push.Store
 	V1Limiter            *ratelimit.Limiter
 	SourceDir            string
 	OAuth                *oauth.Registry
@@ -146,6 +152,8 @@ func New(d Deps) *Handlers {
 		staffEmails:          staff,
 		metricsToken:         d.MetricsToken,
 		apiKeys:              d.APIKeys,
+		mobileTokens:         d.MobileTokens,
+		pushDevices:          d.PushDevices,
 		v1Limiter:            d.V1Limiter,
 		sourceDir:            d.SourceDir,
 		oauth:                d.OAuth,
@@ -222,8 +230,8 @@ func (h *Handlers) Router(staticFS http.FileSystem) http.Handler {
 	r.Get("/robots.txt", h.robotsTxt)
 
 	// Public verification surface: the evidence signing keys, served as PEM
-	// so anyone holding a Selket-issued PDF can fetch the key and verify the
-	// detached signature without trusting Selket's own tooling.
+	// so anyone holding a Vesta-issued PDF can fetch the key and verify the
+	// detached signature without trusting Vesta's own tooling.
 	r.Get("/.well-known/evidence-signing-keys.pem", h.evidenceSigningKeys)
 
 	// Inbound Postmark bounce/complaint webhook — authenticated by the
@@ -248,6 +256,12 @@ func (h *Handlers) Router(staticFS http.FileSystem) http.Handler {
 	// exempts the /v1/ prefix). Mounted at the top level so it's outside
 	// the session-gated group.
 	r.Mount("/v1", h.v1Router())
+
+	// Native mobile (responder) app: token-authenticated read API. Mounted at
+	// the top level, outside the session-gated group; CSRF-exempt (the
+	// /mobile/ prefix is exempted in csrf.New).
+	r.Mount("/mobile", h.mobileRouter())
+
 	// API docs are public.
 	r.Get("/openapi.json", h.openAPISpec)
 	r.Get("/docs", h.docsPage)
@@ -255,7 +269,7 @@ func (h *Handlers) Router(staticFS http.FileSystem) http.Handler {
 	// Public pricing page — self-serve subscribers start here.
 	r.Get("/pricing", h.pricingPage)
 
-	// Public explainer — what backup drilling is and how Selket helps.
+	// Public explainer — what backup drilling is and how Vesta helps.
 	r.Get("/how-it-works", h.howItWorks)
 
 	// Onboarding sample dump — a known-good fixture a new user can run

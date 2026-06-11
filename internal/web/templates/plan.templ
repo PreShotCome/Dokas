@@ -1,6 +1,10 @@
 package templates
 
-import "strconv"
+import (
+	"strconv"
+
+	"github.com/preshotcome/anything/internal/branding"
+)
 
 // PlanLimit is the page shown when a create action is blocked by the
 // account's subscription tier. `resource` is the plural noun ("databases"),
@@ -28,7 +32,7 @@ templ TrialEnded(lc LayoutCtx) {
 		<div class="card mx-auto max-w-xl space-y-4 text-center">
 			<h1 class="text-2xl font-semibold tracking-tight">Your free trial has ended</h1>
 			<p class="text-zinc-600 dark:text-zinc-400">
-				Your 14-day Selket trial is over. Your databases, drill history,
+				Your 14-day { branding.ProductName } trial is over. Your databases, drill history,
 				and signed evidence are all still here — choose a plan to start
 				verifying your backups again.
 			</p>

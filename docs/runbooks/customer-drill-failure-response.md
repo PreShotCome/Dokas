@@ -1,12 +1,12 @@
 # Runbook: customer drill-failure response
 
-**Audience:** whoever is on call for Selket.
+**Audience:** whoever is on call for Vesta.
 **Trigger:** a customer reports — or our own monitoring detects — that a
 drill failed, produced a wrong verdict, or that a customer doubts a
-verdict Selket gave them.
+verdict Vesta gave them.
 
-This is the most reputationally dangerous class of incident Selket has.
-Selket exists to be trusted about whether a backup restores. A drill that
+This is the most reputationally dangerous class of incident Vesta has.
+Vesta exists to be trusted about whether a backup restores. A drill that
 fails silently, fails spuriously, or — worst of all — reports PASSED when
 the restore was actually broken, attacks the one thing the product sells.
 Treat every one of these as a potential integrity incident until proven
@@ -40,7 +40,7 @@ day):
 - A spurious failure (false-negative) that did not block an audit
   deadline.
 
-A correct FAILED verdict — Selket telling a customer their backup is
+A correct FAILED verdict — Vesta telling a customer their backup is
 broken because it genuinely is — is **not an incident**. It's the product
 working. Confirm that's what happened before escalating; then help the
 customer fix their backup.
@@ -99,8 +99,8 @@ guards.
 | **teardown** | Tears down the sandbox | Usually cosmetic — the verdict is already decided. Leaked sandboxes are a cost/hygiene issue, not an evidence-integrity one. Still file it. |
 
 If the failing step is **assert** or **restore**, your first job is to
-decide whether Selket is *correctly* reporting a broken backup. If it is,
-the customer's backup is the problem and Selket did its job — pivot to
+decide whether Vesta is *correctly* reporting a broken backup. If it is,
+the customer's backup is the problem and Vesta did its job — pivot to
 helping them. Only if the restore genuinely worked is this our bug.
 
 ---
@@ -125,17 +125,17 @@ severity** and:
 
 **Holding message (P1, within the hour):**
 
-> Subject: Selket — investigating your drill on {target}
+> Subject: Vesta — investigating your drill on {target}
 >
 > Hi {name},
 >
-> We've seen the issue with your drill ({drill_id}) and a Selket engineer
+> We've seen the issue with your drill ({drill_id}) and a Vesta engineer
 > is actively investigating. We treat anything touching the correctness
 > of a verdict as our highest priority. I'll send a substantive update by
 > {time}. If you're working against an audit or other deadline, reply and
 > tell me the date — we'll prioritise accordingly.
 >
-> — {name}, Selket
+> — {name}, Vesta
 
 **Substantive update (+120 min):**
 

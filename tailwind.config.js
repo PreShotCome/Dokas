@@ -11,10 +11,10 @@ module.exports = {
         sans: ["ui-sans-serif", "system-ui", "sans-serif"],
         mono: ["ui-monospace", "SFMono-Regular", "monospace"],
       },
-      // brand — deep ceremonial red (the Selket scorpion's red). The
+      // brand — deep ceremonial red (the Vesta hearth-flame red). The
       // primary tier. Emerald stays reserved for the verified/passed
       // state. Cosmic-dark backgrounds use the navy gradient in input.css
-      // (the "touches of blue" in the Selket palette).
+      // (the cool accents in the Vesta palette).
       colors: {
         brand: {
           50:  "#fef2f2",

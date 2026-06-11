@@ -10,13 +10,15 @@ import (
 	"net/url"
 	"strings"
 	"time"
+
+	"github.com/preshotcome/anything/internal/branding"
 )
 
 // TOTP parameters — the defaults every authenticator app expects (RFC 6238).
 const (
 	totpPeriod = 30 * time.Second
 	totpDigits = 6
-	totpIssuer = "Selket"
+	totpIssuer = branding.TOTPIssuer
 )
 
 // totpEncoding is the standard uppercase base32 alphabet with no padding —

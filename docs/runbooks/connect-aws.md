@@ -1,27 +1,27 @@
-# Connect AWS — read-only access for Selket
+# Connect AWS — read-only access for Vesta
 
-Selket drills your existing backup dumps; it never touches your production
+Vesta drills your existing backup dumps; it never touches your production
 database. To do that we need **read-only** access to the S3 bucket your
 backup job writes to. This page is the doc you can hand your devops or
 security team to deploy that access in ~3 minutes.
 
 The mechanism is the same one used by Datadog, Snowflake, Vanta, and Drata:
-a **cross-account IAM role** in your AWS account that Selket's account is
+a **cross-account IAM role** in your AWS account that Vesta's account is
 allowed to assume. No long-lived access keys leave your account. Access is
 revocable in one click (delete the CloudFormation stack).
 
-## What Selket can do with this role
+## What Vesta can do with this role
 
 - `s3:GetObject` on the bucket and prefix you specify (read your backup dumps).
 - `s3:ListBucket` + `s3:GetBucketLocation` on that bucket (find new dumps).
 
-## What Selket cannot do
+## What Vesta cannot do
 
 - Read any other bucket.
 - Write, modify, or delete anything in your AWS account.
 - Connect to any of your databases.
-- Use this role from anywhere except Selket's AWS account, and only when
-  it presents the `ExternalId` Selket generated for your tenant (defeats
+- Use this role from anywhere except Vesta's AWS account, and only when
+  it presents the `ExternalId` Vesta generated for your tenant (defeats
   the confused-deputy class of attacks).
 
 ## The CloudFormation template
@@ -32,8 +32,8 @@ button which links to a hosted copy with your `ExternalId` pre-filled.
 ```yaml
 AWSTemplateFormatVersion: '2010-09-09'
 Description: >
-  Selket backup-drilling read access. Creates a cross-account IAM role
-  Selket can assume to fetch backup dumps from one S3 bucket/prefix.
+  Vesta backup-drilling read access. Creates a cross-account IAM role
+  Vesta can assume to fetch backup dumps from one S3 bucket/prefix.
 
 Parameters:
   BackupBucket:
@@ -45,32 +45,32 @@ Parameters:
     Description: Optional path prefix; leave empty to allow the whole bucket.
   ExternalId:
     Type: String
-    Description: The external ID Selket gave you when you clicked "Connect AWS".
+    Description: The external ID Vesta gave you when you clicked "Connect AWS".
     NoEcho: true
-  SelketAccountId:
+  VestaAccountId:
     Type: String
     Default: "REPLACE_WITH_SELKET_ACCOUNT_ID"
-    Description: The AWS account ID Selket runs in. Comes pre-filled from the dashboard.
+    Description: The AWS account ID Vesta runs in. Comes pre-filled from the dashboard.
 
 Resources:
-  SelketReadRole:
+  VestaReadRole:
     Type: AWS::IAM::Role
     Properties:
-      RoleName: SelketBackupRead
-      Description: Read-only access for Selket to drill backups in one S3 bucket.
+      RoleName: VestaBackupRead
+      Description: Read-only access for Vesta to drill backups in one S3 bucket.
       MaxSessionDuration: 3600
       AssumeRolePolicyDocument:
         Version: '2012-10-17'
         Statement:
           - Effect: Allow
             Principal:
-              AWS: !Sub "arn:aws:iam::${SelketAccountId}:root"
+              AWS: !Sub "arn:aws:iam::${VestaAccountId}:root"
             Action: sts:AssumeRole
             Condition:
               StringEquals:
                 sts:ExternalId: !Ref ExternalId
       Policies:
-        - PolicyName: SelketBackupRead
+        - PolicyName: VestaBackupRead
           PolicyDocument:
             Version: '2012-10-17'
             Statement:
@@ -94,14 +94,14 @@ Resources:
 
 Outputs:
   RoleArn:
-    Description: Paste this ARN into the Selket dashboard to finish the connection.
-    Value: !GetAtt SelketReadRole.Arn
+    Description: Paste this ARN into the Vesta dashboard to finish the connection.
+    Value: !GetAtt VestaReadRole.Arn
 ```
 
 ## Deploy it — step by step
 
-1. In the Selket dashboard, go to **Databases → Add database → Connect AWS**.
-   Selket displays your **ExternalId** (a per-tenant secret) and a
+1. In the Vesta dashboard, go to **Databases → Add database → Connect AWS**.
+   Vesta displays your **ExternalId** (a per-tenant secret) and a
    pre-filled "Launch Stack" link.
 2. Click **Launch Stack**. AWS opens the CloudFormation **Create stack**
    wizard in your browser, on the right account/region, with the template
@@ -115,7 +115,7 @@ Outputs:
    resources with custom names**, then **Create stack**.
 5. Wait ~30 seconds for the stack to reach `CREATE_COMPLETE`.
 6. Open the stack's **Outputs** tab and copy `RoleArn`.
-7. Paste the role ARN back into the Selket dashboard. Selket
+7. Paste the role ARN back into the Vesta dashboard. Vesta
    immediately runs a connectivity probe (an `sts:AssumeRole` round-trip
    and a `HeadObject` against the bucket) and shows green when it works.
 
@@ -128,19 +128,19 @@ diagnosing a mistyped bucket name or revoked role is one read.
 ## Revoking access
 
 Delete the CloudFormation stack. The role goes with it, and any future
-Selket assume-role attempt receives `AccessDenied` instantly. Existing
+Vesta assume-role attempt receives `AccessDenied` instantly. Existing
 evidence already in our vault remains accessible to you in the dashboard;
 no new drills will run for the affected database.
 
 ## For your security review
 
-**Authentication.** Selket's account is the only `Principal` allowed to
+**Authentication.** Vesta's account is the only `Principal` allowed to
 assume the role, and only with the matching `ExternalId`. We do not store
 your AWS credentials; we mint a fresh STS session per drill (≤ 1 hour
 lifetime).
 
 **Data egress.** During a drill the dump file is streamed into a fresh,
-isolated Postgres instance on Selket's runner, restored, asserted against,
+isolated Postgres instance on Vesta's runner, restored, asserted against,
 and deleted with the runner VM at teardown. The signed PDF and a hash
 fingerprint of the dump are retained in our evidence vault — the dump
 itself is not.
@@ -151,10 +151,10 @@ master key. Deleting your account crypto-shreds the key and renders all
 your evidence permanently unrecoverable, even from backups.
 
 **Audit log.** Every assume-role event lands in your CloudTrail. Every
-drill, evidence download, and account action lands in Selket's
+drill, evidence download, and account action lands in Vesta's
 tamper-evident audit log (hash-chained, retained 7 years).
 
-**Compliance.** Selket's own SOC 2 Type I work is in progress; the
+**Compliance.** Vesta's own SOC 2 Type I work is in progress; the
 deployment runs on Fly.io (SOC 2 Type 2, ISO 27001) and Neon (SOC 2 Type
 2). Subprocessor list available on request.
 

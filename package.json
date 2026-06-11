@@ -1,5 +1,5 @@
 {
-  "name": "selket-assets",
+  "name": "vesta-assets",
   "private": true,
   "scripts": {
     "build:css": "tailwindcss -i assets/css/input.css -o assets/static/app.css --minify",

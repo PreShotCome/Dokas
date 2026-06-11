@@ -1,17 +1,17 @@
-# Prometheus alerting rules for Selket.
+# Prometheus alerting rules for Vesta.
 # Load into Prometheus via rule_files; route to PagerDuty/Telegram per the
 # incident runbook. Thresholds are starting points — tune against real
 # traffic before GA.
 groups:
-  - name: selket
+  - name: vesta
     rules:
       - alert: AppDown
-        expr: up{job="selket"} == 0
+        expr: up{job="vesta"} == 0
         for: 1m
         labels:
           severity: sev1
         annotations:
-          summary: "Selket app is down"
+          summary: "Vesta app is down"
           runbook: "runbooks/incident-response.md#app-is-down-healthz-fails"
 
       - alert: DrillFailureRateHigh

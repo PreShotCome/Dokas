@@ -1,48 +1,48 @@
-# Selket onboarding: your first drill in 7 steps
+# Vesta onboarding: your first drill in 7 steps
 
 This walkthrough takes you from a fresh account to an independently
 verified piece of evidence — without needing your own database. You'll
-drill a tiny sample backup Selket ships, watch every step of the
+drill a tiny sample backup Vesta ships, watch every step of the
 pipeline run, download the signed PDF, and verify its signature with a
-standalone tool that contains none of Selket's code.
+standalone tool that contains none of Vesta's code.
 
 If you can complete this, you've exercised the whole product:
 **provision → fetch → restore → assert → report → teardown**, plus
 independent verification.
 
-Throughout, `https://app.selket.io` stands in for your Selket instance
+Throughout, `https://app.vesta.io` stands in for your Vesta instance
 (use `http://localhost:5173` if you're running locally).
 
 ---
 
 ## Step 1 — Sign up
 
-Go to `https://app.selket.io/signup`, create an account, and verify your
+Go to `https://app.vesta.io/signup`, create an account, and verify your
 email. New accounts get a 14-day trial — enough to run drills
 immediately, no card required. After signing in you land on the
 dashboard.
 
 ## Step 2 — Download the sample backup
 
-Selket hosts a known-good fixture: a tiny PostgreSQL custom-format dump
+Vesta hosts a known-good fixture: a tiny PostgreSQL custom-format dump
 with a single `public.events` table. Download it:
 
 **macOS / Linux:**
 
 ```sh
-curl -fL https://app.selket.io/onboarding/sample.dump -o sample.dump
+curl -fL https://app.vesta.io/onboarding/sample.dump -o sample.dump
 ```
 
 **Windows (PowerShell):**
 
 ```powershell
-Invoke-WebRequest https://app.selket.io/onboarding/sample.dump -OutFile sample.dump
+Invoke-WebRequest https://app.vesta.io/onboarding/sample.dump -OutFile sample.dump
 ```
 
 > ⚠️ **On Windows, use `Invoke-WebRequest -OutFile`, not `... > sample.dump`.**
 > PowerShell's `>` redirection re-encodes the stream as UTF-16 text and
 > corrupts the binary dump — the restore will then fail for a reason that
-> has nothing to do with Selket. The same caution applies to piping `curl`
+> has nothing to do with Vesta. The same caution applies to piping `curl`
 > output through `>` in older PowerShell. Always write binaries with
 > `-OutFile` (or `curl -o`).
 
@@ -57,7 +57,7 @@ file sample.dump   # → PostgreSQL custom database dump
 In the app, go to **Databases → Add database**. Give it a name
 (`Sample`), choose the upload/file source, and provide `sample.dump`.
 This registers a *target* — the thing drills run against. You don't need
-real database credentials for this fixture; you're handing Selket the
+real database credentials for this fixture; you're handing Vesta the
 dump directly.
 
 ## Step 4 — Add a `table_exists` assertion
@@ -83,7 +83,7 @@ Hit **Run drill**. Watch the step list advance:
 2. **fetch** — your `sample.dump` is pulled into the sandbox environment.
 3. **restore** — the dump is restored into the sandbox.
 4. **assert** — your `table_exists` assertion runs against the restored DB.
-5. **report** — a PDF is rendered and signed with Selket's evidence key.
+5. **report** — a PDF is rendered and signed with Vesta's evidence key.
 6. **teardown** — the sandbox is destroyed; nothing lingers.
 
 When it finishes you'll see **Verdict: PASSED**. That verdict means the
@@ -105,14 +105,14 @@ GET /v1/drills/{id}/signature   # the detached signature JSON
 
 ## Step 7 — Verify the signature independently
 
-This is the step that makes Selket's evidence worth anything: you can
-prove the PDF is genuine and untampered **without trusting Selket's own
+This is the step that makes Vesta's evidence worth anything: you can
+prove the PDF is genuine and untampered **without trusting Vesta's own
 app**.
 
-Fetch Selket's public signing keys:
+Fetch Vesta's public signing keys:
 
 ```sh
-curl -fL https://app.selket.io/.well-known/evidence-signing-keys.pem -o selket.pem
+curl -fL https://app.vesta.io/.well-known/evidence-signing-keys.pem -o selket.pem
 ```
 
 Each key block in that file is preceded by a `# PublicKeyID:` comment.
@@ -126,7 +126,7 @@ selket-verify --pdf=evidence.pdf --sig=signature.json --pubkey=selket.pem
 ```
 
 Exit code `0` and `signature is valid` means: this exact PDF was signed
-by the key Selket publishes, and not a byte has changed since. That's
+by the key Vesta publishes, and not a byte has changed since. That's
 your independently verifiable proof the drill happened and passed.
 
 ---

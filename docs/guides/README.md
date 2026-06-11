@@ -19,7 +19,7 @@ the only part that differs.
 
 Once you have a `pg_dump` file, the rest is the same:
 
-1. **Hand the dump to Selket.** Today Selket drills a dump from a path it can
+1. **Hand the dump to Vesta.** Today Vesta drills a dump from a path it can
    reach; during onboarding we set up that location with you (a synced
    backups directory). *Pulling dumps directly from S3 / R2 is on the
    roadmap — ask us where it stands.*

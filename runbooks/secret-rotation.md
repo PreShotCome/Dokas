@@ -1,6 +1,6 @@
 # Runbook: Secret Rotation
 
-Scope: how to rotate every secret Selket depends on. Rotate on a
+Scope: how to rotate every secret Vesta depends on. Rotate on a
 quarterly cadence and immediately on any suspected compromise or staff
 offboarding.
 

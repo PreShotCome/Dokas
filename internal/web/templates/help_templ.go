@@ -8,6 +8,8 @@ package templates
 import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
+import "github.com/preshotcome/anything/internal/branding"
+
 func HelpPage(lc LayoutCtx) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
@@ -54,7 +56,7 @@ func HelpPage(lc LayoutCtx) templ.Component {
 			}
 			templ_7745c5c3_Err = faq("How do I connect a database?",
 				"Go to Databases → Connect a database. In this phase you point "+
-					"Selket at a local pg_dump or .sql file and name the "+
+					branding.ProductName+" at a local pg_dump or .sql file and name the "+
 					"table plus minimum row count we should assert after restore.").Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
@@ -77,7 +79,7 @@ func HelpPage(lc LayoutCtx) templ.Component {
 			templ_7745c5c3_Err = faq("What is a backup check-in?",
 				"A check-in is a lightweight monitor for the backup job itself. "+
 					"Your job pings a unique URL each time it runs; if a ping "+
-					"doesn't arrive within the period and grace you set, Selket "+
+					"doesn't arrive within the period and grace you set, "+branding.ProductName+" "+
 					"marks the monitor down and alerts you by email and webhook. "+
 					"Drills prove a backup restores — check-ins prove the job ran "+
 					"at all.").Render(ctx, templ_7745c5c3_Buffer)
@@ -88,7 +90,7 @@ func HelpPage(lc LayoutCtx) templ.Component {
 				"Go to Check-ins → New monitor and set how often you expect the "+
 					"job to run plus a grace window. Copy the ping URL and call it "+
 					"at the end of your backup script — e.g. add "+
-					"'curl -fsS https://app.selket.io/ping/<token>' after a "+
+					"'curl -fsS https://app.vesta.io/ping/<token>' after a "+
 					"successful run. Send /fail instead to report a failure "+
 					"immediately, or /start to record that the job began.").Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
@@ -108,7 +110,7 @@ func HelpPage(lc LayoutCtx) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "</div><p class=\"mt-8 text-sm text-zinc-600 dark:text-zinc-400\">Still stuck? Email <a class=\"underline\" href=\"mailto:support@selket.io\">support@selket.io</a>.</p>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "</div><p class=\"mt-8 text-sm text-zinc-600 dark:text-zinc-400\">Still stuck? Email <a class=\"underline\" href=\"mailto:support@vesta.io\">support@vesta.io</a>.</p>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -150,7 +152,7 @@ func faq(q string, a string) templ.Component {
 		var templ_7745c5c3_Var4 string
 		templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(q)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/templates/help.templ`, Line: 59, Col: 57}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/templates/help.templ`, Line: 61, Col: 57}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 		if templ_7745c5c3_Err != nil {
@@ -163,7 +165,7 @@ func faq(q string, a string) templ.Component {
 		var templ_7745c5c3_Var5 string
 		templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(a)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/templates/help.templ`, Line: 60, Col: 62}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/templates/help.templ`, Line: 62, Col: 62}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
 		if templ_7745c5c3_Err != nil {

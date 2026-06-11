@@ -132,3 +132,47 @@ func (l *Logger) ListForAccount(ctx context.Context, accountID uuid.UUID, limit 
 	}
 	return out, rows.Err()
 }
+
+// AlertActions are the audit actions surfaced as alerts in the responder app's
+// feed: a drill finished (pass or fail) or a backup check-in changed liveness.
+var AlertActions = []string{"drill.failed", "drill.completed", "heartbeat.down", "heartbeat.up"}
+
+// ListAlertsForAccount is ListForAccount filtered to AlertActions — the feed
+// the mobile app polls. Same newest-first keyset pagination (beforeID; pass 0
+// for the first page).
+func (l *Logger) ListAlertsForAccount(ctx context.Context, accountID uuid.UUID, limit int, beforeID int64) ([]Entry, error) {
+	if limit <= 0 || limit > 200 {
+		limit = 50
+	}
+	rows, err := l.pool.Query(ctx, `
+		SELECT e.id, e.at, COALESCE(u.email, ''), e.action,
+		       COALESCE(e.target_kind, ''), COALESCE(e.target_id, ''),
+		       COALESCE(host(e.ip), ''), e.metadata
+		  FROM audit_events e
+		  LEFT JOIN users u ON u.id = e.actor_id
+		 WHERE e.account_id = $1
+		   AND e.action = ANY($2)
+		   AND ($3 = 0 OR e.id < $3)
+		 ORDER BY e.id DESC
+		 LIMIT $4
+	`, accountID, AlertActions, beforeID, limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var out []Entry
+	for rows.Next() {
+		var e Entry
+		var meta []byte
+		if err := rows.Scan(&e.ID, &e.At, &e.ActorEmail, &e.Action,
+			&e.TargetKind, &e.TargetID, &e.IP, &meta); err != nil {
+			return nil, err
+		}
+		if len(meta) > 0 {
+			_ = json.Unmarshal(meta, &e.Metadata)
+		}
+		out = append(out, e)
+	}
+	return out, rows.Err()
+}

@@ -12,6 +12,7 @@ import (
 	"github.com/preshotcome/anything/internal/account"
 	"github.com/preshotcome/anything/internal/audit"
 	"github.com/preshotcome/anything/internal/auth"
+	"github.com/preshotcome/anything/internal/branding"
 	"github.com/preshotcome/anything/internal/compliance"
 	"github.com/preshotcome/anything/internal/web/templates"
 )
@@ -37,7 +38,7 @@ func (h *Handlers) accountExport(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	w.Header().Set("Content-Disposition",
-		`attachment; filename="selket-export-`+lc.Account.Slug+`.json"`)
+		`attachment; filename="`+branding.Slug+`-export-`+lc.Account.Slug+`.json"`)
 	_, _ = w.Write(buf.Bytes())
 }
 

@@ -1,7 +1,7 @@
-# Supabase → Selket
+# Supabase → Vesta
 
 Goal: produce a logical `pg_dump` of your Supabase database, then drill it in
-Selket for signed evidence.
+Vesta for signed evidence.
 
 ## 1. Get your connection string
 
@@ -25,7 +25,7 @@ pg_dump "$SUPABASE_URL" -Fc -f supabase.dump
 supabase db dump --db-url "$SUPABASE_URL" -f supabase.sql
 ```
 
-`pg_dump -Fc` (Option A) gives the compressed custom format Selket restores;
+`pg_dump -Fc` (Option A) gives the compressed custom format Vesta restores;
 the CLI's plain SQL also drills fine. Use whichever fits your pipeline.
 
 Confirm it's a real dump (Option A):
@@ -34,10 +34,10 @@ Confirm it's a real dump (Option A):
 pg_restore --list supabase.dump | head
 ```
 
-## 3. Drill it in Selket
+## 3. Drill it in Vesta
 
 Follow the common path in [README.md](README.md#from-a-dump-to-signed-evidence-common-to-every-guide):
-hand the dump to Selket, add the database, add a `table_exists` assertion on
+hand the dump to Vesta, add the database, add a `table_exists` assertion on
 a table that must survive a restore, run the drill, schedule it weekly, and
 download + verify the signed PDF.
 

@@ -4,7 +4,7 @@ Guidance for Claude Code sessions working in this repository.
 
 ## Project
 
-Selket — a B2B backup-verification SaaS (Go monolith: Chi + Templ +
+Vesta — a B2B backup-verification SaaS (Go monolith: Chi + Templ +
 HTMX + Tailwind + Postgres + River). The full plan and the deferred-items
 log live in `docs/plan.md` and `docs/backlog.md` — read them first.
 

@@ -13,7 +13,7 @@ func (h *Handlers) helpPage(w http.ResponseWriter, r *http.Request) {
 }
 
 // howItWorks serves the public explainer: what backup drilling is and how
-// Selket does it.
+// Vesta does it.
 func (h *Handlers) howItWorks(w http.ResponseWriter, r *http.Request) {
 	render(w, r, templates.HowItWorks(h.layoutCtx(r)))
 }

@@ -1,6 +1,6 @@
 # Runbook: Incident Response
 
-How Selket handles a production incident. Keep this short enough to
+How Vesta handles a production incident. Keep this short enough to
 follow at 3am.
 
 ## Severity levels
