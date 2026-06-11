@@ -119,15 +119,26 @@ func main() {
 	} else {
 		logger.Info("email disabled (no POSTMARK_TOKEN) — using log mailer")
 	}
-	// Heartbeat alerts fan out to email (an account's members) and mobile push
-	// (registered devices). Email uses the same Mailer (LogMailer in dev); push
-	// uses a LogSender until a Firebase service account is configured — both
-	// work without external credentials.
+	// Heartbeat + drill alerts fan out to email (an account's members) and
+	// mobile push (registered devices). Email uses the same Mailer (LogMailer
+	// in dev); push uses the FCM HTTP v1 transport when FIREBASE_SERVICE_ACCOUNT
+	// is configured, else a LogSender so the pipeline is observable in dev.
 	pushDevices := push.NewStore(pool)
+	var pushSender push.Sender = push.LogSender{Logger: logger}
+	if fcm, err := push.NewFCMSender(cfg.FirebaseServiceAccount, logger); err != nil {
+		logger.Error("fcm sender init", "err", err)
+		os.Exit(1)
+	} else if fcm != nil {
+		pushSender = fcm
+		logger.Info("push enabled (fcm)")
+	} else {
+		logger.Info("push disabled (no FIREBASE_SERVICE_ACCOUNT) — using log sender")
+	}
 	heartbeatNotifier := heartbeat.MultiNotifier{
 		heartbeatnotify.New(mailer, accountStore, cfg.BaseURL, logger),
-		push.NewHeartbeatNotifier(pushDevices, push.LogSender{Logger: logger}, logger),
+		push.NewHeartbeatNotifier(pushDevices, pushSender, logger),
 	}
+	drillNotifier := push.NewDrillNotifier(pushDevices, pushSender, logger)
 	analyticsClient := analytics.New(cfg.PostHogAPIKey, cfg.PostHogHost, logger)
 	featureFlags := flags.New(cfg.PostHogAPIKey, cfg.PostHogHost, logger)
 	oauthRegistry := oauth.NewRegistry(
@@ -193,6 +204,7 @@ func main() {
 		Analytics: analyticsClient,
 		Billing:   billingCustomers,
 		Accounts:  accountStore,
+		Notify:    drillNotifier,
 	})
 	deliverWorker := webhooks.NewDeliverWorker(webhookStore, cfg.IsProduction())
 	deliverWorker.Metrics = observ.Metrics

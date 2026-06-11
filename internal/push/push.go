@@ -12,6 +12,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
 
+	"github.com/preshotcome/anything/internal/drill"
 	"github.com/preshotcome/anything/internal/heartbeat"
 )
 
@@ -113,6 +114,40 @@ type HeartbeatNotifier struct {
 
 func NewHeartbeatNotifier(devices *Store, sender Sender, logger *slog.Logger) *HeartbeatNotifier {
 	return &HeartbeatNotifier{devices: devices, sender: sender, logger: logger}
+}
+
+// DrillNotifier implements drill.Notifier: it pushes to an account's devices
+// when a drill finishes (failed or completed).
+type DrillNotifier struct {
+	devices *Store
+	sender  Sender
+	logger  *slog.Logger
+}
+
+func NewDrillNotifier(devices *Store, sender Sender, logger *slog.Logger) *DrillNotifier {
+	return &DrillNotifier{devices: devices, sender: sender, logger: logger}
+}
+
+func (n *DrillNotifier) NotifyDrill(ctx context.Context, dr drill.Drill, event, reason string) error {
+	tokens, err := n.devices.TokensForAccount(ctx, dr.AccountID)
+	if err != nil || len(tokens) == 0 {
+		return err
+	}
+	title, body := "Drill passed", "A restore drill completed successfully."
+	if event == drill.EventFailed {
+		title = "Drill FAILED"
+		body = "A restore drill failed"
+		if reason != "" {
+			body += " — " + reason
+		} else {
+			body += "."
+		}
+	}
+	data := map[string]string{"type": "drill", "id": dr.ID.String(), "event": event}
+	if reason != "" {
+		data["reason"] = reason
+	}
+	return n.sender.Send(ctx, tokens, Notification{Title: title, Body: body, Data: data})
 }
 
 func (n *HeartbeatNotifier) Notify(ctx context.Context, hb heartbeat.Heartbeat, event string) error {
