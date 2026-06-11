@@ -198,6 +198,48 @@ func (h *Handlers) mobileLogout(w http.ResponseWriter, r *http.Request) {
 	writeData(w, http.StatusOK, map[string]any{"revoked": true}, nil)
 }
 
+type mobileDeviceReq struct {
+	Token    string `json:"token"`
+	Platform string `json:"platform"`
+}
+
+// mobileRegisterDevice upserts the caller's push (FCM) token so heartbeat/drill
+// alerts can reach this device. Idempotent — the app calls it on every launch.
+func (h *Handlers) mobileRegisterDevice(w http.ResponseWriter, r *http.Request) {
+	user, _ := auth.FromContext(r.Context())
+	acct, _ := auth.CurrentAccountFromContext(r.Context())
+	var req mobileDeviceReq
+	if err := decodeJSONBody(r, &req); err != nil {
+		writeAPIError(w, http.StatusBadRequest, "bad_request", err.Error())
+		return
+	}
+	if strings.TrimSpace(req.Token) == "" {
+		writeAPIError(w, http.StatusBadRequest, "bad_request", "token is required")
+		return
+	}
+	id, err := h.pushDevices.Register(r.Context(), user.ID, acct.ID, req.Token, req.Platform)
+	if err != nil {
+		writeAPIError(w, http.StatusInternalServerError, "internal", "could not register device")
+		return
+	}
+	writeData(w, http.StatusOK, map[string]any{"id": id.String()}, nil)
+}
+
+// mobileDeleteDevice removes one of the caller's registered devices.
+func (h *Handlers) mobileDeleteDevice(w http.ResponseWriter, r *http.Request) {
+	user, _ := auth.FromContext(r.Context())
+	id, err := uuid.Parse(chi.URLParam(r, "id"))
+	if err != nil {
+		writeAPIError(w, http.StatusNotFound, "not_found", "device not found")
+		return
+	}
+	if err := h.pushDevices.Delete(r.Context(), user.ID, id); err != nil {
+		writeAPIError(w, http.StatusInternalServerError, "internal", "could not delete device")
+		return
+	}
+	writeData(w, http.StatusOK, map[string]any{"deleted": true}, nil)
+}
+
 // mobileBearerAuth resolves the Bearer mobile token to a (user, account),
 // verifies the user is still a member of that account, and stamps the account,
 // user, and token onto the request context — the same shape the reused /v1
@@ -258,6 +300,10 @@ func (h *Handlers) mobileRouter() http.Handler {
 		r.Use(h.v1Limiter.Middleware(v1AccountKey))
 
 		r.Post("/logout", h.mobileLogout)
+
+		// Push device registry.
+		r.Post("/devices", h.mobileRegisterDevice)
+		r.Delete("/devices/{id}", h.mobileDeleteDevice)
 
 		// Read-only resources (reused /v1 handlers).
 		r.Get("/databases", h.v1ListDatabases)

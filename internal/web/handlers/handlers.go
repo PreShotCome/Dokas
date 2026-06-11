@@ -25,6 +25,7 @@ import (
 	"github.com/preshotcome/anything/internal/mobileauth"
 	"github.com/preshotcome/anything/internal/oauth"
 	"github.com/preshotcome/anything/internal/obs"
+	"github.com/preshotcome/anything/internal/push"
 	"github.com/preshotcome/anything/internal/ratelimit"
 	"github.com/preshotcome/anything/internal/web/csrf"
 	"github.com/preshotcome/anything/internal/web/templates"
@@ -63,6 +64,7 @@ type Handlers struct {
 	metricsToken         string
 	apiKeys              *apikey.Store
 	mobileTokens         *mobileauth.Store
+	pushDevices          *push.Store
 	v1Limiter            *ratelimit.Limiter
 	sourceDir            string
 	oauth                *oauth.Registry
@@ -104,6 +106,7 @@ type Deps struct {
 	MetricsToken         string
 	APIKeys              *apikey.Store
 	MobileTokens         *mobileauth.Store
+	PushDevices          *push.Store
 	V1Limiter            *ratelimit.Limiter
 	SourceDir            string
 	OAuth                *oauth.Registry
@@ -150,6 +153,7 @@ func New(d Deps) *Handlers {
 		metricsToken:         d.MetricsToken,
 		apiKeys:              d.APIKeys,
 		mobileTokens:         d.MobileTokens,
+		pushDevices:          d.PushDevices,
 		v1Limiter:            d.V1Limiter,
 		sourceDir:            d.SourceDir,
 		oauth:                d.OAuth,

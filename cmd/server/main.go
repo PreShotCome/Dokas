@@ -36,6 +36,7 @@ import (
 	"github.com/preshotcome/anything/internal/mobileauth"
 	"github.com/preshotcome/anything/internal/oauth"
 	"github.com/preshotcome/anything/internal/obs"
+	"github.com/preshotcome/anything/internal/push"
 	"github.com/preshotcome/anything/internal/ratelimit"
 	"github.com/preshotcome/anything/internal/runner"
 	"github.com/preshotcome/anything/internal/web/csrf"
@@ -118,9 +119,15 @@ func main() {
 	} else {
 		logger.Info("email disabled (no POSTMARK_TOKEN) — using log mailer")
 	}
-	// Heartbeat alerts: email an account's members on a monitor up/down edge.
-	// Uses the same Mailer (LogMailer in dev) — works without Postmark.
-	heartbeatNotifier := heartbeatnotify.New(mailer, accountStore, cfg.BaseURL, logger)
+	// Heartbeat alerts fan out to email (an account's members) and mobile push
+	// (registered devices). Email uses the same Mailer (LogMailer in dev); push
+	// uses a LogSender until a Firebase service account is configured — both
+	// work without external credentials.
+	pushDevices := push.NewStore(pool)
+	heartbeatNotifier := heartbeat.MultiNotifier{
+		heartbeatnotify.New(mailer, accountStore, cfg.BaseURL, logger),
+		push.NewHeartbeatNotifier(pushDevices, push.LogSender{Logger: logger}, logger),
+	}
 	analyticsClient := analytics.New(cfg.PostHogAPIKey, cfg.PostHogHost, logger)
 	featureFlags := flags.New(cfg.PostHogAPIKey, cfg.PostHogHost, logger)
 	oauthRegistry := oauth.NewRegistry(
@@ -253,6 +260,7 @@ func main() {
 		MetricsToken:         cfg.MetricsToken,
 		APIKeys:              apikey.NewStore(pool),
 		MobileTokens:         mobileauth.NewStore(pool),
+		PushDevices:          pushDevices,
 		V1Limiter:            v1Limiter,
 		SourceDir:            cfg.SourceDir,
 		OAuth:                oauthRegistry,
