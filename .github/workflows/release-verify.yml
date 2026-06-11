@@ -1,7 +1,7 @@
 name: release-verify
 
 # Publishes the vesta-verify CLI as downloadable binaries on a GitHub
-# Release, so a customer's auditor can verify Selket evidence without
+# Release, so a customer's auditor can verify Vesta evidence without
 # installing Go ("compile it yourself" is not an auditor-friendly answer).
 #
 # Cut a release by pushing a tag like `verify-v1.0.0`:
@@ -76,11 +76,11 @@ jobs:
           files: dist/*
           fail_on_unmatched_files: true
           body: |
-            **vesta-verify** — standalone evidence verifier for Selket.
+            **vesta-verify** — standalone evidence verifier for Vesta.
 
-            Independently checks a Selket evidence PDF against its detached
+            Independently checks a Vesta evidence PDF against its detached
             Ed25519 signature and a published public key. Depends only on the
-            Go standard library — no Selket code in the trust path.
+            Go standard library — no Vesta code in the trust path.
 
             **Download** the binary for your platform, then verify the
             `SHA256SUMS` checksum. Usage:
@@ -90,6 +90,6 @@ jobs:
             ```
 
             Fetch the public key(s) from
-            `https://app.selket.io/.well-known/evidence-signing-keys.pem` and
+            `https://app.vesta.io/.well-known/evidence-signing-keys.pem` and
             match the `public_key_id` in the signature to a key block there.
             Exit code 0 means the signature is valid.
