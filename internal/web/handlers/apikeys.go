@@ -8,10 +8,10 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
 
-	"github.com/preshotcome/anything/internal/account"
-	"github.com/preshotcome/anything/internal/apikey"
-	"github.com/preshotcome/anything/internal/audit"
-	"github.com/preshotcome/anything/internal/web/templates"
+	"github.com/preshotcome/vesta/internal/account"
+	"github.com/preshotcome/vesta/internal/apikey"
+	"github.com/preshotcome/vesta/internal/audit"
+	"github.com/preshotcome/vesta/internal/web/templates"
 )
 
 func (h *Handlers) apiKeysList(w http.ResponseWriter, r *http.Request) {

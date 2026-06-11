@@ -12,8 +12,8 @@ import (
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
 
-	"github.com/preshotcome/anything/internal/drill"
-	"github.com/preshotcome/anything/internal/heartbeat"
+	"github.com/preshotcome/vesta/internal/drill"
+	"github.com/preshotcome/vesta/internal/heartbeat"
 )
 
 // Notification is one push message: a short title/body plus structured data the

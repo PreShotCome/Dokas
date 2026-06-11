@@ -7,7 +7,7 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/preshotcome/anything/internal/account"
+	"github.com/preshotcome/vesta/internal/account"
 )
 
 type ctxKey int

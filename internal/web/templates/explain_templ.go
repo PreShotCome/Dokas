@@ -8,7 +8,7 @@ package templates
 import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
-import "github.com/preshotcome/anything/internal/branding"
+import "github.com/preshotcome/vesta/internal/branding"
 
 // HowItWorks is the public explainer page: what backup drilling is, why it
 // matters, and how Vesta does it. Linked from the nav and footer.
@@ -243,7 +243,7 @@ func HowItWorks(lc LayoutCtx) templ.Component {
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = explainBullet("The signing public key is published at a stable URL, and an open-source verifier (selket-verify) checks any PDF against it offline.").Render(ctx, templ_7745c5c3_Buffer)
+				templ_7745c5c3_Err = explainBullet("The signing public key is published at a stable URL, and an open-source verifier (vesta-verify) checks any PDF against it offline.").Render(ctx, templ_7745c5c3_Buffer)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}

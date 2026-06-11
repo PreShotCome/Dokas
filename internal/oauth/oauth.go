@@ -21,7 +21,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/preshotcome/anything/internal/branding"
+	"github.com/preshotcome/vesta/internal/branding"
 )
 
 // Identity is what a provider tells us about the signing-in user.

@@ -16,13 +16,13 @@ import (
 	"github.com/riverqueue/river"
 	"github.com/riverqueue/river/rivertype"
 
-	"github.com/preshotcome/anything/internal/account"
-	"github.com/preshotcome/anything/internal/apikey"
-	"github.com/preshotcome/anything/internal/audit"
-	"github.com/preshotcome/anything/internal/compliance"
-	"github.com/preshotcome/anything/internal/drill"
-	"github.com/preshotcome/anything/internal/evidence"
-	"github.com/preshotcome/anything/internal/ratelimit"
+	"github.com/preshotcome/vesta/internal/account"
+	"github.com/preshotcome/vesta/internal/apikey"
+	"github.com/preshotcome/vesta/internal/audit"
+	"github.com/preshotcome/vesta/internal/compliance"
+	"github.com/preshotcome/vesta/internal/drill"
+	"github.com/preshotcome/vesta/internal/evidence"
+	"github.com/preshotcome/vesta/internal/ratelimit"
 )
 
 // fakeInserter satisfies drill.RiverInserter without a real River client —

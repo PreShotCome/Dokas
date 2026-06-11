@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/preshotcome/anything/internal/web/templates"
+	"github.com/preshotcome/vesta/internal/web/templates"
 )
 
 // auditLogPageSize is how many audit rows one page shows.

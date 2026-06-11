@@ -10,13 +10,13 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/preshotcome/anything/internal/account"
-	"github.com/preshotcome/anything/internal/analytics"
-	"github.com/preshotcome/anything/internal/audit"
-	"github.com/preshotcome/anything/internal/auth"
-	mail "github.com/preshotcome/anything/internal/email"
-	"github.com/preshotcome/anything/internal/flags"
-	"github.com/preshotcome/anything/internal/web/templates"
+	"github.com/preshotcome/vesta/internal/account"
+	"github.com/preshotcome/vesta/internal/analytics"
+	"github.com/preshotcome/vesta/internal/audit"
+	"github.com/preshotcome/vesta/internal/auth"
+	mail "github.com/preshotcome/vesta/internal/email"
+	"github.com/preshotcome/vesta/internal/flags"
+	"github.com/preshotcome/vesta/internal/web/templates"
 )
 
 func (h *Handlers) index(w http.ResponseWriter, r *http.Request) {

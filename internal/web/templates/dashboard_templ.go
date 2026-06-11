@@ -9,10 +9,10 @@ import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
 import (
-	"github.com/preshotcome/anything/internal/account"
-	"github.com/preshotcome/anything/internal/auth"
-	"github.com/preshotcome/anything/internal/drill"
-	"github.com/preshotcome/anything/internal/heartbeat"
+	"github.com/preshotcome/vesta/internal/account"
+	"github.com/preshotcome/vesta/internal/auth"
+	"github.com/preshotcome/vesta/internal/drill"
+	"github.com/preshotcome/vesta/internal/heartbeat"
 )
 
 // DashboardView is the dashboard's input bundle.

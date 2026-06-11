@@ -22,16 +22,16 @@ import (
 	"github.com/riverqueue/river"
 	"github.com/riverqueue/river/rivertype"
 
-	"github.com/preshotcome/anything/internal/account"
-	"github.com/preshotcome/anything/internal/analytics"
-	"github.com/preshotcome/anything/internal/assertions"
-	"github.com/preshotcome/anything/internal/audit"
-	"github.com/preshotcome/anything/internal/drill"
-	"github.com/preshotcome/anything/internal/evidence"
-	"github.com/preshotcome/anything/internal/obs"
-	"github.com/preshotcome/anything/internal/report"
-	"github.com/preshotcome/anything/internal/runner"
-	"github.com/preshotcome/anything/internal/webhooks"
+	"github.com/preshotcome/vesta/internal/account"
+	"github.com/preshotcome/vesta/internal/analytics"
+	"github.com/preshotcome/vesta/internal/assertions"
+	"github.com/preshotcome/vesta/internal/audit"
+	"github.com/preshotcome/vesta/internal/drill"
+	"github.com/preshotcome/vesta/internal/evidence"
+	"github.com/preshotcome/vesta/internal/obs"
+	"github.com/preshotcome/vesta/internal/report"
+	"github.com/preshotcome/vesta/internal/runner"
+	"github.com/preshotcome/vesta/internal/webhooks"
 )
 
 // Deps is the bundle of dependencies every step worker needs.

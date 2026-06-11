@@ -16,10 +16,10 @@ import (
 	semconv "go.opentelemetry.io/otel/semconv/v1.26.0"
 	"go.opentelemetry.io/otel/trace"
 
-	"github.com/preshotcome/anything/internal/branding"
+	"github.com/preshotcome/vesta/internal/branding"
 )
 
-const tracerName = "github.com/preshotcome/anything"
+const tracerName = "github.com/preshotcome/vesta"
 
 // Tracer is the application's span factory. Drill workers and handlers use
 // it directly; when tracing is disabled it's a no-op tracer with zero cost.

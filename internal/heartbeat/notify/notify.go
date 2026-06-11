@@ -10,9 +10,9 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/preshotcome/anything/internal/account"
-	"github.com/preshotcome/anything/internal/email"
-	"github.com/preshotcome/anything/internal/heartbeat"
+	"github.com/preshotcome/vesta/internal/account"
+	"github.com/preshotcome/vesta/internal/email"
+	"github.com/preshotcome/vesta/internal/heartbeat"
 )
 
 // Sender is the slice of *email.Mailer this package uses.

@@ -12,11 +12,11 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/preshotcome/anything/internal/account"
-	"github.com/preshotcome/anything/internal/assertions"
-	"github.com/preshotcome/anything/internal/auth"
-	"github.com/preshotcome/anything/internal/branding"
-	"github.com/preshotcome/anything/internal/drill"
+	"github.com/preshotcome/vesta/internal/account"
+	"github.com/preshotcome/vesta/internal/assertions"
+	"github.com/preshotcome/vesta/internal/auth"
+	"github.com/preshotcome/vesta/internal/branding"
+	"github.com/preshotcome/vesta/internal/drill"
 )
 
 type TargetFormValues struct {

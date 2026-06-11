@@ -7,7 +7,7 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/preshotcome/anything/internal/fly"
+	"github.com/preshotcome/vesta/internal/fly"
 )
 
 // flyCleanupTimeout is how long we allow a machine-destroy call to run on

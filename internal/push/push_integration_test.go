@@ -8,10 +8,10 @@ import (
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
 
-	"github.com/preshotcome/anything/internal/account"
-	"github.com/preshotcome/anything/internal/drill"
-	"github.com/preshotcome/anything/internal/heartbeat"
-	"github.com/preshotcome/anything/internal/push"
+	"github.com/preshotcome/vesta/internal/account"
+	"github.com/preshotcome/vesta/internal/drill"
+	"github.com/preshotcome/vesta/internal/heartbeat"
+	"github.com/preshotcome/vesta/internal/push"
 )
 
 func seed(t *testing.T, ctx context.Context, pool *pgxpool.Pool) (userID, accountID uuid.UUID) {

@@ -1,6 +1,6 @@
 name: release-verify
 
-# Publishes the selket-verify CLI as downloadable binaries on a GitHub
+# Publishes the vesta-verify CLI as downloadable binaries on a GitHub
 # Release, so a customer's auditor can verify Selket evidence without
 # installing Go ("compile it yourself" is not an auditor-friendly answer).
 #
@@ -8,9 +8,9 @@ name: release-verify
 #
 #   git tag verify-v1.0.0 && git push origin verify-v1.0.0
 #
-# The job cross-compiles selket-verify for macOS, Linux, and Windows
+# The job cross-compiles vesta-verify for macOS, Linux, and Windows
 # (amd64 + arm64), writes a SHA256SUMS file, and attaches everything to the
-# Release for that tag. selket-verify depends only on the Go standard
+# Release for that tag. vesta-verify depends only on the Go standard
 # library, so every target builds statically with CGO disabled.
 #
 # workflow_dispatch runs the same build for a dry run: it uploads the
@@ -36,7 +36,7 @@ jobs:
           go-version-file: go.mod
           cache: true
 
-      - name: Cross-compile selket-verify
+      - name: Cross-compile vesta-verify
         run: |
           set -euo pipefail
           mkdir -p dist
@@ -49,11 +49,11 @@ jobs:
             os="${t%/*}"; arch="${t#*/}"
             ext=""
             [ "$os" = "windows" ] && ext=".exe"
-            out="dist/selket-verify_${os}_${arch}${ext}"
+            out="dist/vesta-verify_${os}_${arch}${ext}"
             echo "building $out"
             CGO_ENABLED=0 GOOS="$os" GOARCH="$arch" \
               go build -trimpath -ldflags "-s -w" \
-              -o "$out" ./cmd/selket-verify
+              -o "$out" ./cmd/vesta-verify
           done
 
       - name: Checksums
@@ -65,7 +65,7 @@ jobs:
       - name: Upload build artifacts to the run
         uses: actions/upload-artifact@v4
         with:
-          name: selket-verify-binaries
+          name: vesta-verify-binaries
           path: dist/*
           retention-days: 7
 
@@ -76,7 +76,7 @@ jobs:
           files: dist/*
           fail_on_unmatched_files: true
           body: |
-            **selket-verify** — standalone evidence verifier for Selket.
+            **vesta-verify** — standalone evidence verifier for Selket.
 
             Independently checks a Selket evidence PDF against its detached
             Ed25519 signature and a published public key. Depends only on the
@@ -86,7 +86,7 @@ jobs:
             `SHA256SUMS` checksum. Usage:
 
             ```
-            selket-verify --pdf=evidence.pdf --sig=signature.json --pubkey=selket.pem
+            vesta-verify --pdf=evidence.pdf --sig=signature.json --pubkey=vesta.pem
             ```
 
             Fetch the public key(s) from

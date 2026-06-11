@@ -9,7 +9,7 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/preshotcome/anything/internal/drill"
+	"github.com/preshotcome/vesta/internal/drill"
 )
 
 // inflate mirrors the e2e-smoke PDF text extractor: it returns the raw bytes

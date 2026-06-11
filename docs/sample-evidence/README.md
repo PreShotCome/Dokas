@@ -18,13 +18,13 @@ can hand it to a prospect, an auditor, or an underwriter so they can see
 
 ## Verify it yourself
 
-Download the `selket-verify` binary for your platform from the
+Download the `vesta-verify` binary for your platform from the
 [GitHub Releases](https://github.com/preshotcome/Soteria/releases) page
-(or build it from `cmd/selket-verify` — it depends only on the Go standard
+(or build it from `cmd/vesta-verify` — it depends only on the Go standard
 library, so there is no Vesta code in your trust path), then:
 
 ```sh
-selket-verify \
+vesta-verify \
   --pdf=evidence.pdf \
   --sig=signature.json \
   --pubkey=evidence-signing-keys.pem

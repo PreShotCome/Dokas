@@ -8,8 +8,8 @@ import (
 	"github.com/riverqueue/river"
 	"github.com/riverqueue/river/rivertype"
 
-	"github.com/preshotcome/anything/internal/audit"
-	"github.com/preshotcome/anything/internal/obs"
+	"github.com/preshotcome/vesta/internal/audit"
+	"github.com/preshotcome/vesta/internal/obs"
 )
 
 // --- Job args (one per step). Each is its own River job kind so retries,

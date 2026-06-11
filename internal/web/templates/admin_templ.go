@@ -14,8 +14,8 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/preshotcome/anything/internal/drill"
-	"github.com/preshotcome/anything/internal/evidence"
+	"github.com/preshotcome/vesta/internal/drill"
+	"github.com/preshotcome/vesta/internal/evidence"
 )
 
 // AdminUser is the staff-panel view of a user row.

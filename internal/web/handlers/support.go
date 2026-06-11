@@ -3,7 +3,7 @@ package handlers
 import (
 	"net/http"
 
-	"github.com/preshotcome/anything/internal/web/templates"
+	"github.com/preshotcome/vesta/internal/web/templates"
 )
 
 // helpPage serves the in-app help / FAQ. It's public — an interim until the

@@ -11,7 +11,7 @@ import templruntime "github.com/a-h/templ/runtime"
 import (
 	"strconv"
 
-	"github.com/preshotcome/anything/internal/webhooks"
+	"github.com/preshotcome/vesta/internal/webhooks"
 )
 
 func WebhooksPage(lc LayoutCtx, endpoints []webhooks.Endpoint, revealID string) templ.Component {

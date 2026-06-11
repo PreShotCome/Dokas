@@ -12,9 +12,9 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/preshotcome/anything/internal/auth"
-	"github.com/preshotcome/anything/internal/branding"
-	"github.com/preshotcome/anything/internal/heartbeat"
+	"github.com/preshotcome/vesta/internal/auth"
+	"github.com/preshotcome/vesta/internal/branding"
+	"github.com/preshotcome/vesta/internal/heartbeat"
 )
 
 // HeartbeatFormValues preserves form input across a validation re-render.
