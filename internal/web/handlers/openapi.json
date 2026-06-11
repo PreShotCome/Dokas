@@ -20,7 +20,7 @@
       "bearerAuth": {
         "type": "http",
         "scheme": "bearer",
-        "description": "An API key created from the Account page. Each key is limited to a set of scopes (databases:read, databases:write, drills:read, drills:write, and the opt-in account:delete); a request whose key lacks the scope an endpoint needs is rejected with 403 insufficient_scope."
+        "description": "An API key created from the Account page. Each key is limited to a set of scopes (databases:read, databases:write, drills:read, drills:write, heartbeats:read, and the opt-in account:delete); a request whose key lacks the scope an endpoint needs is rejected with 403 insufficient_scope."
       }
     }
   },
