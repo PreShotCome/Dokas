@@ -3,13 +3,25 @@
   "info": {
     "title": "Vesta API",
     "version": "1.0.0",
-    "description": "Backup verification as a service. All endpoints are account-scoped and authenticated with an API key (Authorization: Bearer rd_...). Responses use a {data, meta, errors} envelope. State-changing requests require an Idempotency-Key header."
+    "description": "Backup verification as a service. All endpoints are account-scoped and authenticated with an API key (Authorization: Bearer so_...). Responses use a {data, meta, errors} envelope. State-changing requests require an Idempotency-Key header."
   },
-  "servers": [{ "url": "/v1" }],
-  "security": [{ "bearerAuth": [] }],
+  "servers": [
+    {
+      "url": "/v1"
+    }
+  ],
+  "security": [
+    {
+      "bearerAuth": []
+    }
+  ],
   "components": {
     "securitySchemes": {
-      "bearerAuth": { "type": "http", "scheme": "bearer", "description": "An API key created from the Account page. Each key is limited to a set of scopes (databases:read, databases:write, drills:read, drills:write, and the opt-in account:delete); a request whose key lacks the scope an endpoint needs is rejected with 403 insufficient_scope." }
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "description": "An API key created from the Account page. Each key is limited to a set of scopes (databases:read, databases:write, drills:read, drills:write, and the opt-in account:delete); a request whose key lacks the scope an endpoint needs is rejected with 403 insufficient_scope."
+      }
     }
   },
   "paths": {
@@ -17,15 +29,41 @@
       "get": {
         "summary": "List database targets",
         "parameters": [
-          { "name": "limit", "in": "query", "schema": { "type": "integer", "default": 25, "maximum": 100 } },
-          { "name": "cursor", "in": "query", "schema": { "type": "string" }, "description": "Opaque pagination cursor from meta.next_cursor." }
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 25,
+              "maximum": 100
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Opaque pagination cursor from meta.next_cursor."
+          }
         ],
-        "responses": { "200": { "description": "A page of database targets." } }
+        "responses": {
+          "200": {
+            "description": "A page of database targets."
+          }
+        }
       },
       "post": {
         "summary": "Register a database target",
         "parameters": [
-          { "name": "Idempotency-Key", "in": "header", "required": true, "schema": { "type": "string" } }
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
         ],
         "requestBody": {
           "required": true,
@@ -33,25 +71,51 @@
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": ["name", "source_uri"],
+                "required": [
+                  "name",
+                  "source_uri"
+                ],
                 "properties": {
-                  "name": { "type": "string" },
-                  "source_uri": { "type": "string", "description": "Local-disk path to a pg_dump or .sql file." },
+                  "name": {
+                    "type": "string"
+                  },
+                  "source_uri": {
+                    "type": "string",
+                    "description": "Local-disk path to a pg_dump or .sql file."
+                  },
                   "assertions": {
                     "type": "array",
                     "description": "Optional checks to run against the restored database.",
                     "items": {
                       "type": "object",
-                      "required": ["kind", "config"],
+                      "required": [
+                        "kind",
+                        "config"
+                      ],
                       "properties": {
-                        "kind": { "type": "string", "enum": ["row_count", "table_exists", "column_exists", "no_nulls"] },
+                        "kind": {
+                          "type": "string",
+                          "enum": [
+                            "row_count",
+                            "table_exists",
+                            "column_exists",
+                            "no_nulls"
+                          ]
+                        },
                         "config": {
                           "type": "object",
                           "description": "Kind-specific config. All kinds need 'table'; column_exists/no_nulls also need 'column'; row_count takes 'min_rows'.",
                           "properties": {
-                            "table": { "type": "string" },
-                            "column": { "type": "string" },
-                            "min_rows": { "type": "integer", "default": 1 }
+                            "table": {
+                              "type": "string"
+                            },
+                            "column": {
+                              "type": "string"
+                            },
+                            "min_rows": {
+                              "type": "integer",
+                              "default": 1
+                            }
                           }
                         }
                       }
@@ -62,29 +126,75 @@
             }
           }
         },
-        "responses": { "201": { "description": "The created database target, with its assertions array." } }
+        "responses": {
+          "201": {
+            "description": "The created database target, with its assertions array."
+          }
+        }
       }
     },
     "/databases/{id}": {
       "get": {
         "summary": "Get a database target",
-        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string", "format": "uuid" } }],
-        "responses": { "200": { "description": "The database target." }, "404": { "description": "Not found." } }
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The database target."
+          },
+          "404": {
+            "description": "Not found."
+          }
+        }
       }
     },
     "/drills": {
       "get": {
         "summary": "List drills",
         "parameters": [
-          { "name": "limit", "in": "query", "schema": { "type": "integer", "default": 25, "maximum": 100 } },
-          { "name": "cursor", "in": "query", "schema": { "type": "string" } }
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 25,
+              "maximum": 100
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
         ],
-        "responses": { "200": { "description": "A page of drills." } }
+        "responses": {
+          "200": {
+            "description": "A page of drills."
+          }
+        }
       },
       "post": {
         "summary": "Start a drill",
         "parameters": [
-          { "name": "Idempotency-Key", "in": "header", "required": true, "schema": { "type": "string" } }
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
         ],
         "requestBody": {
           "required": true,
@@ -92,29 +202,138 @@
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": ["database_id"],
-                "properties": { "database_id": { "type": "string", "format": "uuid" } }
+                "required": [
+                  "database_id"
+                ],
+                "properties": {
+                  "database_id": {
+                    "type": "string",
+                    "format": "uuid"
+                  }
+                }
               }
             }
           }
         },
-        "responses": { "201": { "description": "The created drill." } }
+        "responses": {
+          "201": {
+            "description": "The created drill."
+          }
+        }
       }
     },
     "/drills/{id}": {
       "get": {
         "summary": "Get a drill, with steps and assertion results",
-        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string", "format": "uuid" } }],
-        "responses": { "200": { "description": "The drill detail." }, "404": { "description": "Not found." } }
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The drill detail."
+          },
+          "404": {
+            "description": "Not found."
+          }
+        }
       }
     },
     "/drills/{id}/evidence": {
       "get": {
         "summary": "Download the signed evidence PDF",
-        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string", "format": "uuid" } }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
         "responses": {
-          "200": { "description": "The PDF.", "content": { "application/pdf": {} } },
-          "404": { "description": "Drill not found, or evidence not yet generated." }
+          "200": {
+            "description": "The PDF.",
+            "content": {
+              "application/pdf": {}
+            }
+          },
+          "404": {
+            "description": "Drill not found, or evidence not yet generated."
+          }
+        }
+      }
+    },
+    "/heartbeats": {
+      "get": {
+        "summary": "List backup check-in monitors",
+        "description": "Returns every check-in monitor in the account. Each row carries a computed overdue flag for monitors past their deadline that the minute sweeper has not yet flipped to \"down\".",
+        "responses": {
+          "200": {
+            "description": "The account's heartbeats."
+          }
+        }
+      }
+    },
+    "/heartbeats/{id}": {
+      "get": {
+        "summary": "Get a backup check-in monitor",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The monitor."
+          },
+          "404": {
+            "description": "Not found."
+          }
+        }
+      }
+    },
+    "/alerts": {
+      "get": {
+        "summary": "List alerts (drill outcomes + heartbeat liveness changes)",
+        "description": "Newest-first feed of drill.failed/drill.completed/heartbeat.down/heartbeat.up events for the account, drawn from the audit log. The metadata field carries the event detail (drill_id, reason, status). Paginate by passing meta.next_cursor as cursor.",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 50,
+              "maximum": 200
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of alerts."
+          }
         }
       }
     },
@@ -122,12 +341,30 @@
       "delete": {
         "summary": "Delete (erase) your account — GDPR right to be forgotten",
         "description": "Soft-deletes the API key's own account immediately and schedules an irreversible hard delete (crypto-shred of all evidence keys + cascade of every account row) for when the grace window closes. The {id} must be the account the API key belongs to; a key cannot delete any other account. Requires the opt-in account:delete scope and an Idempotency-Key. Not blocked by trial state — erasure is never paywalled.",
-        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string", "format": "uuid" } }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
         "responses": {
-          "202": { "description": "Deletion scheduled. Body: { data: { id, status: \"deletion_scheduled\", purge_after } }." },
-          "400": { "description": "Malformed account id." },
-          "403": { "description": "Key lacks the account:delete scope, or the id is not this key's account." },
-          "409": { "description": "Account is already scheduled for deletion." }
+          "202": {
+            "description": "Deletion scheduled. Body: { data: { id, status: \"deletion_scheduled\", purge_after } }."
+          },
+          "400": {
+            "description": "Malformed account id."
+          },
+          "403": {
+            "description": "Key lacks the account:delete scope, or the id is not this key's account."
+          },
+          "409": {
+            "description": "Account is already scheduled for deletion."
+          }
         }
       }
     }
