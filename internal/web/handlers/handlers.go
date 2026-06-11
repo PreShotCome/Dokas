@@ -22,6 +22,7 @@ import (
 	"github.com/preshotcome/anything/internal/evidence"
 	"github.com/preshotcome/anything/internal/flags"
 	"github.com/preshotcome/anything/internal/heartbeat"
+	"github.com/preshotcome/anything/internal/mobileauth"
 	"github.com/preshotcome/anything/internal/oauth"
 	"github.com/preshotcome/anything/internal/obs"
 	"github.com/preshotcome/anything/internal/ratelimit"
@@ -61,6 +62,7 @@ type Handlers struct {
 	staffEmails          map[string]bool
 	metricsToken         string
 	apiKeys              *apikey.Store
+	mobileTokens         *mobileauth.Store
 	v1Limiter            *ratelimit.Limiter
 	sourceDir            string
 	oauth                *oauth.Registry
@@ -101,6 +103,7 @@ type Deps struct {
 	StaffEmails          []string
 	MetricsToken         string
 	APIKeys              *apikey.Store
+	MobileTokens         *mobileauth.Store
 	V1Limiter            *ratelimit.Limiter
 	SourceDir            string
 	OAuth                *oauth.Registry
@@ -146,6 +149,7 @@ func New(d Deps) *Handlers {
 		staffEmails:          staff,
 		metricsToken:         d.MetricsToken,
 		apiKeys:              d.APIKeys,
+		mobileTokens:         d.MobileTokens,
 		v1Limiter:            d.V1Limiter,
 		sourceDir:            d.SourceDir,
 		oauth:                d.OAuth,
@@ -248,6 +252,12 @@ func (h *Handlers) Router(staticFS http.FileSystem) http.Handler {
 	// exempts the /v1/ prefix). Mounted at the top level so it's outside
 	// the session-gated group.
 	r.Mount("/v1", h.v1Router())
+
+	// Native mobile (responder) app: token-authenticated read API. Mounted at
+	// the top level, outside the session-gated group; CSRF-exempt (the
+	// /mobile/ prefix is exempted in csrf.New).
+	r.Mount("/mobile", h.mobileRouter())
+
 	// API docs are public.
 	r.Get("/openapi.json", h.openAPISpec)
 	r.Get("/docs", h.docsPage)

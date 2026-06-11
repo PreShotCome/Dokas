@@ -33,6 +33,7 @@ import (
 	"github.com/preshotcome/anything/internal/fly"
 	"github.com/preshotcome/anything/internal/heartbeat"
 	heartbeatnotify "github.com/preshotcome/anything/internal/heartbeat/notify"
+	"github.com/preshotcome/anything/internal/mobileauth"
 	"github.com/preshotcome/anything/internal/oauth"
 	"github.com/preshotcome/anything/internal/obs"
 	"github.com/preshotcome/anything/internal/ratelimit"
@@ -234,7 +235,7 @@ func main() {
 		Throttle:        loginThrottle,
 		Webhooks:        webhookStore,
 		WebhookDispatch: webhookDispatch,
-		CSRF:            csrf.New(cfg.IsProduction(), "/webhooks/", "/v1/", "/ping/"),
+		CSRF:            csrf.New(cfg.IsProduction(), "/webhooks/", "/v1/", "/ping/", "/mobile/"),
 		AuthLimiter:     authLimiter,
 		AppLimiter:      appLimiter,
 		Evidence:        evidenceService,
@@ -251,6 +252,7 @@ func main() {
 		StaffEmails:          cfg.StaffEmails,
 		MetricsToken:         cfg.MetricsToken,
 		APIKeys:              apikey.NewStore(pool),
+		MobileTokens:         mobileauth.NewStore(pool),
 		V1Limiter:            v1Limiter,
 		SourceDir:            cfg.SourceDir,
 		OAuth:                oauthRegistry,
