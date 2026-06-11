@@ -1,8 +1,8 @@
-# Selket — Backup Verification SaaS
+# Vesta — Backup Verification SaaS
 
 ## Context
 
-The user wants to build a real, production-grade app exercising all 11 layers of their fullstack rubric (foundation → support), not a portfolio toy. They asked for an "untapped but easy to access" avenue. Recommendation accepted: **Selket as a Service** — a B2B SaaS that periodically verifies customer database backups by spinning up an ephemeral sandbox, restoring the latest dump, running assertions, and producing auditor-grade evidence (signed PDF + immutable log).
+The user wants to build a real, production-grade app exercising all 11 layers of their fullstack rubric (foundation → support), not a portfolio toy. They asked for an "untapped but easy to access" avenue. Recommendation accepted: **Vesta as a Service** — a B2B SaaS that periodically verifies customer database backups by spinning up an ephemeral sandbox, restoring the latest dump, running assertions, and producing auditor-grade evidence (signed PDF + immutable log).
 
 Why this product:
 - Real, recurring pain ("untested backups don't exist"), validated by SOC 2 / HIPAA control requirements.
@@ -27,8 +27,8 @@ Locked decisions (from clarifying questions):
 
 Two deployable artifacts, single Postgres:
 
-1. **`app.selket.io`** — Go monolith (Chi + Templ + HTMX + Tailwind) serving the authenticated dashboard, API, webhooks, and orchestrator. Single binary, deployed to Fly.io.
-2. **`selket.io`** (marketing/docs/blog) — Astro static site on Cloudflare Pages. Decoupled so MDX content + Lighthouse SEO don't fight HTMX.
+1. **`app.vesta.io`** — Go monolith (Chi + Templ + HTMX + Tailwind) serving the authenticated dashboard, API, webhooks, and orchestrator. Single binary, deployed to Fly.io.
+2. **`vesta.io`** (marketing/docs/blog) — Astro static site on Cloudflare Pages. Decoupled so MDX content + Lighthouse SEO don't fight HTMX.
 
 Drill execution runs on **Fly Machines** spun on-demand per drill (no inbound network, scoped outbound to S3 + control plane, destroyed on completion). Job queue is **River** (Postgres-native) with each drill modeled as a multi-step workflow: `provision → fetch → restore → assert → report → teardown → bill`. Each step is its own River job with idempotency keys so failures resume mid-flight without re-restoring 80GB.
 
@@ -129,7 +129,7 @@ Drill execution runs on **Fly Machines** spun on-demand per drill (no inbound ne
 - **A/B**: PostHog experiments, gated on flag.
 - **Transactional email**: Postmark with SPF/DKIM/DMARC strict, bounce + complaint handling auto-suspends recipients, weekly deliverability report.
 - **SEO**: Astro marketing site, MDX content, OpenGraph cards per page, `sitemap.xml`, `robots.txt`, JSON-LD Product schema.
-- **Referral loop**: every signed PDF report has a footer "Verified by Selket" linking to the marketing site (compliance-safe wording).
+- **Referral loop**: every signed PDF report has a footer "Verified by Vesta" linking to the marketing site (compliance-safe wording).
 
 ### 10. Compliance & legal
 - ToS + Privacy Policy + DPA + Sub-processor list, drafted by counsel before first paid customer.
@@ -470,7 +470,7 @@ fallbacks.
    `/readyz`.
 3. Drill step workers emit spans; teardown records drill metrics; webhook
    worker records delivery metrics; queue-depth sampler.
-4. `runbooks/incident-response.md`, `dashboards/selket.json`,
+4. `runbooks/incident-response.md`, `dashboards/vesta.json`,
    `dashboards/alerts.yml`.
 5. Tests: readiness ready/not-ready, Recoverer captures panics, metrics
    middleware + drill/webhook/queue recording, Noop reporter fallback.
@@ -506,7 +506,7 @@ out of scope; the app gets a correct robots.txt.
   `FEATURE_<NAME>`) behind a `Flags` interface seam. `self_serve_signup`
   gates the signup route (off → "request access" / sales-led page).
 - **Referral:** the signed evidence PDF footer carries "Verified by
-  Selket — selket.io".
+  Vesta — vesta.io".
 - **robots.txt:** the app disallows indexing (marketing is indexed
   separately).
 

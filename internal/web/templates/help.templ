@@ -1,5 +1,7 @@
 package templates
 
+import "github.com/preshotcome/anything/internal/branding"
+
 templ HelpPage(lc LayoutCtx) {
 	@LayoutWith("Help", lc) {
 		<h1 class="mb-1 text-2xl font-semibold tracking-tight">Help</h1>
@@ -13,7 +15,7 @@ templ HelpPage(lc LayoutCtx) {
 					"produces a signed PDF proving the backup is actually restorable.")
 			@faq("How do I connect a database?",
 				"Go to Databases → Connect a database. In this phase you point "+
-					"Selket at a local pg_dump or .sql file and name the "+
+					branding.ProductName+" at a local pg_dump or .sql file and name the "+
 					"table plus minimum row count we should assert after restore.")
 			@faq("How do I run a drill?",
 				"On the Drills page, pick a connected database and click Run "+
@@ -27,7 +29,7 @@ templ HelpPage(lc LayoutCtx) {
 			@faq("What is a backup check-in?",
 				"A check-in is a lightweight monitor for the backup job itself. "+
 					"Your job pings a unique URL each time it runs; if a ping "+
-					"doesn't arrive within the period and grace you set, Selket "+
+					"doesn't arrive within the period and grace you set, "+branding.ProductName+" "+
 					"marks the monitor down and alerts you by email and webhook. "+
 					"Drills prove a backup restores — check-ins prove the job ran "+
 					"at all.")
@@ -35,7 +37,7 @@ templ HelpPage(lc LayoutCtx) {
 				"Go to Check-ins → New monitor and set how often you expect the "+
 					"job to run plus a grace window. Copy the ping URL and call it "+
 					"at the end of your backup script — e.g. add "+
-					"'curl -fsS https://app.selket.io/ping/<token>' after a "+
+					"'curl -fsS https://app.vesta.io/ping/<token>' after a "+
 					"successful run. Send /fail instead to report a failure "+
 					"immediately, or /start to record that the job began.")
 			@faq("Who can do what in my account?",
@@ -49,7 +51,7 @@ templ HelpPage(lc LayoutCtx) {
 		</div>
 		<p class="mt-8 text-sm text-zinc-600 dark:text-zinc-400">
 			Still stuck? Email
-			<a class="underline" href="mailto:support@selket.io">support@selket.io</a>.
+			<a class="underline" href="mailto:support@vesta.io">support@vesta.io</a>.
 		</p>
 	}
 }

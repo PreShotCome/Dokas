@@ -1,7 +1,7 @@
-# Sample Selket evidence bundle
+# Sample Vesta evidence bundle
 
 This is a complete, **independently verifiable** Proof-of-Recovery bundle —
-the exact artifact Selket produces for a passing backup restore drill. You
+the exact artifact Vesta produces for a passing backup restore drill. You
 can hand it to a prospect, an auditor, or an underwriter so they can see
 (and check) what the evidence looks like before signing up.
 
@@ -11,17 +11,17 @@ can hand it to a prospect, an auditor, or an underwriter so they can see
 | `signature.json` | The detached Ed25519 signature over the PDF's SHA-256 digest. |
 | `evidence-signing-keys.pem` | The public key this sample was signed with. |
 
-> This sample was signed with a **throwaway demo key**, not Selket's
+> This sample was signed with a **throwaway demo key**, not Vesta's
 > production signing key — so it proves the *mechanism*, not a real customer
 > drill. Production evidence is signed with the persistent key published at
-> `https://app.selket.io/.well-known/evidence-signing-keys.pem`.
+> `https://app.vesta.io/.well-known/evidence-signing-keys.pem`.
 
 ## Verify it yourself
 
 Download the `selket-verify` binary for your platform from the
 [GitHub Releases](https://github.com/preshotcome/Soteria/releases) page
 (or build it from `cmd/selket-verify` — it depends only on the Go standard
-library, so there is no Selket code in your trust path), then:
+library, so there is no Vesta code in your trust path), then:
 
 ```sh
 selket-verify \

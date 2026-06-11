@@ -20,6 +20,8 @@ import (
 	"sort"
 	"strings"
 	"time"
+
+	"github.com/preshotcome/anything/internal/branding"
 )
 
 // Identity is what a provider tells us about the signing-in user.
@@ -151,7 +153,7 @@ func (p *provider) get(ctx context.Context, rawURL, token string) ([]byte, error
 	}
 	req.Header.Set("Authorization", "Bearer "+token)
 	req.Header.Set("Accept", "application/json")
-	req.Header.Set("User-Agent", "selket") // GitHub rejects requests without one
+	req.Header.Set("User-Agent", branding.Slug) // GitHub rejects requests without one
 	return p.do(req)
 }
 

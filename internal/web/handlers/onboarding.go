@@ -15,6 +15,7 @@ import (
 	"github.com/preshotcome/anything/internal/assertions"
 	"github.com/preshotcome/anything/internal/audit"
 	"github.com/preshotcome/anything/internal/auth"
+	"github.com/preshotcome/anything/internal/branding"
 	"github.com/preshotcome/anything/internal/drill"
 	"github.com/preshotcome/anything/internal/web/templates"
 )
@@ -43,7 +44,7 @@ func (h *Handlers) onboardingSampleDump(w http.ResponseWriter, _ *http.Request) 
 // can read (inside the configured source directory) and returns its absolute
 // path. Idempotent: it only writes the file once.
 func (h *Handlers) materializeSample() (string, error) {
-	dir, err := filepath.Abs(filepath.Join(h.sourceDir, "_selket_sample"))
+	dir, err := filepath.Abs(filepath.Join(h.sourceDir, "_"+branding.Slug+"_sample"))
 	if err != nil {
 		return "", err
 	}

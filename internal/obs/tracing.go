@@ -15,6 +15,8 @@ import (
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	semconv "go.opentelemetry.io/otel/semconv/v1.26.0"
 	"go.opentelemetry.io/otel/trace"
+
+	"github.com/preshotcome/anything/internal/branding"
 )
 
 const tracerName = "github.com/preshotcome/anything"
@@ -58,7 +60,7 @@ func setupTracing(ctx context.Context, env string) (func(context.Context) error,
 	// NewSchemaless avoids a schema-URL conflict with resource.Default()
 	// (the SDK's default resource pins a different semconv version).
 	res := resource.NewSchemaless(
-		semconv.ServiceName("selket"),
+		semconv.ServiceName(branding.Slug),
 		semconv.DeploymentEnvironment(env),
 	)
 

@@ -222,8 +222,8 @@ func (h *Handlers) Router(staticFS http.FileSystem) http.Handler {
 	r.Get("/robots.txt", h.robotsTxt)
 
 	// Public verification surface: the evidence signing keys, served as PEM
-	// so anyone holding a Selket-issued PDF can fetch the key and verify the
-	// detached signature without trusting Selket's own tooling.
+	// so anyone holding a Vesta-issued PDF can fetch the key and verify the
+	// detached signature without trusting Vesta's own tooling.
 	r.Get("/.well-known/evidence-signing-keys.pem", h.evidenceSigningKeys)
 
 	// Inbound Postmark bounce/complaint webhook — authenticated by the
@@ -255,7 +255,7 @@ func (h *Handlers) Router(staticFS http.FileSystem) http.Handler {
 	// Public pricing page — self-serve subscribers start here.
 	r.Get("/pricing", h.pricingPage)
 
-	// Public explainer — what backup drilling is and how Selket helps.
+	// Public explainer — what backup drilling is and how Vesta helps.
 	r.Get("/how-it-works", h.howItWorks)
 
 	// Onboarding sample dump — a known-good fixture a new user can run

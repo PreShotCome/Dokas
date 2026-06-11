@@ -5,6 +5,8 @@ import (
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/preshotcome/anything/internal/branding"
 )
 
 // rfcSecret is the RFC 6238 test secret ("12345678901234567890"), base32-encoded.
@@ -75,7 +77,7 @@ func TestTOTPURI(t *testing.T) {
 	if !strings.HasPrefix(uri, "otpauth://totp/") {
 		t.Errorf("unexpected URI prefix: %s", uri)
 	}
-	for _, want := range []string{"secret=ABCDEF234567", "issuer=Selket", "digits=6", "period=30"} {
+	for _, want := range []string{"secret=ABCDEF234567", "issuer=" + branding.TOTPIssuer, "digits=6", "period=30"} {
 		if !strings.Contains(uri, want) {
 			t.Errorf("URI missing %q: %s", want, uri)
 		}

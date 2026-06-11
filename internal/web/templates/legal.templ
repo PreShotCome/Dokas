@@ -1,5 +1,7 @@
 package templates
 
+import "github.com/preshotcome/anything/internal/branding"
+
 // LegalPage wraps a legal document body in the standard layout.
 templ LegalPage(lc LayoutCtx, title string, body templ.Component) {
 	@LayoutWith(title, lc) {
@@ -15,8 +17,8 @@ templ LegalTerms() {
 	<div class="space-y-3 text-sm text-zinc-700 dark:text-zinc-300">
 		<p>
 			These Terms of Service (the "Terms") form a binding agreement
-			between you and Selket ("Selket", "we", "us")
-			governing your use of the Selket backup-verification
+			between you and { branding.ProductName } ("{ branding.ProductName }", "we", "us")
+			governing your use of the { branding.ProductName } backup-verification
 			service (the "Service"). By creating an account or using the
 			Service you agree to these Terms. If you are entering into them for
 			an organisation, you confirm you have authority to bind that
@@ -24,7 +26,7 @@ templ LegalTerms() {
 		</p>
 		<h2 class="text-base font-semibold">1. The Service</h2>
 		<p>
-			Selket periodically restores the database dumps you
+			{ branding.ProductName } periodically restores the database dumps you
 			register into an isolated, ephemeral sandbox, runs the assertions
 			you configure, and produces signed evidence of the result. The
 			Service verifies backups; it does not create them. We may add,
@@ -100,7 +102,7 @@ templ LegalTerms() {
 		</p>
 		<h2 class="text-base font-semibold">10. Indemnification</h2>
 		<p>
-			You will defend and indemnify Selket against third-party
+			You will defend and indemnify { branding.ProductName } against third-party
 			claims arising from your Customer Data or your use of the Service
 			in breach of these Terms, except to the extent caused by us.
 		</p>
@@ -113,7 +115,7 @@ templ LegalTerms() {
 		<h2 class="text-base font-semibold">12. Governing law</h2>
 		<p>
 			These Terms are governed by the law of the jurisdiction in which
-			the Selket operating entity is established, without regard
+			the { branding.ProductName } operating entity is established, without regard
 			to conflict-of-laws rules, and the courts of that jurisdiction
 			have exclusive jurisdiction over disputes. Nothing in these Terms
 			limits mandatory consumer-protection rights available to you
@@ -121,7 +123,7 @@ templ LegalTerms() {
 		</p>
 		<h2 class="text-base font-semibold">13. Contact</h2>
 		<p>
-			Questions about these Terms: <a class="underline" href="mailto:legal@selket.io">legal@selket.io</a>.
+			Questions about these Terms: <a class="underline" href="mailto:legal@vesta.io">legal@vesta.io</a>.
 		</p>
 	</div>
 }
@@ -129,9 +131,9 @@ templ LegalTerms() {
 templ LegalPrivacy() {
 	<div class="space-y-3 text-sm text-zinc-700 dark:text-zinc-300">
 		<p>
-			This Privacy Policy explains what personal data Selket
+			This Privacy Policy explains what personal data { branding.ProductName }
 			collects, how we use it, and the rights you have. It covers the
-			Selket application and website.
+			{ branding.ProductName } application and website.
 		</p>
 		<h2 class="text-base font-semibold">1. Data we collect</h2>
 		<p>
@@ -220,7 +222,7 @@ templ LegalPrivacy() {
 		</p>
 		<h2 class="text-base font-semibold">12. Contact</h2>
 		<p>
-			Privacy questions or requests: <a class="underline" href="mailto:privacy@selket.io">privacy@selket.io</a>.
+			Privacy questions or requests: <a class="underline" href="mailto:privacy@vesta.io">privacy@vesta.io</a>.
 		</p>
 	</div>
 }
@@ -228,7 +230,7 @@ templ LegalPrivacy() {
 templ LegalSubprocessors() {
 	<div class="space-y-3 text-sm text-zinc-700 dark:text-zinc-300">
 		<p>
-			Selket uses the third-party services below to process data
+			{ branding.ProductName } uses the third-party services below to process data
 			on your behalf. We notify customers in advance of material
 			changes to this list.
 		</p>
@@ -281,7 +283,7 @@ templ LegalSubprocessors() {
 			</table>
 		</div>
 		<p>
-			Questions about a sub-processor: <a class="underline" href="mailto:privacy@selket.io">privacy@selket.io</a>.
+			Questions about a sub-processor: <a class="underline" href="mailto:privacy@vesta.io">privacy@vesta.io</a>.
 		</p>
 	</div>
 }
@@ -289,7 +291,7 @@ templ LegalSubprocessors() {
 templ LegalCookies() {
 	<div class="space-y-3 text-sm text-zinc-700 dark:text-zinc-300">
 		<p>
-			The Selket application sets only strictly-necessary
+			The { branding.ProductName } application sets only strictly-necessary
 			cookies. We do not use advertising or cross-site tracking
 			cookies, and product analytics is collected server-side — there
 			is no analytics cookie in your browser.
@@ -333,15 +335,15 @@ templ LegalDPA() {
 	<div class="space-y-3 text-sm text-zinc-700 dark:text-zinc-300">
 		<p>
 			This Data Processing Addendum ("DPA") forms part of the Terms of
-			Service between you ("Controller") and Selket
-			("Processor") and applies where Selket processes personal
+			Service between you ("Controller") and { branding.ProductName }
+			("Processor") and applies where { branding.ProductName } processes personal
 			data contained in your Customer Data on your behalf.
 		</p>
 		<h2 class="text-base font-semibold">1. Roles</h2>
 		<p>
 			For personal data within the database dumps you register, you are
-			the controller and Selket is the processor. For account and
-			billing data of your users, Selket is an independent
+			the controller and { branding.ProductName } is the processor. For account and
+			billing data of your users, { branding.ProductName } is an independent
 			controller, governed by the Privacy Policy.
 		</p>
 		<h2 class="text-base font-semibold">2. Subject matter, duration, nature, and purpose</h2>
@@ -362,7 +364,7 @@ templ LegalDPA() {
 		</p>
 		<h2 class="text-base font-semibold">4. Processor obligations</h2>
 		<p>
-			Selket processes Customer Data only on your documented
+			{ branding.ProductName } processes Customer Data only on your documented
 			instructions (including via the application), ensures personnel
 			with access are bound by confidentiality, implements the security
 			measures in clause 7, and assists you in meeting your own
@@ -370,7 +372,7 @@ templ LegalDPA() {
 		</p>
 		<h2 class="text-base font-semibold">5. Sub-processors</h2>
 		<p>
-			You authorise Selket to engage the sub-processors listed on
+			You authorise { branding.ProductName } to engage the sub-processors listed on
 			the <a class="underline" href="/legal/subprocessors">Sub-processors</a>
 			page. We impose data-protection obligations on each sub-processor
 			no less protective than this DPA, remain responsible for their
@@ -396,7 +398,7 @@ templ LegalDPA() {
 		</p>
 		<h2 class="text-base font-semibold">8. Personal data breach</h2>
 		<p>
-			Selket notifies you without undue delay after becoming
+			{ branding.ProductName } notifies you without undue delay after becoming
 			aware of a personal data breach affecting your Customer Data, with
 			the information reasonably available to assist your own reporting
 			obligations.
@@ -412,7 +414,7 @@ templ LegalDPA() {
 		<p>
 			On reasonable written request, and no more than once a year except
 			following a breach or where required by a supervisory authority,
-			Selket makes available the information necessary to
+			{ branding.ProductName } makes available the information necessary to
 			demonstrate compliance with this DPA.
 		</p>
 		<h2 class="text-base font-semibold">11. Return and deletion</h2>
@@ -430,7 +432,7 @@ templ LegalDPA() {
 			prevails.
 		</p>
 		<p>
-			DPA questions or a signed copy: <a class="underline" href="mailto:legal@selket.io">legal@selket.io</a>.
+			DPA questions or a signed copy: <a class="underline" href="mailto:legal@vesta.io">legal@vesta.io</a>.
 		</p>
 	</div>
 }

@@ -1,5 +1,7 @@
 package templates
 
+import "github.com/preshotcome/anything/internal/branding"
+
 templ Login(errMsg string, prefillEmail string) {
 	@LoginWithNext(errMsg, prefillEmail, "", nil)
 }
@@ -94,10 +96,10 @@ templ SignupClosed() {
 	@Layout("Request access", nil) {
 		<div class="mx-auto max-w-sm">
 			<div class="card text-center">
-				<h1 class="mb-1 text-xl font-semibold">Selket is sales-led</h1>
+				<h1 class="mb-1 text-xl font-semibold">{ branding.ProductName } is sales-led</h1>
 				<p class="mb-4 text-sm text-zinc-600 dark:text-zinc-400">
 					We're onboarding customers directly right now. Email
-					<a class="underline" href="mailto:sales@selket.io">sales@selket.io</a>
+					<a class="underline" href="mailto:sales@vesta.io">sales@vesta.io</a>
 					and we'll get you set up.
 				</p>
 				<a href="/login" class="btn-ghost">Already have an account? Sign in</a>

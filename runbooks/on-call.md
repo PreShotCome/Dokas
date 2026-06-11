@@ -1,6 +1,6 @@
 # Runbook: On-Call
 
-How on-call works for Selket. Pairs with
+How on-call works for Vesta. Pairs with
 `runbooks/incident-response.md` (what to do during an incident) and
 `runbooks/secret-rotation.md`.
 
@@ -43,7 +43,7 @@ plan flag when it exists.
 - **Admin panel** (`/admin`, staff only) — user lookup, safe impersonation
   (always with a reason), drill replay, evidence regeneration.
 - **Metrics** — `/metrics` (Prometheus), the Grafana dashboard
-  (`dashboards/selket.json`).
+  (`dashboards/vesta.json`).
 - **Logs** — structured JSON; filter by `level`, `trace_id`, `account_id`.
 - **Traces / errors** — the OTLP collector and Sentry, when configured.
 

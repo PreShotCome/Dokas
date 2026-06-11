@@ -17,6 +17,7 @@ import (
 	"github.com/preshotcome/anything/internal/assertions"
 	"github.com/preshotcome/anything/internal/audit"
 	"github.com/preshotcome/anything/internal/auth"
+	"github.com/preshotcome/anything/internal/branding"
 	"github.com/preshotcome/anything/internal/drill"
 	"github.com/preshotcome/anything/internal/evidence"
 	"github.com/preshotcome/anything/internal/web/templates"
@@ -435,7 +436,7 @@ func (h *Handlers) drillEvidence(w http.ResponseWriter, r *http.Request) {
 	})
 
 	w.Header().Set("Content-Type", "application/pdf")
-	w.Header().Set("Content-Disposition", `attachment; filename="selket-`+dr.ID.String()+`.pdf"`)
+	w.Header().Set("Content-Disposition", `attachment; filename="`+branding.Slug+`-`+dr.ID.String()+`.pdf"`)
 	http.ServeContent(w, r, "", time.Time{}, bytes.NewReader(body))
 }
 

@@ -10,6 +10,7 @@ import (
 
 	"github.com/go-pdf/fpdf"
 
+	"github.com/preshotcome/anything/internal/branding"
 	"github.com/preshotcome/anything/internal/drill"
 )
 
@@ -35,7 +36,7 @@ func Render(out io.Writer, d Data) error {
 	pdf.Ln(8)
 	pdf.SetFont("Helvetica", "", 10)
 	pdf.SetTextColor(110, 110, 110)
-	pdf.Cell(0, 6, "Backup restore-test evidence - Selket")
+	pdf.Cell(0, 6, "Backup restore-test evidence - "+branding.ProductName)
 	pdf.SetTextColor(0, 0, 0)
 	pdf.Ln(10)
 
@@ -115,7 +116,7 @@ func Render(out io.Writer, d Data) error {
 
 	pdf.Ln(2)
 	pdf.SetFont("Helvetica", "B", 8)
-	pdf.CellFormat(0, 4, "Verified by Selket - selket.io", "", 1, "C", false, 0, "")
+	pdf.CellFormat(0, 4, "Verified by "+branding.ProductName+" - "+branding.DomainSite, "", 1, "C", false, 0, "")
 
 	return pdf.Output(out)
 }

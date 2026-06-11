@@ -8,7 +8,11 @@ package templates
 import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
-import "strconv"
+import (
+	"strconv"
+
+	"github.com/preshotcome/anything/internal/branding"
+)
 
 // PlanLimit is the page shown when a create action is blocked by the
 // account's subscription tier. `resource` is the plural noun ("databases"),
@@ -53,7 +57,7 @@ func PlanLimit(lc LayoutCtx, resource, plan string, limit int) templ.Component {
 			var templ_7745c5c3_Var3 string
 			templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(plan)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/templates/plan.templ`, Line: 13, Col: 41}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/templates/plan.templ`, Line: 17, Col: 41}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
 			if templ_7745c5c3_Err != nil {
@@ -66,7 +70,7 @@ func PlanLimit(lc LayoutCtx, resource, plan string, limit int) templ.Component {
 			var templ_7745c5c3_Var4 string
 			templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(planLimitCount(limit, resource))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/templates/plan.templ`, Line: 14, Col: 37}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/templates/plan.templ`, Line: 18, Col: 37}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 			if templ_7745c5c3_Err != nil {
@@ -121,7 +125,20 @@ func TrialEnded(lc LayoutCtx) templ.Component {
 				}()
 			}
 			ctx = templ.InitializeContext(ctx)
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "<div class=\"card mx-auto max-w-xl space-y-4 text-center\"><h1 class=\"text-2xl font-semibold tracking-tight\">Your free trial has ended</h1><p class=\"text-zinc-600 dark:text-zinc-400\">Your 14-day Selket trial is over. Your databases, drill history, and signed evidence are all still here — choose a plan to start verifying your backups again.</p><div class=\"flex justify-center gap-3\"><a href=\"/pricing\" class=\"btn-primary\">Choose a plan</a> <a href=\"/account\" class=\"btn-ghost\">Account &amp; billing</a></div></div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "<div class=\"card mx-auto max-w-xl space-y-4 text-center\"><h1 class=\"text-2xl font-semibold tracking-tight\">Your free trial has ended</h1><p class=\"text-zinc-600 dark:text-zinc-400\">Your 14-day ")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var7 string
+			templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinStringErrs(branding.ProductName)
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/templates/plan.templ`, Line: 35, Col: 38}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var7))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, " trial is over. Your databases, drill history, and signed evidence are all still here — choose a plan to start verifying your backups again.</p><div class=\"flex justify-center gap-3\"><a href=\"/pricing\" class=\"btn-primary\">Choose a plan</a> <a href=\"/account\" class=\"btn-ghost\">Account &amp; billing</a></div></div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -164,12 +181,12 @@ func PaidRequired(lc LayoutCtx) templ.Component {
 			}()
 		}
 		ctx = templ.InitializeContext(ctx)
-		templ_7745c5c3_Var7 := templ.GetChildren(ctx)
-		if templ_7745c5c3_Var7 == nil {
-			templ_7745c5c3_Var7 = templ.NopComponent
+		templ_7745c5c3_Var8 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var8 == nil {
+			templ_7745c5c3_Var8 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Var8 := templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
+		templ_7745c5c3_Var9 := templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 			templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 			templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
 			if !templ_7745c5c3_IsBuffer {
@@ -181,13 +198,13 @@ func PaidRequired(lc LayoutCtx) templ.Component {
 				}()
 			}
 			ctx = templ.InitializeContext(ctx)
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "<div class=\"card mx-auto max-w-xl space-y-4 text-center\"><h1 class=\"text-2xl font-semibold tracking-tight\">Drill your own backups on a paid plan</h1><p class=\"text-zinc-600 dark:text-zinc-400\">Free accounts can run a drill against our built-in sample dataset and download the signed Proof-of-Recovery PDF. To restore-test your own backups and produce evidence for them, choose a plan. It starts with a guided first drill on your data.</p><div class=\"flex justify-center gap-3\"><a href=\"/pricing\" class=\"btn-primary\">Choose a plan</a> <a href=\"/databases\" class=\"btn-ghost\">Back</a></div></div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "<div class=\"card mx-auto max-w-xl space-y-4 text-center\"><h1 class=\"text-2xl font-semibold tracking-tight\">Drill your own backups on a paid plan</h1><p class=\"text-zinc-600 dark:text-zinc-400\">Free accounts can run a drill against our built-in sample dataset and download the signed Proof-of-Recovery PDF. To restore-test your own backups and produce evidence for them, choose a plan. It starts with a guided first drill on your data.</p><div class=\"flex justify-center gap-3\"><a href=\"/pricing\" class=\"btn-primary\">Choose a plan</a> <a href=\"/databases\" class=\"btn-ghost\">Back</a></div></div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			return nil
 		})
-		templ_7745c5c3_Err = LayoutWith("Upgrade to drill your backups", lc).Render(templ.WithChildren(ctx, templ_7745c5c3_Var8), templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = LayoutWith("Upgrade to drill your backups", lc).Render(templ.WithChildren(ctx, templ_7745c5c3_Var9), templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

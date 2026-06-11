@@ -8,6 +8,8 @@ package templates
 import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
+import "github.com/preshotcome/anything/internal/branding"
+
 func DocsPage(lc LayoutCtx) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
@@ -41,20 +43,33 @@ func DocsPage(lc LayoutCtx) templ.Component {
 				}()
 			}
 			ctx = templ.InitializeContext(ctx)
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<article class=\"prose-sm mx-auto max-w-2xl space-y-4\"><h1 class=\"text-2xl font-semibold tracking-tight\">API reference</h1><p class=\"text-sm text-zinc-600 dark:text-zinc-400\">The Selket REST API is versioned under <code>/v1</code>. The machine-readable OpenAPI 3.1 document is at <a href=\"/openapi.json\" class=\"underline\">/openapi.json</a>.</p><h2 class=\"text-base font-semibold\">Authentication</h2><p class=\"text-sm text-zinc-600 dark:text-zinc-400\">Create an API key on the <a href=\"/account/api-keys\" class=\"underline\">API keys</a> page, then send it as a bearer token:</p><pre class=\"overflow-x-auto rounded bg-zinc-100 p-3 text-xs dark:bg-zinc-800\"><code>curl https://app.selket.io/v1/drills \\ -H \"Authorization: Bearer so_your_key_here\"</code></pre><h2 class=\"text-base font-semibold\">Conventions</h2><ul class=\"list-disc space-y-1 pl-5 text-sm text-zinc-600 dark:text-zinc-400\"><li>Every response is a <code>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<article class=\"prose-sm mx-auto max-w-2xl space-y-4\"><h1 class=\"text-2xl font-semibold tracking-tight\">API reference</h1><p class=\"text-sm text-zinc-600 dark:text-zinc-400\">The ")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var3 string
-			templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs("{ data, meta, errors }")
+			templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(branding.ProductName)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/templates/docs.templ`, Line: 24, Col: 60}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/templates/docs.templ`, Line: 10, Col: 30}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "</code> envelope.</li><li>List endpoints paginate with an opaque <code>cursor</code>; follow <code>meta.next_cursor</code>.</li><li><code>POST</code> requests require an <code>Idempotency-Key</code> header; a repeated key replays the original response.</li><li>Rate limit: 60 requests per minute per account; over the limit returns <code>429</code> with <code>Retry-After</code>.</li></ul><h2 class=\"text-base font-semibold\">Endpoints</h2><div class=\"card overflow-x-auto p-0\"><table class=\"min-w-full divide-y divide-zinc-200 text-sm dark:divide-zinc-800\"><thead class=\"bg-zinc-50 dark:bg-zinc-900/50\"><tr><th class=\"px-4 py-2 text-left font-medium\">Method</th><th class=\"px-4 py-2 text-left font-medium\">Path</th><th class=\"px-4 py-2 text-left font-medium\">Description</th></tr></thead> <tbody class=\"divide-y divide-zinc-200 font-mono text-xs dark:divide-zinc-800\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, " REST API is versioned under <code>/v1</code>. The machine-readable OpenAPI 3.1 document is at <a href=\"/openapi.json\" class=\"underline\">/openapi.json</a>.</p><h2 class=\"text-base font-semibold\">Authentication</h2><p class=\"text-sm text-zinc-600 dark:text-zinc-400\">Create an API key on the <a href=\"/account/api-keys\" class=\"underline\">API keys</a> page, then send it as a bearer token:</p><pre class=\"overflow-x-auto rounded bg-zinc-100 p-3 text-xs dark:bg-zinc-800\"><code>curl https://app.vesta.io/v1/drills \\ -H \"Authorization: Bearer so_your_key_here\"</code></pre><h2 class=\"text-base font-semibold\">Conventions</h2><ul class=\"list-disc space-y-1 pl-5 text-sm text-zinc-600 dark:text-zinc-400\"><li>Every response is a <code>")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var4 string
+			templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs("{ data, meta, errors }")
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/templates/docs.templ`, Line: 26, Col: 60}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "</code> envelope.</li><li>List endpoints paginate with an opaque <code>cursor</code>; follow <code>meta.next_cursor</code>.</li><li><code>POST</code> requests require an <code>Idempotency-Key</code> header; a repeated key replays the original response.</li><li>Rate limit: 60 requests per minute per account; over the limit returns <code>429</code> with <code>Retry-After</code>.</li></ul><h2 class=\"text-base font-semibold\">Endpoints</h2><div class=\"card overflow-x-auto p-0\"><table class=\"min-w-full divide-y divide-zinc-200 text-sm dark:divide-zinc-800\"><thead class=\"bg-zinc-50 dark:bg-zinc-900/50\"><tr><th class=\"px-4 py-2 text-left font-medium\">Method</th><th class=\"px-4 py-2 text-left font-medium\">Path</th><th class=\"px-4 py-2 text-left font-medium\">Description</th></tr></thead> <tbody class=\"divide-y divide-zinc-200 font-mono text-xs dark:divide-zinc-800\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -86,7 +101,7 @@ func DocsPage(lc LayoutCtx) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "</tbody></table></div></article>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "</tbody></table></div></article>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -116,51 +131,51 @@ func docRow(method, path, desc string) templ.Component {
 			}()
 		}
 		ctx = templ.InitializeContext(ctx)
-		templ_7745c5c3_Var4 := templ.GetChildren(ctx)
-		if templ_7745c5c3_Var4 == nil {
-			templ_7745c5c3_Var4 = templ.NopComponent
+		templ_7745c5c3_Var5 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var5 == nil {
+			templ_7745c5c3_Var5 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "<tr><td class=\"px-4 py-2 font-semibold\">")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		var templ_7745c5c3_Var5 string
-		templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(method)
-		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/templates/docs.templ`, Line: 57, Col: 46}
-		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "</td><td class=\"px-4 py-2\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "<tr><td class=\"px-4 py-2 font-semibold\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var6 string
-		templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(path)
+		templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(method)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/templates/docs.templ`, Line: 58, Col: 30}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/templates/docs.templ`, Line: 59, Col: 46}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "</td><td class=\"px-4 py-2 font-sans text-zinc-600 dark:text-zinc-400\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "</td><td class=\"px-4 py-2\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var7 string
-		templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinStringErrs(desc)
+		templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinStringErrs(path)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/templates/docs.templ`, Line: 59, Col: 73}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/templates/docs.templ`, Line: 60, Col: 30}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var7))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "</td></tr>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "</td><td class=\"px-4 py-2 font-sans text-zinc-600 dark:text-zinc-400\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var8 string
+		templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(desc)
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/templates/docs.templ`, Line: 61, Col: 73}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var8))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "</td></tr>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
