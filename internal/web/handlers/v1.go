@@ -80,6 +80,14 @@ func (h *Handlers) v1Router() http.Handler {
 		r.Get("/drills/{id}/evidence", h.v1GetEvidence)
 		r.Get("/drills/{id}/signature", h.v1GetSignature)
 		r.Get("/drills/{id}/logs", h.v1GetLogs)
+		// The alert feed is drawn from drill + heartbeat events; drills:read
+		// is the core read scope that gates it.
+		r.Get("/alerts", h.v1ListAlerts)
+	})
+	r.Group(func(r chi.Router) {
+		r.Use(h.v1RequireScope(apikey.ScopeHeartbeatsRead))
+		r.Get("/heartbeats", h.v1ListHeartbeats)
+		r.Get("/heartbeats/{id}", h.v1GetHeartbeat)
 	})
 
 	// State-changing endpoints require an Idempotency-Key. The scope check

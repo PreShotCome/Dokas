@@ -267,6 +267,9 @@ func (h *Handlers) mobileRouter() http.Handler {
 		r.Get("/drills/{id}/evidence", h.v1GetEvidence)
 		r.Get("/drills/{id}/signature", h.v1GetSignature)
 		r.Get("/drills/{id}/logs", h.v1GetLogs)
+		r.Get("/heartbeats", h.v1ListHeartbeats)
+		r.Get("/heartbeats/{id}", h.v1GetHeartbeat)
+		r.Get("/alerts", h.v1ListAlerts)
 	})
 
 	return r
