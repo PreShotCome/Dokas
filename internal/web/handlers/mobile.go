@@ -286,6 +286,13 @@ func (h *Handlers) mobileBearerAuth(next http.Handler) http.Handler {
 func (h *Handlers) mobileRouter() http.Handler {
 	r := chi.NewRouter()
 
+	// CORS: the responder app may run as a web build (Flutter web / local dev
+	// in a browser), which makes cross-origin calls. The /mobile API is
+	// Bearer-token only (no cookies), so reflecting the origin is safe — there
+	// are no ambient credentials for a malicious page to ride on. Preflight
+	// (OPTIONS) is answered here before auth/rate-limit middleware.
+	r.Use(mobileCORS)
+
 	// Unauthenticated: log in / complete MFA. Per-IP limited like the web
 	// login routes, to blunt credential-stuffing.
 	r.Group(func(r chi.Router) {
@@ -319,4 +326,26 @@ func (h *Handlers) mobileRouter() http.Handler {
 	})
 
 	return r
+}
+
+// mobileCORS allows browser (web build) clients to call the token-authenticated
+// mobile API. Origin is reflected (not credentialed — Bearer tokens, no
+// cookies), and OPTIONS preflight is short-circuited with 204.
+func mobileCORS(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if origin := r.Header.Get("Origin"); origin != "" {
+			w.Header().Set("Access-Control-Allow-Origin", origin)
+			w.Header().Add("Vary", "Origin")
+		} else {
+			w.Header().Set("Access-Control-Allow-Origin", "*")
+		}
+		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, DELETE, OPTIONS")
+		w.Header().Set("Access-Control-Allow-Headers", "Authorization, Content-Type, Idempotency-Key")
+		w.Header().Set("Access-Control-Max-Age", "600")
+		if r.Method == http.MethodOptions {
+			w.WriteHeader(http.StatusNoContent)
+			return
+		}
+		next.ServeHTTP(w, r)
+	})
 }
