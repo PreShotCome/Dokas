@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 import '../main.dart' show VS;
+import '../services/app_config.dart';
 import '../services/auth_service.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -40,6 +41,32 @@ class _LoginScreenState extends State<LoginScreen> {
       setState(() => _error = result.error ?? 'Sign-in failed');
     }
     // On success, AuthGate swaps to the shell automatically.
+  }
+
+  // Lets the responder point the app at their Dokaz backend (e.g. a local dev
+  // server) without rebuilding. Persisted in SharedPreferences via AppConfig.
+  Future<void> _editServer() async {
+    final ctrl = TextEditingController(text: AppConfig.instance.baseUrl);
+    final saved = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Server URL'),
+        content: TextField(
+          controller: ctrl,
+          autocorrect: false,
+          keyboardType: TextInputType.url,
+          decoration: const InputDecoration(hintText: 'https://app.dokaz.io'),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
+          TextButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Save')),
+        ],
+      ),
+    );
+    if (saved == true) {
+      await AppConfig.instance.setBaseUrl(ctrl.text);
+      if (mounted) setState(() {});
+    }
   }
 
   @override
@@ -102,6 +129,12 @@ class _LoginScreenState extends State<LoginScreen> {
                         ? const SizedBox(
                             height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2))
                         : Text(mfa ? 'Verify' : 'Sign in'),
+                  ),
+                  const SizedBox(height: 8),
+                  TextButton(
+                    onPressed: _editServer,
+                    child: Text('Server: ${AppConfig.instance.baseUrl}',
+                        style: const TextStyle(color: VS.muted, fontSize: 12)),
                   ),
                 ],
               ),
