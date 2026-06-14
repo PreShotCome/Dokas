@@ -10,6 +10,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 
+import 'firebase_options.dart';
 import 'screens/login_screen.dart';
 import 'screens/main_shell.dart';
 import 'services/auth_service.dart';
@@ -43,11 +44,12 @@ Future<void> main() async {
   // Load config + any stored session first.
   await AuthService.instance.restore();
 
-  // Push is optional. Firebase.initializeApp reads native config
-  // (google-services.json / GoogleService-Info.plist); if that isn't present
-  // yet, the app still runs — only push is disabled.
+  // Push is optional. Firebase is initialized from the generated
+  // firebase_options.dart (flutterfire configure; gitignored per-project).
+  // Wrapped in try/catch so unsupported platforms (e.g. Windows desktop) or a
+  // missing config just disable push — the app still runs.
   try {
-    await Firebase.initializeApp();
+    await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
     await PushService.instance.init();
     if (AuthService.instance.signedIn.value) {
       await PushService.instance.register();
