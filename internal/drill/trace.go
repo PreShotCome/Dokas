@@ -6,7 +6,7 @@ import (
 
 	"github.com/riverqueue/river"
 
-	"github.com/preshotcome/vesta/internal/obs"
+	"github.com/preshotcome/dokaz/internal/obs"
 )
 
 // traceMetaKey is the key under which the W3C traceparent is stored in a

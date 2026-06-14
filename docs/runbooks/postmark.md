@@ -2,7 +2,7 @@
 
 ## What it powers
 
-Every transactional email Vesta sends: team invitations, email
+Every transactional email Dokaz sends: team invitations, email
 verification, passwordless magic-link sign-in, and the welcome message.
 It also receives Postmark's bounce / spam-complaint webhooks and adds those
 addresses to a suppression list so a bounced or complaining recipient is
@@ -26,7 +26,7 @@ The integration is fully implemented; activation is configuration only.
 
 1. Sign up at <https://postmarkapp.com>.
 2. Create a **Server** (Postmark's term for a sending environment) — e.g.
-   `Vesta — Production`.
+   `Dokaz — Production`.
 3. Open the server → **API Tokens** → copy the **Server API Token**. This is
    `POSTMARK_TOKEN`.
 
@@ -34,7 +34,7 @@ The integration is fully implemented; activation is configuration only.
 
 The `From` address must be a confirmed sender, or Postmark rejects the send.
 
-1. **Sender Signatures** → add your domain (e.g. `vesta.io`).
+1. **Sender Signatures** → add your domain (e.g. `dokaz.io`).
 2. Add the **DKIM** and **Return-Path** DNS records Postmark shows you. The
    Return-Path record is what gives SPF alignment — Postmark walks you
    through it.
@@ -43,7 +43,7 @@ The `From` address must be a confirmed sender, or Postmark rejects the send.
 4. Wait for Postmark to report the domain **verified**.
 
 `EMAIL_FROM` must be an address on that verified domain (default
-`notifications@vesta.io`).
+`notifications@dokaz.io`).
 
 ### 3. Configure the bounce / complaint webhook
 
@@ -61,7 +61,7 @@ Postmark webhooks carry no signature, so the URL embeds a secret token.
 | Variable | Required | Value |
 |---|---|---|
 | `POSTMARK_TOKEN` | yes | Server API Token from step 1 |
-| `EMAIL_FROM` | recommended | Verified `From` address (default `notifications@vesta.io`) |
+| `EMAIL_FROM` | recommended | Verified `From` address (default `notifications@dokaz.io`) |
 | `POSTMARK_WEBHOOK_TOKEN` | recommended | Random secret from step 3 |
 
 ## Verify

@@ -9,12 +9,12 @@ import (
 	"github.com/google/uuid"
 	"github.com/riverqueue/river"
 
-	"github.com/preshotcome/vesta/internal/account"
-	"github.com/preshotcome/vesta/internal/audit"
-	"github.com/preshotcome/vesta/internal/auth"
-	"github.com/preshotcome/vesta/internal/branding"
-	"github.com/preshotcome/vesta/internal/compliance"
-	"github.com/preshotcome/vesta/internal/web/templates"
+	"github.com/preshotcome/dokaz/internal/account"
+	"github.com/preshotcome/dokaz/internal/audit"
+	"github.com/preshotcome/dokaz/internal/auth"
+	"github.com/preshotcome/dokaz/internal/branding"
+	"github.com/preshotcome/dokaz/internal/compliance"
+	"github.com/preshotcome/dokaz/internal/web/templates"
 )
 
 // accountExport returns the GDPR/CCPA data export as a JSON download. The

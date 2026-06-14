@@ -9,8 +9,8 @@ import (
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
 
-	"github.com/preshotcome/vesta/internal/account"
-	"github.com/preshotcome/vesta/internal/mobileauth"
+	"github.com/preshotcome/dokaz/internal/account"
+	"github.com/preshotcome/dokaz/internal/mobileauth"
 )
 
 // seed inserts a user + their personal account and returns both IDs. Mobile

@@ -5,9 +5,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/preshotcome/vesta/internal/audit"
-	"github.com/preshotcome/vesta/internal/auth"
-	"github.com/preshotcome/vesta/internal/web/templates"
+	"github.com/preshotcome/dokaz/internal/audit"
+	"github.com/preshotcome/dokaz/internal/auth"
+	"github.com/preshotcome/dokaz/internal/web/templates"
 )
 
 // mfaSetupPage shows the MFA section of account settings: an enrollment form

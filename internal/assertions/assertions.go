@@ -146,11 +146,11 @@ func runSQLQuery(ctx context.Context, conn Querier, cfg map[string]any) (Outcome
 
 	expected := map[string]any{"query": query}
 	actual := map[string]any{
-		"columns":    cols,
-		"row_count":  total,
-		"rows":       captured,
-		"truncated":  truncated,
-		"row_cap":    maxSQLQueryRows,
+		"columns":   cols,
+		"row_count": total,
+		"rows":      captured,
+		"truncated": truncated,
+		"row_cap":   maxSQLQueryRows,
 	}
 
 	passed := true

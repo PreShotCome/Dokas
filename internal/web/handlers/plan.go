@@ -3,8 +3,8 @@ package handlers
 import (
 	"net/http"
 
-	"github.com/preshotcome/vesta/internal/account"
-	"github.com/preshotcome/vesta/internal/web/templates"
+	"github.com/preshotcome/dokaz/internal/account"
+	"github.com/preshotcome/dokaz/internal/web/templates"
 )
 
 // enforceLimit checks a subscription-tier resource cap. When the account has

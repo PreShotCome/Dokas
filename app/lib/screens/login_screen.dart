@@ -57,7 +57,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 children: [
                   const Icon(Icons.local_fire_department, color: VS.flame, size: 56),
                   const SizedBox(height: 12),
-                  const Text('Vesta',
+                  const Text('Dokaz',
                       textAlign: TextAlign.center,
                       style: TextStyle(fontSize: 30, fontWeight: FontWeight.w700, color: VS.ink)),
                   const SizedBox(height: 4),

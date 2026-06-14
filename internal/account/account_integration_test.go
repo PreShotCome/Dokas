@@ -9,7 +9,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
 
-	"github.com/preshotcome/vesta/internal/account"
+	"github.com/preshotcome/dokaz/internal/account"
 )
 
 // seedUser inserts a bare user row and returns its ID.

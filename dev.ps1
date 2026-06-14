@@ -1,4 +1,4 @@
-# Vesta dev runner for Windows PowerShell.
+# Dokaz dev runner for Windows PowerShell.
 #
 # Equivalent of `make dev`: starts postgres via docker-compose, generates
 # templ, builds the Tailwind CSS bundle, runs migrations, and launches

@@ -591,7 +591,7 @@ func (s *Store) CreateStepIfMissing(ctx context.Context, drillID uuid.UUID, name
 	`, drillID, name, ordinal, idemKey).Scan(
 		&step.ID, &step.DrillID, &step.Name, &step.Status,
 		&step.StartedAt, &step.CompletedAt, &step.Error, &step.IdempotencyKey, &step.Ordinal,
-			&step.OutputSnippet, &step.OutputSHA256, &step.OutputTruncated,
+		&step.OutputSnippet, &step.OutputSHA256, &step.OutputTruncated,
 	)
 	return step, err
 }
@@ -605,7 +605,7 @@ func (s *Store) GetStep(ctx context.Context, drillID uuid.UUID, name StepName) (
 	`, drillID, name).Scan(
 		&step.ID, &step.DrillID, &step.Name, &step.Status,
 		&step.StartedAt, &step.CompletedAt, &step.Error, &step.IdempotencyKey, &step.Ordinal,
-			&step.OutputSnippet, &step.OutputSHA256, &step.OutputTruncated,
+		&step.OutputSnippet, &step.OutputSHA256, &step.OutputTruncated,
 	)
 	if errors.Is(err, pgx.ErrNoRows) {
 		return Step{}, ErrNotFound

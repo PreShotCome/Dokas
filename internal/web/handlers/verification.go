@@ -6,10 +6,10 @@ import (
 
 	"github.com/go-chi/chi/v5"
 
-	"github.com/preshotcome/vesta/internal/audit"
-	"github.com/preshotcome/vesta/internal/auth"
-	mail "github.com/preshotcome/vesta/internal/email"
-	"github.com/preshotcome/vesta/internal/web/templates"
+	"github.com/preshotcome/dokaz/internal/audit"
+	"github.com/preshotcome/dokaz/internal/auth"
+	mail "github.com/preshotcome/dokaz/internal/email"
+	"github.com/preshotcome/dokaz/internal/web/templates"
 )
 
 // verifyEmail consumes a verification token from an emailed link. It is

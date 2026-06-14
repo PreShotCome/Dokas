@@ -1,5 +1,5 @@
-"""Generate Vesta_Sales_Deck.pptx — a 6-slide deck to send to a business
-prospect. Ends with a sign-up CTA. Same Vesta brand palette as the
+"""Generate Dokaz_Sales_Deck.pptx — a 6-slide deck to send to a business
+prospect. Ends with a sign-up CTA. Same Dokaz brand palette as the
 investor deck (red + gold + lapis touches), different audience.
 """
 
@@ -106,7 +106,7 @@ def page_chrome(slide, eyebrow, title, slide_num, total):
     textbox(slide, Inches(12.2), Inches(7.05), Inches(1), Inches(0.3),
             f'{slide_num} / {total}', size=9, color=ZINC_400, align=PP_ALIGN.RIGHT)
     textbox(slide, Inches(0.6), Inches(7.05), Inches(6), Inches(0.3),
-            'VESTA  ·  app.vesta.io', size=9, color=ZINC_400)
+            'DOKAZ  ·  app.dokaz.io', size=9, color=ZINC_400)
 
 
 TOTAL = 6
@@ -124,7 +124,7 @@ rounded(s, Inches(0.9), Inches(0.9), Inches(0.6), Inches(0.6), GOLD_300, radius=
 textbox(s, Inches(0.95), Inches(0.96), Inches(0.5), Inches(0.5),
         'S', size=22, bold=True, color=BRAND_900, align=PP_ALIGN.CENTER)
 textbox(s, Inches(1.65), Inches(1.0), Inches(5), Inches(0.4),
-        'VESTA', size=14, bold=True, color=WHITE)
+        'DOKAZ', size=14, bold=True, color=WHITE)
 
 # Status pill
 rounded(s, Inches(0.9), Inches(2.55), Inches(3.4), Inches(0.4), GOLD_500, radius=0.5)
@@ -142,7 +142,7 @@ textbox(s, Inches(0.9), Inches(5.3), Inches(11), Inches(0.8),
 # CTA strip
 rounded(s, Inches(0.9), Inches(6.45), Inches(5.2), Inches(0.55), GOLD_500, radius=0.4)
 textbox(s, Inches(0.9), Inches(6.46), Inches(5.2), Inches(0.55),
-        '→  Start free at  app.vesta.io/signup', size=14, bold=True,
+        '→  Start free at  app.dokaz.io/signup', size=14, bold=True,
         color=BRAND_900, align=PP_ALIGN.CENTER, anchor=MSO_ANCHOR.MIDDLE)
 
 
@@ -441,13 +441,13 @@ step_chip(s, Inches(8.8),  Inches(3.4), '3',
 # Big CTA
 rounded(s, Inches(0.9), Inches(6.2), Inches(7.0), Inches(0.7), GOLD_500, radius=0.35)
 textbox(s, Inches(0.9), Inches(6.21), Inches(7.0), Inches(0.7),
-        '→  app.vesta.io/signup', size=20, bold=True,
+        '→  app.dokaz.io/signup', size=20, bold=True,
         color=BRAND_900, align=PP_ALIGN.CENTER, anchor=MSO_ANCHOR.MIDDLE)
 
 textbox(s, Inches(8.2), Inches(6.32), Inches(4.8), Inches(0.5),
-        'Questions?  hello@vesta.io', size=12, color=BRAND_100)
+        'Questions?  hello@dokaz.io', size=12, color=BRAND_100)
 
 
-out = Path(__file__).parent / 'Vesta_Sales_Deck.pptx'
+out = Path(__file__).parent / 'Dokaz_Sales_Deck.pptx'
 prs.save(str(out))
 print(f"Wrote {out}")

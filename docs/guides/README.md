@@ -19,7 +19,7 @@ the only part that differs.
 
 Once you have a `pg_dump` file, the rest is the same:
 
-1. **Hand the dump to Vesta.** Today Vesta drills a dump from a path it can
+1. **Hand the dump to Dokaz.** Today Dokaz drills a dump from a path it can
    reach; during onboarding we set up that location with you (a synced
    backups directory). *Pulling dumps directly from S3 / R2 is on the
    roadmap — ask us where it stands.*
@@ -36,7 +36,7 @@ Once you have a `pg_dump` file, the rest is the same:
    renewals commonly want proof of a restore within the last 90 days — a
    weekly drill clears that with room to spare.
 6. **Download + verify the evidence.** Grab the Proof-of-Recovery PDF. Verify
-   it independently with `vesta-verify` against the published key — see
+   it independently with `dokaz-verify` against the published key — see
    [../sample-evidence/README.md](../sample-evidence/README.md).
 
 ## Two things that bite everyone

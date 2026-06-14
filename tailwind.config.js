@@ -11,10 +11,10 @@ module.exports = {
         sans: ["ui-sans-serif", "system-ui", "sans-serif"],
         mono: ["ui-monospace", "SFMono-Regular", "monospace"],
       },
-      // brand — deep ceremonial red (the Vesta hearth-flame red). The
+      // brand — deep ceremonial red (the Dokaz hearth-flame red). The
       // primary tier. Emerald stays reserved for the verified/passed
       // state. Cosmic-dark backgrounds use the navy gradient in input.css
-      // (the cool accents in the Vesta palette).
+      // (the cool accents in the Dokaz palette).
       colors: {
         brand: {
           50:  "#fef2f2",

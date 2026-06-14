@@ -11,9 +11,9 @@ import templruntime "github.com/a-h/templ/runtime"
 import (
 	"time"
 
-	"github.com/preshotcome/vesta/internal/auth"
-	"github.com/preshotcome/vesta/internal/drill"
-	"github.com/preshotcome/vesta/internal/evidence"
+	"github.com/preshotcome/dokaz/internal/auth"
+	"github.com/preshotcome/dokaz/internal/drill"
+	"github.com/preshotcome/dokaz/internal/evidence"
 )
 
 func DrillsPage(lc LayoutCtx, drills []drill.Drill, targets []drill.Target, idemKey string) templ.Component {

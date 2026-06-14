@@ -9,10 +9,10 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
 
-	"github.com/preshotcome/vesta/internal/auth"
-	"github.com/preshotcome/vesta/internal/branding"
-	"github.com/preshotcome/vesta/internal/drill"
-	"github.com/preshotcome/vesta/internal/evidence"
+	"github.com/preshotcome/dokaz/internal/auth"
+	"github.com/preshotcome/dokaz/internal/branding"
+	"github.com/preshotcome/dokaz/internal/drill"
+	"github.com/preshotcome/dokaz/internal/evidence"
 )
 
 // apiDrill is the /v1 representation of a drill (list view).
@@ -65,8 +65,8 @@ type apiStep struct {
 type apiStepLog struct {
 	Step         string  `json:"step"`
 	Snippet      *string `json:"snippet"`
-	SHA256       *string `json:"sha256"`         // hash of the FULL output, not the snippet
-	Truncated    *bool   `json:"truncated"`      // true when snippet < full output
+	SHA256       *string `json:"sha256"`    // hash of the FULL output, not the snippet
+	Truncated    *bool   `json:"truncated"` // true when snippet < full output
 	SnippetBytes int     `json:"snippet_bytes"`
 }
 
@@ -221,13 +221,13 @@ func (h *Handlers) v1GetEvidence(w http.ResponseWriter, r *http.Request) {
 }
 
 // apiSignature is the detached signature shape served over the API: the
-// fields a third-party verifier (vesta-verify) needs to re-prove the
+// fields a third-party verifier (dokaz-verify) needs to re-prove the
 // PDF, plus a retention horizon so the customer knows the window.
 type apiSignature struct {
 	Algorithm   string    `json:"algorithm"`
 	PublicKeyID string    `json:"public_key_id"`
-	Value       string    `json:"value"`        // base64 Ed25519 signature
-	PDFSHA256   string    `json:"pdf_sha256"`   // hex digest the signature covers
+	Value       string    `json:"value"`      // base64 Ed25519 signature
+	PDFSHA256   string    `json:"pdf_sha256"` // hex digest the signature covers
 	SignedAt    time.Time `json:"signed_at"`
 	RetainUntil time.Time `json:"retain_until"`
 }
@@ -274,8 +274,8 @@ func (h *Handlers) v1GetLogs(w http.ResponseWriter, r *http.Request) {
 
 // v1GetSignature returns the detached signature record for a drill as
 // JSON. Pair the bytes with the evidence PDF (/drills/{id}/evidence)
-// and feed both to `vesta-verify` along with the published public
-// key — the verifier needs no Vesta-specific code.
+// and feed both to `dokaz-verify` along with the published public
+// key — the verifier needs no Dokaz-specific code.
 func (h *Handlers) v1GetSignature(w http.ResponseWriter, r *http.Request) {
 	acct, _ := auth.CurrentAccountFromContext(r.Context())
 	id, err := uuid.Parse(chi.URLParam(r, "id"))

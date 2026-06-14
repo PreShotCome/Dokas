@@ -10,26 +10,26 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/jackc/pgx/v5/pgxpool"
 
-	"github.com/preshotcome/vesta/internal/account"
-	"github.com/preshotcome/vesta/internal/analytics"
-	"github.com/preshotcome/vesta/internal/apikey"
-	"github.com/preshotcome/vesta/internal/audit"
-	"github.com/preshotcome/vesta/internal/auth"
-	"github.com/preshotcome/vesta/internal/billing"
-	"github.com/preshotcome/vesta/internal/compliance"
-	"github.com/preshotcome/vesta/internal/drill"
-	"github.com/preshotcome/vesta/internal/email"
-	"github.com/preshotcome/vesta/internal/evidence"
-	"github.com/preshotcome/vesta/internal/flags"
-	"github.com/preshotcome/vesta/internal/heartbeat"
-	"github.com/preshotcome/vesta/internal/mobileauth"
-	"github.com/preshotcome/vesta/internal/oauth"
-	"github.com/preshotcome/vesta/internal/obs"
-	"github.com/preshotcome/vesta/internal/push"
-	"github.com/preshotcome/vesta/internal/ratelimit"
-	"github.com/preshotcome/vesta/internal/web/csrf"
-	"github.com/preshotcome/vesta/internal/web/templates"
-	"github.com/preshotcome/vesta/internal/webhooks"
+	"github.com/preshotcome/dokaz/internal/account"
+	"github.com/preshotcome/dokaz/internal/analytics"
+	"github.com/preshotcome/dokaz/internal/apikey"
+	"github.com/preshotcome/dokaz/internal/audit"
+	"github.com/preshotcome/dokaz/internal/auth"
+	"github.com/preshotcome/dokaz/internal/billing"
+	"github.com/preshotcome/dokaz/internal/compliance"
+	"github.com/preshotcome/dokaz/internal/drill"
+	"github.com/preshotcome/dokaz/internal/email"
+	"github.com/preshotcome/dokaz/internal/evidence"
+	"github.com/preshotcome/dokaz/internal/flags"
+	"github.com/preshotcome/dokaz/internal/heartbeat"
+	"github.com/preshotcome/dokaz/internal/mobileauth"
+	"github.com/preshotcome/dokaz/internal/oauth"
+	"github.com/preshotcome/dokaz/internal/obs"
+	"github.com/preshotcome/dokaz/internal/push"
+	"github.com/preshotcome/dokaz/internal/ratelimit"
+	"github.com/preshotcome/dokaz/internal/web/csrf"
+	"github.com/preshotcome/dokaz/internal/web/templates"
+	"github.com/preshotcome/dokaz/internal/webhooks"
 )
 
 type Handlers struct {
@@ -230,8 +230,8 @@ func (h *Handlers) Router(staticFS http.FileSystem) http.Handler {
 	r.Get("/robots.txt", h.robotsTxt)
 
 	// Public verification surface: the evidence signing keys, served as PEM
-	// so anyone holding a Vesta-issued PDF can fetch the key and verify the
-	// detached signature without trusting Vesta's own tooling.
+	// so anyone holding a Dokaz-issued PDF can fetch the key and verify the
+	// detached signature without trusting Dokaz's own tooling.
 	r.Get("/.well-known/evidence-signing-keys.pem", h.evidenceSigningKeys)
 
 	// Inbound Postmark bounce/complaint webhook — authenticated by the
@@ -269,7 +269,7 @@ func (h *Handlers) Router(staticFS http.FileSystem) http.Handler {
 	// Public pricing page — self-serve subscribers start here.
 	r.Get("/pricing", h.pricingPage)
 
-	// Public explainer — what backup drilling is and how Vesta helps.
+	// Public explainer — what backup drilling is and how Dokaz helps.
 	r.Get("/how-it-works", h.howItWorks)
 
 	// Onboarding sample dump — a known-good fixture a new user can run

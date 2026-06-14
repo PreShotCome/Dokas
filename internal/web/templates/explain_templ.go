@@ -8,10 +8,10 @@ package templates
 import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
-import "github.com/preshotcome/vesta/internal/branding"
+import "github.com/preshotcome/dokaz/internal/branding"
 
 // HowItWorks is the public explainer page: what backup drilling is, why it
-// matters, and how Vesta does it. Linked from the nav and footer.
+// matters, and how Dokaz does it. Linked from the nav and footer.
 func HowItWorks(lc LayoutCtx) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
@@ -243,7 +243,7 @@ func HowItWorks(lc LayoutCtx) templ.Component {
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = explainBullet("The signing public key is published at a stable URL, and an open-source verifier (vesta-verify) checks any PDF against it offline.").Render(ctx, templ_7745c5c3_Buffer)
+				templ_7745c5c3_Err = explainBullet("The signing public key is published at a stable URL, and an open-source verifier (dokaz-verify) checks any PDF against it offline.").Render(ctx, templ_7745c5c3_Buffer)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -557,7 +557,7 @@ func explainStep(num, name, body string) templ.Component {
 	})
 }
 
-// explainFeature is one "how Vesta helps" item: a bold lead-in plus prose.
+// explainFeature is one "how Dokaz helps" item: a bold lead-in plus prose.
 func explainFeature(title, body string) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context

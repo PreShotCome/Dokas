@@ -10,7 +10,7 @@ import (
 	"github.com/google/uuid"
 	"golang.org/x/net/html"
 
-	"github.com/preshotcome/vesta/internal/heartbeat"
+	"github.com/preshotcome/dokaz/internal/heartbeat"
 )
 
 // TestAccessibility renders representative pages and asserts the structural

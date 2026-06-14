@@ -1,13 +1,13 @@
-# Vesta
+# Dokaz
 
-**Backup verification you can independently prove.** Vesta periodically
+**Backup verification you can independently prove.** Dokaz periodically
 restores your database dumps into an isolated sandbox, runs assertions
 against the restored data, and produces evidence anyone can verify
 without trusting us.
 
 ## Why you can trust the evidence
 
-Most backup-verification tools hand you a green checkbox. Vesta gives
+Most backup-verification tools hand you a green checkbox. Dokaz gives
 you a four-link chain that a third party can walk end-to-end. Break any
 link and verification fails loudly.
 
@@ -24,25 +24,25 @@ link and verification fails loudly.
    `sql_query` (write your own read-only SQL and capture the rows into
    evidence).
 3. **Detached Ed25519 signature.** Every PDF is signed offline by the
-   active Vesta key. The signature attests `sha256(pdf) ‖
+   active Dokaz key. The signature attests `sha256(pdf) ‖
    signedAt(RFC3339Nano UTC)` — so a forgery has to match both the PDF
    bytes and the recorded timestamp, not one or the other. Past keys
    are kept as verification-only so evidence signed before a key
    rotation still verifies.
-4. **Open-source verifier.** [`cmd/vesta-verify`](cmd/vesta-verify)
+4. **Open-source verifier.** [`cmd/dokaz-verify`](cmd/dokaz-verify)
    is a single Go file that depends on `crypto/ed25519` and nothing of
    ours. Build it from this source, point it at the PDF, the signature
    JSON, and our published public key, and exit code 0 means the chain
    holds. Anyone with the three files can prove the result; the path
-   does not go through Vesta's servers, and there is no Vesta SDK
+   does not go through Dokaz's servers, and there is no Dokaz SDK
    you are asked to trust.
 
 ```sh
 # Independently verify a drill:
-curl -H "Authorization: Bearer $KEY" https://app.vesta.io/v1/drills/$ID/evidence  > drill.pdf
-curl -H "Authorization: Bearer $KEY" https://app.vesta.io/v1/drills/$ID/signature > sig.json
-curl https://vesta.io/.well-known/evidence-signing-keys.pem > vesta.pem
-go run ./cmd/vesta-verify --pdf=drill.pdf --sig=sig.json --pubkey=vesta.pem
+curl -H "Authorization: Bearer $KEY" https://app.dokaz.io/v1/drills/$ID/evidence  > drill.pdf
+curl -H "Authorization: Bearer $KEY" https://app.dokaz.io/v1/drills/$ID/signature > sig.json
+curl https://dokaz.io/.well-known/evidence-signing-keys.pem > dokaz.pem
+go run ./cmd/dokaz-verify --pdf=drill.pdf --sig=sig.json --pubkey=dokaz.pem
 # OK  key=9f2c4b…a17b  signed_at=2026-05-25T04:11:02Z  retain_until=2033-05-25T04:11:02Z
 ```
 
@@ -52,13 +52,13 @@ detail.
 ## What's in the repo
 
 This repo contains the application (Go monolith) deployed at
-`app.vesta.io`. The marketing site lives in a separate repo. The
+`app.dokaz.io`. The marketing site lives in a separate repo. The
 verifier CLI ships here so the chain stays in one auditable place.
 
 ## Status
 
 All 11 rubric layers are built. Latest: hashed input + the
-`vesta-verify` CLI close the verifiability chain end-to-end.
+`dokaz-verify` CLI close the verifiability chain end-to-end.
 
 Implemented:
 - Chi + Templ + HTMX + Tailwind monolith
@@ -69,7 +69,7 @@ Implemented:
 - Assertion kinds: `row_count`, `table_exists`, `column_exists`, `no_nulls`, `sql_query`
 - SHA-256 hash of the dump bytes (input anchor of the evidence chain)
 - Ed25519-signed evidence PDFs via `github.com/go-pdf/fpdf`
-- `cmd/vesta-verify` — stdlib-only third-party verifier
+- `cmd/dokaz-verify` — stdlib-only third-party verifier
 - Idempotency on `POST /drills` (per-account, per-key)
 - Multi-tenant accounts + memberships; signup auto-creates a personal account
 - RBAC (`owner`/`admin`/`member`/`viewer`) via a single `Authorize` matrix
@@ -113,7 +113,7 @@ unique URL on success:
 
 ```sh
 # at the end of your nightly backup cron
-pg_dump … && curl -fsS https://app.vesta.io/ping/<token>
+pg_dump … && curl -fsS https://app.dokaz.io/ping/<token>
 ```
 
 If a check-in is overdue, a once-a-minute River sweeper flips the monitor to
@@ -142,7 +142,7 @@ To exercise a drill end-to-end:
 4. Go to `/drills`, pick the target, click **Run drill**, watch the steps
    tick through (HTMX polls every 2 s until terminal).
 5. Download the PDF, fetch the signature JSON from `/v1/drills/{id}/signature`,
-   and verify with `go run ./cmd/vesta-verify`.
+   and verify with `go run ./cmd/dokaz-verify`.
 
 ## Tests
 
@@ -160,7 +160,7 @@ skips.
 ```
 cmd/server               HTTP + River worker entrypoint
 cmd/migrate              goose + River migration CLI
-cmd/vesta-verify       stdlib-only third-party evidence verifier
+cmd/dokaz-verify       stdlib-only third-party evidence verifier
 internal/auth            sessions, password hashing, RBAC, MFA, magic-link
 internal/apikey          /v1 API-key issuance + verification
 internal/account         accounts, memberships, invitations, trial window

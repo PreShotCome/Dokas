@@ -15,9 +15,9 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
 
-	"github.com/preshotcome/vesta/internal/account"
-	"github.com/preshotcome/vesta/internal/apikey"
-	"github.com/preshotcome/vesta/internal/auth"
+	"github.com/preshotcome/dokaz/internal/account"
+	"github.com/preshotcome/dokaz/internal/apikey"
+	"github.com/preshotcome/dokaz/internal/auth"
 )
 
 // --- response envelope ---

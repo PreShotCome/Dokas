@@ -13,7 +13,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/preshotcome/vesta/internal/audit"
+	"github.com/preshotcome/dokaz/internal/audit"
 )
 
 // auditActor is what to show in the Actor column when the event has no

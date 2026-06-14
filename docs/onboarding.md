@@ -1,48 +1,48 @@
-# Vesta onboarding: your first drill in 7 steps
+# Dokaz onboarding: your first drill in 7 steps
 
 This walkthrough takes you from a fresh account to an independently
 verified piece of evidence — without needing your own database. You'll
-drill a tiny sample backup Vesta ships, watch every step of the
+drill a tiny sample backup Dokaz ships, watch every step of the
 pipeline run, download the signed PDF, and verify its signature with a
-standalone tool that contains none of Vesta's code.
+standalone tool that contains none of Dokaz's code.
 
 If you can complete this, you've exercised the whole product:
 **provision → fetch → restore → assert → report → teardown**, plus
 independent verification.
 
-Throughout, `https://app.vesta.io` stands in for your Vesta instance
+Throughout, `https://app.dokaz.io` stands in for your Dokaz instance
 (use `http://localhost:5173` if you're running locally).
 
 ---
 
 ## Step 1 — Sign up
 
-Go to `https://app.vesta.io/signup`, create an account, and verify your
+Go to `https://app.dokaz.io/signup`, create an account, and verify your
 email. New accounts get a 14-day trial — enough to run drills
 immediately, no card required. After signing in you land on the
 dashboard.
 
 ## Step 2 — Download the sample backup
 
-Vesta hosts a known-good fixture: a tiny PostgreSQL custom-format dump
+Dokaz hosts a known-good fixture: a tiny PostgreSQL custom-format dump
 with a single `public.events` table. Download it:
 
 **macOS / Linux:**
 
 ```sh
-curl -fL https://app.vesta.io/onboarding/sample.dump -o sample.dump
+curl -fL https://app.dokaz.io/onboarding/sample.dump -o sample.dump
 ```
 
 **Windows (PowerShell):**
 
 ```powershell
-Invoke-WebRequest https://app.vesta.io/onboarding/sample.dump -OutFile sample.dump
+Invoke-WebRequest https://app.dokaz.io/onboarding/sample.dump -OutFile sample.dump
 ```
 
 > ⚠️ **On Windows, use `Invoke-WebRequest -OutFile`, not `... > sample.dump`.**
 > PowerShell's `>` redirection re-encodes the stream as UTF-16 text and
 > corrupts the binary dump — the restore will then fail for a reason that
-> has nothing to do with Vesta. The same caution applies to piping `curl`
+> has nothing to do with Dokaz. The same caution applies to piping `curl`
 > output through `>` in older PowerShell. Always write binaries with
 > `-OutFile` (or `curl -o`).
 
@@ -57,7 +57,7 @@ file sample.dump   # → PostgreSQL custom database dump
 In the app, go to **Databases → Add database**. Give it a name
 (`Sample`), choose the upload/file source, and provide `sample.dump`.
 This registers a *target* — the thing drills run against. You don't need
-real database credentials for this fixture; you're handing Vesta the
+real database credentials for this fixture; you're handing Dokaz the
 dump directly.
 
 ## Step 4 — Add a `table_exists` assertion
@@ -83,7 +83,7 @@ Hit **Run drill**. Watch the step list advance:
 2. **fetch** — your `sample.dump` is pulled into the sandbox environment.
 3. **restore** — the dump is restored into the sandbox.
 4. **assert** — your `table_exists` assertion runs against the restored DB.
-5. **report** — a PDF is rendered and signed with Vesta's evidence key.
+5. **report** — a PDF is rendered and signed with Dokaz's evidence key.
 6. **teardown** — the sandbox is destroyed; nothing lingers.
 
 When it finishes you'll see **Verdict: PASSED**. That verdict means the
@@ -105,28 +105,28 @@ GET /v1/drills/{id}/signature   # the detached signature JSON
 
 ## Step 7 — Verify the signature independently
 
-This is the step that makes Vesta's evidence worth anything: you can
-prove the PDF is genuine and untampered **without trusting Vesta's own
+This is the step that makes Dokaz's evidence worth anything: you can
+prove the PDF is genuine and untampered **without trusting Dokaz's own
 app**.
 
-Fetch Vesta's public signing keys:
+Fetch Dokaz's public signing keys:
 
 ```sh
-curl -fL https://app.vesta.io/.well-known/evidence-signing-keys.pem -o vesta.pem
+curl -fL https://app.dokaz.io/.well-known/evidence-signing-keys.pem -o dokaz.pem
 ```
 
 Each key block in that file is preceded by a `# PublicKeyID:` comment.
 Match the `public_key_id` in your signature JSON to one of them. Then run
-the standalone verifier (`vesta-verify`, a stdlib-only Go program — see
+the standalone verifier (`dokaz-verify`, a stdlib-only Go program — see
 launch-readiness item #9 for the released binaries, or build it from
-`cmd/vesta-verify`):
+`cmd/dokaz-verify`):
 
 ```sh
-vesta-verify --pdf=evidence.pdf --sig=signature.json --pubkey=vesta.pem
+dokaz-verify --pdf=evidence.pdf --sig=signature.json --pubkey=dokaz.pem
 ```
 
 Exit code `0` and `signature is valid` means: this exact PDF was signed
-by the key Vesta publishes, and not a byte has changed since. That's
+by the key Dokaz publishes, and not a byte has changed since. That's
 your independently verifiable proof the drill happened and passed.
 
 ---
@@ -144,7 +144,7 @@ in CI with the `e2e-smoke` harness — if you hit one, it's worth reporting.
 | Your assertion silently never takes effect / insert rejected | A new assertion enum value not added to the database `CHECK` constraint. | Our bug — migrations and enum values must move together. Report it. |
 | PDF says **FAILED** but the drill clearly **PASSED** (or vice-versa) | In-memory status drift between the drill record and the rendered PDF. | Our bug, and a serious one — report it immediately with the `drill_id`. |
 | PDF text shows garbled characters (e.g. `â€"` where a dash should be) | Mojibake: a UTF-8 character (em-dash, smart quote) rendered in a Latin-1 PDF font. | Our bug; the report renderer must handle non-Latin-1 input. Report it. |
-| `vesta-verify` says invalid, but the PDF looks right | Wrong public key, or the PDF/signature was modified after download (even re-saving can do it). | Re-download all three files fresh; match the `public_key_id` to the right key block in `vesta.pem`. |
+| `dokaz-verify` says invalid, but the PDF looks right | Wrong public key, or the PDF/signature was modified after download (even re-saving can do it). | Re-download all three files fresh; match the `public_key_id` to the right key block in `dokaz.pem`. |
 
 If a verdict is ever wrong in either direction, that's our most serious
 class of bug — see `docs/runbooks/customer-drill-failure-response.md` —

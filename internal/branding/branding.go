@@ -12,29 +12,29 @@ package branding
 
 const (
 	// ProductName is the user-facing name of the service.
-	ProductName = "Vesta"
+	ProductName = "Dokaz"
 
 	// Slug is the lowercase machine form used for download filenames and the
 	// observability service name. Keep it in sync with dashboards/*.yml.
-	Slug = "vesta"
+	Slug = "dokaz"
 
 	// DomainSite is the marketing/docs domain (host only, no scheme).
-	DomainSite = "vesta.io"
+	DomainSite = "dokaz.io"
 	// DomainApp is the application domain (host only, no scheme).
-	DomainApp = "app.vesta.io"
+	DomainApp = "app.dokaz.io"
 
 	// EmailFrom is the default transactional sender address.
-	EmailFrom = "notifications@vesta.io"
+	EmailFrom = "notifications@dokaz.io"
 	// SupportEmail is the support contact address.
-	SupportEmail = "support@vesta.io"
+	SupportEmail = "support@dokaz.io"
 	// SalesEmail is the sales contact address.
-	SalesEmail = "sales@vesta.io"
+	SalesEmail = "sales@dokaz.io"
 	// LegalEmail is the legal/terms contact address.
-	LegalEmail = "legal@vesta.io"
+	LegalEmail = "legal@dokaz.io"
 	// PrivacyEmail is the privacy/data-protection contact address.
-	PrivacyEmail = "privacy@vesta.io"
+	PrivacyEmail = "privacy@dokaz.io"
 	// SecurityEmail is the vulnerability-disclosure contact address.
-	SecurityEmail = "security@vesta.io"
+	SecurityEmail = "security@dokaz.io"
 
 	// TOTPIssuer is the label shown in authenticator apps.
 	TOTPIssuer = ProductName

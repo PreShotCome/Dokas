@@ -4,7 +4,7 @@ import (
 	_ "embed"
 	"net/http"
 
-	"github.com/preshotcome/vesta/internal/web/templates"
+	"github.com/preshotcome/dokaz/internal/web/templates"
 )
 
 // openAPIDoc is the hand-authored OpenAPI 3.1 document for the /v1 API.

@@ -1,6 +1,6 @@
 -- +goose Up
 -- +goose StatementBegin
--- source_hash is the SHA-256 of the dump file Vesta fetched and
+-- source_hash is the SHA-256 of the dump file Dokaz fetched and
 -- restored — the input side of the evidence chain. Rendered in the
 -- signed PDF so anyone can re-hash the dump they hold and prove it is
 -- the exact bytes we drilled. NULL for drills that ran before this

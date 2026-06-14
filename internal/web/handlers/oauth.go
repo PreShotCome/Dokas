@@ -13,11 +13,11 @@ import (
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 
-	"github.com/preshotcome/vesta/internal/analytics"
-	"github.com/preshotcome/vesta/internal/audit"
-	"github.com/preshotcome/vesta/internal/auth"
-	"github.com/preshotcome/vesta/internal/flags"
-	"github.com/preshotcome/vesta/internal/oauth"
+	"github.com/preshotcome/dokaz/internal/analytics"
+	"github.com/preshotcome/dokaz/internal/audit"
+	"github.com/preshotcome/dokaz/internal/auth"
+	"github.com/preshotcome/dokaz/internal/flags"
+	"github.com/preshotcome/dokaz/internal/oauth"
 )
 
 // oauthStateValue is what we bake into the state cookie: the CSRF state
