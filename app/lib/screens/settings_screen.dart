@@ -41,14 +41,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
             keyboardType: TextInputType.url,
             autocorrect: false,
             decoration: InputDecoration(
-              suffixIcon: IconButton(icon: const Icon(Icons.save, color: VS.flame), onPressed: _saveUrl),
+              suffixIcon: IconButton(icon: const Icon(Icons.save, color: VS.blue), onPressed: _saveUrl),
             ),
           ),
           const SizedBox(height: 36),
           OutlinedButton.icon(
             style: OutlinedButton.styleFrom(
-              foregroundColor: VS.red,
-              side: const BorderSide(color: VS.red),
+              foregroundColor: VS.down,
+              side: const BorderSide(color: VS.down),
               padding: const EdgeInsets.symmetric(vertical: 14),
             ),
             icon: const Icon(Icons.logout),

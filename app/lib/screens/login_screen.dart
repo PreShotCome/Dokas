@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 import '../main.dart' show VS;
 import '../services/auth_service.dart';
@@ -55,7 +56,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const Icon(Icons.local_fire_department, color: VS.flame, size: 56),
+                  SvgPicture.asset('assets/turtle.svg', height: 72),
                   const SizedBox(height: 12),
                   const Text('Dokaz',
                       textAlign: TextAlign.center,
@@ -92,7 +93,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   ],
                   if (_error != null) ...[
                     const SizedBox(height: 12),
-                    Text(_error!, style: const TextStyle(color: VS.red)),
+                    Text(_error!, style: const TextStyle(color: VS.down)),
                   ],
                   const SizedBox(height: 20),
                   ElevatedButton(
