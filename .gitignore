@@ -28,3 +28,10 @@ node_modules/
 
 # Goose embedded artifacts
 /migrations/.goose_state
+
+# compiled cmd binaries (from `go build ./cmd/...` run at repo root)
+/server
+/migrate
+/dokaz-verify
+/devkeys
+/e2e-smoke
