@@ -11,7 +11,11 @@ pubspec.lock
 *.iml
 .vscode/
 
-# Firebase config (per-project; add your own — see README)
-**/google-services.json
+# Firebase client config — committed so CI (App Distribution) can build.
+# These are NOT secrets (client API keys are public by design). The
+# service-account key (server send-key) is NEVER committed — it lives in a
+# GitHub secret.
+#   **/google-services.json      (committed)
+#   lib/firebase_options.dart    (committed)
 **/GoogleService-Info.plist
-lib/firebase_options.dart
+*-firebase-adminsdk-*.json
