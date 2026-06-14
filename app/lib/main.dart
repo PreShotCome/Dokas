@@ -18,18 +18,19 @@ import 'theme.dart';
 
 // ──────────────────────────────────────────────────────────────────────────
 // Color palette — `VS` per PreShotCome convention (PC = plutus, TS = tech-
-// support, VS = Dokaz). Warm hearth/flame tones: the fire that never goes out.
+// support, VS = Dokaz). Steely-gray base with baby-royal-blue primary and
+// pink accents; the mark is a turtle (shell = proof your data's protected).
 class VS {
-  static const background = Color(0xFF14110F); // warm near-black
-  static const surface = Color(0xFF1E1A17); // inputs, tiles
-  static const card = Color(0xFF26211D); // cards
-  static const flame = Color(0xFFFF6A3D); // primary accent (ember)
-  static const ember = Color(0xFFFFA53D); // secondary warm accent
-  static const gold = Color(0xFFE8C170); // highlights
-  static const sage = Color(0xFF6FBF8E); // healthy / up / passed
-  static const red = Color(0xFFE5534B); // down / failed
-  static const ink = Color(0xFFF3ECE4); // primary text
-  static const muted = Color(0xFF9A8F84); // secondary text
+  static const background = Color(0xFF1B2027); // steely charcoal
+  static const surface = Color(0xFF252C35); // inputs, tiles
+  static const card = Color(0xFF2E3640); // cards
+  static const blue = Color(0xFF6E9BF0); // primary — baby royal blue
+  static const pink = Color(0xFFF48FB1); // accent — pink
+  static const steel = Color(0xFF8FA3B8); // steely gray — icons, highlights
+  static const up = Color(0xFF56C596); // healthy / passed (cool green)
+  static const down = Color(0xFFFF6B81); // down / failed (pink-red)
+  static const ink = Color(0xFFEDF1F6); // primary text
+  static const muted = Color(0xFF9AA7B6); // secondary text
 }
 
 // navRequest is the cross-screen tab bus: set its value to a tab id and the

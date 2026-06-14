@@ -83,7 +83,7 @@ class _AlertTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final bad = alert.isBad;
-    final color = bad ? VS.red : VS.sage;
+    final color = bad ? VS.down : VS.up;
     return Card(
       child: ListTile(
         onTap: onTap,

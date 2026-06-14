@@ -113,9 +113,9 @@ class _DrillTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final (icon, color) = switch (drill.status) {
-      'failed' => (Icons.error, VS.red),
-      'succeeded' => (Icons.check_circle, VS.sage),
-      'running' => (Icons.sync, VS.ember),
+      'failed' => (Icons.error, VS.down),
+      'succeeded' => (Icons.check_circle, VS.up),
+      'running' => (Icons.sync, VS.pink),
       _ => (Icons.schedule, VS.muted),
     };
     return Card(

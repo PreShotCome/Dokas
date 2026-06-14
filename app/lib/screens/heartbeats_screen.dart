@@ -72,12 +72,12 @@ class _HeartbeatTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final (label, color) = hb.isDown
-        ? ('DOWN', VS.red)
+        ? ('DOWN', VS.down)
         : hb.status == 'paused'
             ? ('PAUSED', VS.muted)
             : hb.status == 'new'
-                ? ('NEW', VS.ember)
-                : ('UP', VS.sage);
+                ? ('NEW', VS.pink)
+                : ('UP', VS.up);
     final last = hb.lastPingAt == null
         ? 'no check-in yet'
         : 'last ${DateFormat.MMMd().add_jm().format(hb.lastPingAt!.toLocal())}';

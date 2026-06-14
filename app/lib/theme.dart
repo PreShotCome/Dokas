@@ -9,10 +9,10 @@ ThemeData buildDokazTheme() {
   return base.copyWith(
     scaffoldBackgroundColor: VS.background,
     colorScheme: base.colorScheme.copyWith(
-      primary: VS.flame,
-      secondary: VS.ember,
+      primary: VS.blue,
+      secondary: VS.pink,
       surface: VS.surface,
-      error: VS.red,
+      error: VS.down,
     ),
     appBarTheme: const AppBarTheme(
       backgroundColor: VS.background,
@@ -33,8 +33,8 @@ ThemeData buildDokazTheme() {
     ),
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
-        backgroundColor: VS.flame,
-        foregroundColor: Colors.black,
+        backgroundColor: VS.blue,
+        foregroundColor: Colors.white,
         padding: const EdgeInsets.symmetric(vertical: 16),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         textStyle: const TextStyle(fontWeight: FontWeight.w600, fontSize: 16),

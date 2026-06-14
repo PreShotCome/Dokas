@@ -37,7 +37,7 @@ class _DrillDetailScreenState extends State<DrillDetailScreen> {
     return Scaffold(
       appBar: AppBar(title: const Text('Drill')),
       body: _error != null
-          ? Center(child: Text(_error!, style: const TextStyle(color: VS.red)))
+          ? Center(child: Text(_error!, style: const TextStyle(color: VS.down)))
           : _drill == null
               ? const Center(child: CircularProgressIndicator())
               : _detail(_drill!),
@@ -46,9 +46,9 @@ class _DrillDetailScreenState extends State<DrillDetailScreen> {
 
   Widget _detail(DrillDetail d) {
     final (label, color) = d.failed
-        ? ('FAILED', VS.red)
+        ? ('FAILED', VS.down)
         : d.passed
-            ? ('PASSED', VS.sage)
+            ? ('PASSED', VS.up)
             : (d.status.toUpperCase(), VS.muted);
     return ListView(
       padding: const EdgeInsets.all(16),
@@ -63,9 +63,9 @@ class _DrillDetailScreenState extends State<DrillDetailScreen> {
             style: const TextStyle(color: VS.muted)),
         if (d.error != null) ...[
           const SizedBox(height: 12),
-          Card(color: VS.red.withOpacity(0.12), child: Padding(
+          Card(color: VS.down.withOpacity(0.12), child: Padding(
             padding: const EdgeInsets.all(12),
-            child: Text(d.error!, style: const TextStyle(color: VS.red)),
+            child: Text(d.error!, style: const TextStyle(color: VS.down)),
           )),
         ],
         const SizedBox(height: 20),
@@ -80,9 +80,9 @@ class _DrillDetailScreenState extends State<DrillDetailScreen> {
         const SizedBox(height: 20),
         if (d.hasEvidence)
           Row(children: const [
-            Icon(Icons.verified, color: VS.gold, size: 18),
+            Icon(Icons.verified, color: VS.steel, size: 18),
             SizedBox(width: 8),
-            Expanded(child: Text('Signed Proof-of-Recovery evidence available.', style: TextStyle(color: VS.gold))),
+            Expanded(child: Text('Signed Proof-of-Recovery evidence available.', style: TextStyle(color: VS.steel))),
           ]),
       ],
     );
@@ -95,10 +95,10 @@ class _DrillDetailScreenState extends State<DrillDetailScreen> {
 
   Widget _stepRow(DrillStep s) {
     final (icon, color) = switch (s.status) {
-      'succeeded' => (Icons.check, VS.sage),
-      'failed' => (Icons.close, VS.red),
+      'succeeded' => (Icons.check, VS.up),
+      'failed' => (Icons.close, VS.down),
       'skipped' => (Icons.remove, VS.muted),
-      'running' => (Icons.sync, VS.ember),
+      'running' => (Icons.sync, VS.pink),
       _ => (Icons.schedule, VS.muted),
     };
     return ListTile(
@@ -106,14 +106,14 @@ class _DrillDetailScreenState extends State<DrillDetailScreen> {
       contentPadding: EdgeInsets.zero,
       leading: Icon(icon, color: color, size: 20),
       title: Text(s.name),
-      subtitle: s.error != null ? Text(s.error!, style: const TextStyle(color: VS.red)) : null,
+      subtitle: s.error != null ? Text(s.error!, style: const TextStyle(color: VS.down)) : null,
     );
   }
 
   Widget _assertionRow(DrillAssertion a) => ListTile(
         dense: true,
         contentPadding: EdgeInsets.zero,
-        leading: Icon(a.passed ? Icons.check : Icons.close, color: a.passed ? VS.sage : VS.red, size: 20),
+        leading: Icon(a.passed ? Icons.check : Icons.close, color: a.passed ? VS.up : VS.down, size: 20),
         title: Text(a.kind),
         subtitle: Text('expected ${a.expected}  ·  actual ${a.actual}', style: const TextStyle(color: VS.muted)),
       );
