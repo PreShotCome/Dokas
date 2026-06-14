@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  Vesta — primary mark, iteration 3.
+  Dokaz — primary mark, iteration 3.
 
   Composition: narrow vertical flame at the base; phoenix wings that
   spread wide AND scoop UPWARD, framing a single 4-point star. The
@@ -9,7 +9,7 @@
 
   Vector. Red→gold flame gradient + a gold star. Transparent background.
 -->
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320" role="img" aria-label="Vesta">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320" role="img" aria-label="Dokaz">
   <defs>
     <linearGradient id="ambr" x1="0.5" y1="1" x2="0.5" y2="0">
       <stop offset="0%"   stop-color="#7f1d1d"/>

@@ -11,9 +11,9 @@ import templruntime "github.com/a-h/templ/runtime"
 import (
 	"strconv"
 
-	"github.com/preshotcome/vesta/internal/account"
-	"github.com/preshotcome/vesta/internal/auth"
-	"github.com/preshotcome/vesta/internal/branding"
+	"github.com/preshotcome/dokaz/internal/account"
+	"github.com/preshotcome/dokaz/internal/auth"
+	"github.com/preshotcome/dokaz/internal/branding"
 )
 
 // Pricing is the public pricing page. starterLabel / proLabel are the
@@ -323,7 +323,7 @@ func pricingComplianceCard() templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 19, "</ul><a href=\"mailto:sales@vesta.io?subject=Vesta%20Compliance%20plan\" class=\"btn-primary w-full\">Talk to us</a></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 19, "</ul><a href=\"mailto:sales@dokaz.io?subject=Dokaz%20Compliance%20plan\" class=\"btn-primary w-full\">Talk to us</a></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

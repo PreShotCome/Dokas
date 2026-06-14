@@ -12,7 +12,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/preshotcome/vesta/internal/drill"
+	"github.com/preshotcome/dokaz/internal/drill"
 )
 
 // ReportsView is the data for the month-over-month drill reporting page.

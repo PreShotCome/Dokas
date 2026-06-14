@@ -11,7 +11,7 @@ import templruntime "github.com/a-h/templ/runtime"
 import (
 	"strconv"
 
-	"github.com/preshotcome/vesta/internal/branding"
+	"github.com/preshotcome/dokaz/internal/branding"
 )
 
 // PlanLimit is the page shown when a create action is blocked by the

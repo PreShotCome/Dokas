@@ -11,7 +11,7 @@ import templruntime "github.com/a-h/templ/runtime"
 import (
 	"strconv"
 
-	"github.com/preshotcome/vesta/internal/webhooks"
+	"github.com/preshotcome/dokaz/internal/webhooks"
 )
 
 func WebhooksPage(lc LayoutCtx, endpoints []webhooks.Endpoint, revealID string) templ.Component {
@@ -136,7 +136,7 @@ func webhooksPage(lc LayoutCtx, endpoints []webhooks.Endpoint, revealID string, 
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "<div class=\"flex-1 min-w-[14rem]\"><label class=\"mb-1 block text-sm font-medium\" for=\"url\">Endpoint URL</label> <input id=\"url\" name=\"url\" type=\"url\" required class=\"form-input\" placeholder=\"https://example.com/hooks/vesta\"></div><button type=\"submit\" class=\"btn-primary\">Add endpoint</button></form>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "<div class=\"flex-1 min-w-[14rem]\"><label class=\"mb-1 block text-sm font-medium\" for=\"url\">Endpoint URL</label> <input id=\"url\" name=\"url\" type=\"url\" required class=\"form-input\" placeholder=\"https://example.com/hooks/dokaz\"></div><button type=\"submit\" class=\"btn-primary\">Add endpoint</button></form>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

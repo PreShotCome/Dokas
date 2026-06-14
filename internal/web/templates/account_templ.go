@@ -11,8 +11,8 @@ import templruntime "github.com/a-h/templ/runtime"
 import (
 	"time"
 
-	"github.com/preshotcome/vesta/internal/account"
-	"github.com/preshotcome/vesta/internal/auth"
+	"github.com/preshotcome/dokaz/internal/account"
+	"github.com/preshotcome/dokaz/internal/auth"
 )
 
 func AccountSettings(lc LayoutCtx, members []account.MembershipWithUser, pending []account.Invitation, stripeEnabled bool) templ.Component {

@@ -10,11 +10,11 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
 
-	"github.com/preshotcome/vesta/internal/audit"
-	"github.com/preshotcome/vesta/internal/auth"
-	"github.com/preshotcome/vesta/internal/evidence"
-	"github.com/preshotcome/vesta/internal/report"
-	"github.com/preshotcome/vesta/internal/web/templates"
+	"github.com/preshotcome/dokaz/internal/audit"
+	"github.com/preshotcome/dokaz/internal/auth"
+	"github.com/preshotcome/dokaz/internal/evidence"
+	"github.com/preshotcome/dokaz/internal/report"
+	"github.com/preshotcome/dokaz/internal/web/templates"
 )
 
 func (h *Handlers) adminHome(w http.ResponseWriter, r *http.Request) {

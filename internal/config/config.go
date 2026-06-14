@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/preshotcome/vesta/internal/branding"
+	"github.com/preshotcome/dokaz/internal/branding"
 )
 
 type Config struct {

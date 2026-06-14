@@ -8,7 +8,7 @@ package templates
 import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
-import "github.com/preshotcome/vesta/internal/branding"
+import "github.com/preshotcome/dokaz/internal/branding"
 
 func Login(errMsg string, prefillEmail string) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
@@ -408,7 +408,7 @@ func SignupClosed() templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 26, " is sales-led</h1><p class=\"mb-4 text-sm text-zinc-600 dark:text-zinc-400\">We're onboarding customers directly right now. Email <a class=\"underline\" href=\"mailto:sales@vesta.io\">sales@vesta.io</a> and we'll get you set up.</p><a href=\"/login\" class=\"btn-ghost\">Already have an account? Sign in</a></div></div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 26, " is sales-led</h1><p class=\"mb-4 text-sm text-zinc-600 dark:text-zinc-400\">We're onboarding customers directly right now. Email <a class=\"underline\" href=\"mailto:sales@dokaz.io\">sales@dokaz.io</a> and we'll get you set up.</p><a href=\"/login\" class=\"btn-ghost\">Already have an account? Sign in</a></div></div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

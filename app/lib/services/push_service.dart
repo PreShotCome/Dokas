@@ -18,7 +18,7 @@ class PushService {
   static final PushService instance = PushService._();
 
   final _storage = const FlutterSecureStorage();
-  static const _deviceIdKey = 'vesta_device_id';
+  static const _deviceIdKey = 'dokaz_device_id';
 
   bool _ready = false;
   String? _fcmToken;

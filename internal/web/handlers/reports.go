@@ -6,9 +6,9 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/preshotcome/vesta/internal/account"
-	"github.com/preshotcome/vesta/internal/branding"
-	"github.com/preshotcome/vesta/internal/web/templates"
+	"github.com/preshotcome/dokaz/internal/account"
+	"github.com/preshotcome/dokaz/internal/branding"
+	"github.com/preshotcome/dokaz/internal/web/templates"
 )
 
 // reports renders the month-over-month drill reporting page. The lookback

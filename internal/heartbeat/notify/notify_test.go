@@ -7,9 +7,9 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/preshotcome/vesta/internal/account"
-	"github.com/preshotcome/vesta/internal/email"
-	"github.com/preshotcome/vesta/internal/heartbeat"
+	"github.com/preshotcome/dokaz/internal/account"
+	"github.com/preshotcome/dokaz/internal/email"
+	"github.com/preshotcome/dokaz/internal/heartbeat"
 )
 
 type fakeSender struct {

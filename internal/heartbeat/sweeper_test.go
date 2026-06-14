@@ -8,7 +8,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/riverqueue/river"
 
-	"github.com/preshotcome/vesta/internal/audit"
+	"github.com/preshotcome/dokaz/internal/audit"
 )
 
 type fakeDispatcher struct {

@@ -1,6 +1,6 @@
 # Runbook: Incident Response
 
-How Vesta handles a production incident. Keep this short enough to
+How Dokaz handles a production incident. Keep this short enough to
 follow at 3am.
 
 ## Severity levels

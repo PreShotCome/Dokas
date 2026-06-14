@@ -1,9 +1,9 @@
 package templates
 
-import "github.com/preshotcome/vesta/internal/branding"
+import "github.com/preshotcome/dokaz/internal/branding"
 
 // HowItWorks is the public explainer page: what backup drilling is, why it
-// matters, and how Vesta does it. Linked from the nav and footer.
+// matters, and how Dokaz does it. Linked from the nav and footer.
 templ HowItWorks(lc LayoutCtx) {
 	@LayoutWith("How it works", lc) {
 		<article class="mx-auto max-w-3xl">
@@ -85,7 +85,7 @@ templ HowItWorks(lc LayoutCtx) {
 					<ul class="space-y-1.5">
 						@explainBullet("The PDF records the source, its SHA-256 hash, every assertion's expected-vs-actual result, the restore duration, and the operator.")
 						@explainBullet("It carries a detached Ed25519 signature over the document's digest — change one byte and verification fails.")
-						@explainBullet("The signing public key is published at a stable URL, and an open-source verifier (vesta-verify) checks any PDF against it offline.")
+						@explainBullet("The signing public key is published at a stable URL, and an open-source verifier (dokaz-verify) checks any PDF against it offline.")
 						@explainBullet("Evidence is retained for seven years to match the audit window.")
 					</ul>
 					<p class="text-sm">
@@ -169,7 +169,7 @@ templ explainStep(num, name, body string) {
 	</div>
 }
 
-// explainFeature is one "how Vesta helps" item: a bold lead-in plus prose.
+// explainFeature is one "how Dokaz helps" item: a bold lead-in plus prose.
 templ explainFeature(title, body string) {
 	<li class="flex items-start gap-2.5">
 		<span class="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-300">

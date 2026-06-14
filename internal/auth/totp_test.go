@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/preshotcome/vesta/internal/branding"
+	"github.com/preshotcome/dokaz/internal/branding"
 )
 
 // rfcSecret is the RFC 6238 test secret ("12345678901234567890"), base32-encoded.

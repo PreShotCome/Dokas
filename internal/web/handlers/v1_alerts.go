@@ -5,8 +5,8 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/preshotcome/vesta/internal/audit"
-	"github.com/preshotcome/vesta/internal/auth"
+	"github.com/preshotcome/dokaz/internal/audit"
+	"github.com/preshotcome/dokaz/internal/auth"
 )
 
 // apiAlert is one entry of the responder feed: a drill outcome or a heartbeat

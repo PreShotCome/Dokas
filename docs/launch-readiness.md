@@ -1,6 +1,6 @@
-# Vesta — Launch Readiness Log
+# Dokaz — Launch Readiness Log
 
-Vesta exists to produce evidence. This document is Vesta's own evidence
+Dokaz exists to produce evidence. This document is Dokaz's own evidence
 that it was, in fact, made ready for launch — entry by entry, with
 commit hashes and verifiable claims.
 
@@ -31,21 +31,21 @@ without taking anyone's word for it.*
 | 1 | Merge `claude/compassionate-gauss-Awq2c` → `main` | 🟡 IN PROGRESS | this commit |
 | 2 | LLC EIN + business bank + Stripe activation | ⬜ TODO | — |
 | 3 | Stripe products + webhook + price IDs as Fly secrets | ⬜ TODO | — |
-| 4 | Postmark account + vesta.io sender domain (DKIM/SPF/DMARC) | ⬜ TODO | — |
-| 5 | DNS for vesta.io | ⬜ TODO | — |
+| 4 | Postmark account + dokaz.io sender domain (DKIM/SPF/DMARC) | ⬜ TODO | — |
+| 5 | DNS for dokaz.io | ⬜ TODO | — |
 | 6 | First Fly deploy with production secrets | ⬜ TODO | — |
 | 7 | Production Postgres + automated backups | ⬜ TODO | — |
 | 8 | Public signing-key endpoint at `.well-known/evidence-signing-keys.pem` | ✅ DONE | 2026-06-09 |
-| 9 | `vesta-verify` CLI binaries on GitHub Releases | 🟡 IN PROGRESS | 2026-06-09 |
+| 9 | `dokaz-verify` CLI binaries on GitHub Releases | 🟡 IN PROGRESS | 2026-06-09 |
 | 10 | Terms / Privacy / DPA — rebranded + sub-processor list | 🟡 IN PROGRESS | 2026-06-09 |
 | 11 | Evidence-key backup procedure (signing + encryption) | ⬜ TODO | — |
-| 12 | Status page at `status.vesta.io` | ⬜ TODO | — |
-| 13 | `security@vesta.io` + `SECURITY.md` vulnerability disclosure | 🟡 IN PROGRESS | 2026-06-09 |
-| 14 | `support@vesta.io` forward | ⬜ TODO | — |
+| 12 | Status page at `status.dokaz.io` | ⬜ TODO | — |
+| 13 | `security@dokaz.io` + `SECURITY.md` vulnerability disclosure | 🟡 IN PROGRESS | 2026-06-09 |
+| 14 | `support@dokaz.io` forward | ⬜ TODO | — |
 | 15 | Sentry wired to a real DSN | ⬜ TODO | — |
 | 16 | Fly volume snapshots or S3/R2 evidence storage | ⬜ TODO | — |
 | 17 | Customer-facing data-loss response runbook | ✅ DONE | 2026-06-09 |
-| 18 | Vesta-specific logo / favicon (vs. inherited phoenix) | ⬜ TODO | — |
+| 18 | Dokaz-specific logo / favicon (vs. inherited phoenix) | ⬜ TODO | — |
 | 19 | GDPR data-deletion endpoint | ⬜ TODO | — |
 | 20 | Onboarding fixtures + walkthrough | ✅ DONE | 2026-06-09 |
 | 21 | Stripe purchase flow verified end-to-end against real keys | ⬜ TODO | — |
@@ -71,12 +71,12 @@ future contributor sees the fixes.
 
 ## 8. Public signing-key endpoint
 
-Vesta's entire value proposition is that its evidence verifies
-independently of Vesta. That promise is empty if the verifying public
-key is only available from Vesta's own tooling. The keys must be
+Dokaz's entire value proposition is that its evidence verifies
+independently of Dokaz. That promise is empty if the verifying public
+key is only available from Dokaz's own tooling. The keys must be
 published at a stable, well-known URL so a customer — or their auditor,
 or a court — can fetch them and verify a detached signature with stock
-tooling years after the fact, even if Vesta is gone.
+tooling years after the fact, even if Dokaz is gone.
 
 `GET /.well-known/evidence-signing-keys.pem` now serves the active
 signing key plus every retired verification key as a single PEM
@@ -94,17 +94,17 @@ one-hour cache so a rotation propagates within the day.
 
 ---
 
-## 9. `vesta-verify` release binaries
+## 9. `dokaz-verify` release binaries
 
 An auditor must be able to *download and run* the verifier — "compile it
 yourself with `go build`" is not an auditor-friendly answer. The release
 automation is now in place; the binaries land on GitHub Releases the
 moment the first tag is pushed.
 
-`.github/workflows/release-verify.yml` cross-compiles `cmd/vesta-verify`
+`.github/workflows/release-verify.yml` cross-compiles `cmd/dokaz-verify`
 for macOS, Linux, and Windows (amd64 + arm64), writes a `SHA256SUMS`
 file, and attaches all of it to the Release for a pushed `verify-v*` tag.
-`vesta-verify` is standard-library-only, so every target builds
+`dokaz-verify` is standard-library-only, so every target builds
 statically with `CGO_ENABLED=0`. The release body tells the auditor how
 to fetch the public key from `/.well-known/evidence-signing-keys.pem`
 (item #8) and run the check.
@@ -122,7 +122,7 @@ clean, but no Release is published until the first tag is pushed
 
 ## 10. Legal documents — Terms / Privacy / DPA
 
-The in-app legal pages exist and have been rebranded to Vesta. The
+The in-app legal pages exist and have been rebranded to Dokaz. The
 remaining work before this can go ✅ is twofold: the sub-processor list
 needs real vendor names (which depend on infrastructure decisions not yet
 made), and the documents need an independent legal review. So: IN
@@ -162,7 +162,7 @@ What's still open:
 
 ## 11. Evidence-key backup procedure
 
-When Vesta's `EVIDENCE_SIGNING_KEY` is lost, every PDF the product has
+When Dokaz's `EVIDENCE_SIGNING_KEY` is lost, every PDF the product has
 ever issued becomes unverifiable forever. When `EVIDENCE_ENCRYPTION_KEY`
 is lost, every PDF becomes unreadable forever. These are the two
 existential single points of failure of the entire product. The backup
@@ -190,7 +190,7 @@ this log; only the attestation does.
 
 ---
 
-## 13. Vulnerability disclosure (`SECURITY.md` + `security@vesta.io`)
+## 13. Vulnerability disclosure (`SECURITY.md` + `security@dokaz.io`)
 
 A security product that has no way to receive security reports is a
 liability. `SECURITY.md` at the repo root now states how to report a
@@ -199,21 +199,21 @@ vulnerability, the response timeline we commit to (24 h acknowledgement
 researchers, a scope list, and a researcher-acknowledgements section.
 
 This item is IN PROGRESS, not DONE: the policy is published and
-authoritative, but the `security@vesta.io` mailbox it points to is
-blocked on the Postmark sender-domain verification for `vesta.io`
+authoritative, but the `security@dokaz.io` mailbox it points to is
+blocked on the Postmark sender-domain verification for `dokaz.io`
 (launch-readiness item #4). The file flags that interim explicitly.
 
 | When | What | Evidence |
 |---|---|---|
 | 2026-06-09 | `SECURITY.md` added at repo root: report instructions, 24 h / 72 h / 7-day timeline table, safe-harbour terms, in/out-of-scope list, and an (intentionally empty) acknowledgements section | This commit |
-| — | `security@vesta.io` mailbox live | Blocked on item #4 (Postmark sender domain for `vesta.io`) |
+| — | `security@dokaz.io` mailbox live | Blocked on item #4 (Postmark sender domain for `dokaz.io`) |
 
 ---
 
 ## 17. Customer drill-failure response runbook
 
 When a customer's drill fails — or worse, when a verdict is wrong — the
-thing under attack is the product's entire premise: that Vesta can be
+thing under attack is the product's entire premise: that Dokaz can be
 trusted about whether a backup restores. There has to be a written,
 rehearsed response so the on-call doesn't improvise under pressure.
 
@@ -236,7 +236,7 @@ must add a new `e2e-smoke` check before its postmortem can close.
 
 ## 20. Onboarding fixtures + walkthrough
 
-A new user shouldn't have to point Vesta at their production database to
+A new user shouldn't have to point Dokaz at their production database to
 find out whether the product works. They need a known-good backup they
 can drill in five minutes, and a walkthrough that ends in *independently
 verified* evidence — the product's whole point — not just a green
@@ -252,7 +252,7 @@ CI path can't silently diverge.
 `docs/onboarding.md` is the 7-step walkthrough: signup → download the
 fixture → connect it as a source → add a `table_exists` assertion → run
 the drill (watching provision→…→teardown) → download the signed PDF →
-verify it with `vesta-verify` against the published key. It opens with
+verify it with `dokaz-verify` against the published key. It opens with
 the Windows `Invoke-WebRequest -OutFile` caution (PowerShell `>` corrupts
 the binary dump) and closes with a troubleshooting table covering the
 same five seam bugs the e2e-smoke harness guards.

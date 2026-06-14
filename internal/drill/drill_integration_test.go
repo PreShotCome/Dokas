@@ -14,13 +14,13 @@ import (
 	"github.com/riverqueue/river"
 	"github.com/riverqueue/river/riverdriver/riverpgxv5"
 
-	"github.com/preshotcome/vesta/internal/account"
-	"github.com/preshotcome/vesta/internal/audit"
-	"github.com/preshotcome/vesta/internal/auth"
-	"github.com/preshotcome/vesta/internal/drill"
-	"github.com/preshotcome/vesta/internal/drill/steps"
-	"github.com/preshotcome/vesta/internal/evidence"
-	"github.com/preshotcome/vesta/internal/runner"
+	"github.com/preshotcome/dokaz/internal/account"
+	"github.com/preshotcome/dokaz/internal/audit"
+	"github.com/preshotcome/dokaz/internal/auth"
+	"github.com/preshotcome/dokaz/internal/drill"
+	"github.com/preshotcome/dokaz/internal/drill/steps"
+	"github.com/preshotcome/dokaz/internal/evidence"
+	"github.com/preshotcome/dokaz/internal/runner"
 )
 
 // seedUserAccount creates a user + personal account, returning both IDs.

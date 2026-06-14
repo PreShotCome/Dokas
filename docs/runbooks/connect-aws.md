@@ -1,27 +1,27 @@
-# Connect AWS — read-only access for Vesta
+# Connect AWS — read-only access for Dokaz
 
-Vesta drills your existing backup dumps; it never touches your production
+Dokaz drills your existing backup dumps; it never touches your production
 database. To do that we need **read-only** access to the S3 bucket your
 backup job writes to. This page is the doc you can hand your devops or
 security team to deploy that access in ~3 minutes.
 
 The mechanism is the same one used by Datadog, Snowflake, Vanta, and Drata:
-a **cross-account IAM role** in your AWS account that Vesta's account is
+a **cross-account IAM role** in your AWS account that Dokaz's account is
 allowed to assume. No long-lived access keys leave your account. Access is
 revocable in one click (delete the CloudFormation stack).
 
-## What Vesta can do with this role
+## What Dokaz can do with this role
 
 - `s3:GetObject` on the bucket and prefix you specify (read your backup dumps).
 - `s3:ListBucket` + `s3:GetBucketLocation` on that bucket (find new dumps).
 
-## What Vesta cannot do
+## What Dokaz cannot do
 
 - Read any other bucket.
 - Write, modify, or delete anything in your AWS account.
 - Connect to any of your databases.
-- Use this role from anywhere except Vesta's AWS account, and only when
-  it presents the `ExternalId` Vesta generated for your tenant (defeats
+- Use this role from anywhere except Dokaz's AWS account, and only when
+  it presents the `ExternalId` Dokaz generated for your tenant (defeats
   the confused-deputy class of attacks).
 
 ## The CloudFormation template
@@ -32,8 +32,8 @@ button which links to a hosted copy with your `ExternalId` pre-filled.
 ```yaml
 AWSTemplateFormatVersion: '2010-09-09'
 Description: >
-  Vesta backup-drilling read access. Creates a cross-account IAM role
-  Vesta can assume to fetch backup dumps from one S3 bucket/prefix.
+  Dokaz backup-drilling read access. Creates a cross-account IAM role
+  Dokaz can assume to fetch backup dumps from one S3 bucket/prefix.
 
 Parameters:
   BackupBucket:
@@ -45,32 +45,32 @@ Parameters:
     Description: Optional path prefix; leave empty to allow the whole bucket.
   ExternalId:
     Type: String
-    Description: The external ID Vesta gave you when you clicked "Connect AWS".
+    Description: The external ID Dokaz gave you when you clicked "Connect AWS".
     NoEcho: true
-  VestaAccountId:
+  DokazAccountId:
     Type: String
     Default: "REPLACE_WITH_SELKET_ACCOUNT_ID"
-    Description: The AWS account ID Vesta runs in. Comes pre-filled from the dashboard.
+    Description: The AWS account ID Dokaz runs in. Comes pre-filled from the dashboard.
 
 Resources:
-  VestaReadRole:
+  DokazReadRole:
     Type: AWS::IAM::Role
     Properties:
-      RoleName: VestaBackupRead
-      Description: Read-only access for Vesta to drill backups in one S3 bucket.
+      RoleName: DokazBackupRead
+      Description: Read-only access for Dokaz to drill backups in one S3 bucket.
       MaxSessionDuration: 3600
       AssumeRolePolicyDocument:
         Version: '2012-10-17'
         Statement:
           - Effect: Allow
             Principal:
-              AWS: !Sub "arn:aws:iam::${VestaAccountId}:root"
+              AWS: !Sub "arn:aws:iam::${DokazAccountId}:root"
             Action: sts:AssumeRole
             Condition:
               StringEquals:
                 sts:ExternalId: !Ref ExternalId
       Policies:
-        - PolicyName: VestaBackupRead
+        - PolicyName: DokazBackupRead
           PolicyDocument:
             Version: '2012-10-17'
             Statement:
@@ -94,14 +94,14 @@ Resources:
 
 Outputs:
   RoleArn:
-    Description: Paste this ARN into the Vesta dashboard to finish the connection.
-    Value: !GetAtt VestaReadRole.Arn
+    Description: Paste this ARN into the Dokaz dashboard to finish the connection.
+    Value: !GetAtt DokazReadRole.Arn
 ```
 
 ## Deploy it — step by step
 
-1. In the Vesta dashboard, go to **Databases → Add database → Connect AWS**.
-   Vesta displays your **ExternalId** (a per-tenant secret) and a
+1. In the Dokaz dashboard, go to **Databases → Add database → Connect AWS**.
+   Dokaz displays your **ExternalId** (a per-tenant secret) and a
    pre-filled "Launch Stack" link.
 2. Click **Launch Stack**. AWS opens the CloudFormation **Create stack**
    wizard in your browser, on the right account/region, with the template
@@ -115,7 +115,7 @@ Outputs:
    resources with custom names**, then **Create stack**.
 5. Wait ~30 seconds for the stack to reach `CREATE_COMPLETE`.
 6. Open the stack's **Outputs** tab and copy `RoleArn`.
-7. Paste the role ARN back into the Vesta dashboard. Vesta
+7. Paste the role ARN back into the Dokaz dashboard. Dokaz
    immediately runs a connectivity probe (an `sts:AssumeRole` round-trip
    and a `HeadObject` against the bucket) and shows green when it works.
 
@@ -128,19 +128,19 @@ diagnosing a mistyped bucket name or revoked role is one read.
 ## Revoking access
 
 Delete the CloudFormation stack. The role goes with it, and any future
-Vesta assume-role attempt receives `AccessDenied` instantly. Existing
+Dokaz assume-role attempt receives `AccessDenied` instantly. Existing
 evidence already in our vault remains accessible to you in the dashboard;
 no new drills will run for the affected database.
 
 ## For your security review
 
-**Authentication.** Vesta's account is the only `Principal` allowed to
+**Authentication.** Dokaz's account is the only `Principal` allowed to
 assume the role, and only with the matching `ExternalId`. We do not store
 your AWS credentials; we mint a fresh STS session per drill (≤ 1 hour
 lifetime).
 
 **Data egress.** During a drill the dump file is streamed into a fresh,
-isolated Postgres instance on Vesta's runner, restored, asserted against,
+isolated Postgres instance on Dokaz's runner, restored, asserted against,
 and deleted with the runner VM at teardown. The signed PDF and a hash
 fingerprint of the dump are retained in our evidence vault — the dump
 itself is not.
@@ -151,10 +151,10 @@ master key. Deleting your account crypto-shreds the key and renders all
 your evidence permanently unrecoverable, even from backups.
 
 **Audit log.** Every assume-role event lands in your CloudTrail. Every
-drill, evidence download, and account action lands in Vesta's
+drill, evidence download, and account action lands in Dokaz's
 tamper-evident audit log (hash-chained, retained 7 years).
 
-**Compliance.** Vesta's own SOC 2 Type I work is in progress; the
+**Compliance.** Dokaz's own SOC 2 Type I work is in progress; the
 deployment runs on Fly.io (SOC 2 Type 2, ISO 27001) and Neon (SOC 2 Type
 2). Subprocessor list available on request.
 

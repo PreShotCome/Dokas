@@ -36,9 +36,9 @@ func (q fakeQuerier) Query(_ context.Context, _ string, _ ...any) (Rows, error) 
 
 // fakeRows feeds sql_query a fixed sequence of values.
 type fakeRows struct {
-	cols  []string
-	data  [][]any
-	idx   int
+	cols []string
+	data [][]any
+	idx  int
 }
 
 func (r *fakeRows) Next() bool {

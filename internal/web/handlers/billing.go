@@ -7,10 +7,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/preshotcome/vesta/internal/account"
-	"github.com/preshotcome/vesta/internal/audit"
-	"github.com/preshotcome/vesta/internal/billing"
-	"github.com/preshotcome/vesta/internal/web/templates"
+	"github.com/preshotcome/dokaz/internal/account"
+	"github.com/preshotcome/dokaz/internal/audit"
+	"github.com/preshotcome/dokaz/internal/billing"
+	"github.com/preshotcome/dokaz/internal/web/templates"
 )
 
 // postCancellationGrace is how long an account keeps full access after the

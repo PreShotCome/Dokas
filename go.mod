@@ -1,4 +1,4 @@
-module github.com/preshotcome/vesta
+module github.com/preshotcome/dokaz
 
 go 1.25.11
 

@@ -1,6 +1,6 @@
 # Integration runbooks
 
-Vesta degrades gracefully without third-party services — every
+Dokaz degrades gracefully without third-party services — every
 external integration has a no-op / local fallback so dev and CI run with no
 accounts. These runbooks cover activating the real service in production:
 the account to create, the dashboard/DNS configuration, the environment

@@ -1,9 +1,9 @@
-# Vesta — responder app
+# Dokaz — responder app
 
 A native Flutter app (Android + iOS) for incident responders: know the moment a
 restore **drill fails** or a backup **check-in goes dark**, from your phone.
 
-It authenticates against Vesta's **own backend** (`/mobile/login`, not Firebase
+It authenticates against Dokaz's **own backend** (`/mobile/login`, not Firebase
 Auth) and reads the drill/heartbeat/alert API. Firebase is used **only for push**
 and is optional — the app runs without it (push just stays off).
 
@@ -38,7 +38,7 @@ flutter pub get
 flutter run
 ```
 
-The backend URL defaults to `https://app.vesta.io` and is editable in-app
+The backend URL defaults to `https://app.dokaz.io` and is editable in-app
 (Settings). Point it at a local server for development.
 
 ## Backend endpoints used
@@ -50,7 +50,7 @@ The backend URL defaults to `https://app.vesta.io` and is editable in-app
 
 ## Enabling push (optional, owner step)
 
-1. Create a Firebase project for Vesta; add an Android app and an iOS app.
+1. Create a Firebase project for Dokaz; add an Android app and an iOS app.
 2. Drop `android/app/google-services.json` and
    `ios/Runner/GoogleService-Info.plist` in place (git-ignored).
 3. iOS: upload an APNs auth key to Firebase (needs a paid Apple Developer

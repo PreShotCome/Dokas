@@ -4,7 +4,7 @@ import 'main.dart' show VS;
 
 /// Conservative ThemeData — avoids API that varies across Flutter versions so
 /// it builds cleanly on any SDK >= 3.3.
-ThemeData buildVestaTheme() {
+ThemeData buildDokazTheme() {
   final base = ThemeData.dark(useMaterial3: true);
   return base.copyWith(
     scaffoldBackgroundColor: VS.background,

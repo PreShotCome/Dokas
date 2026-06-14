@@ -21,16 +21,16 @@ class LoginResult {
   factory LoginResult.failure(String error) => LoginResult._(error: error);
 }
 
-/// AuthService authenticates against Vesta's own backend (/mobile/login),
+/// AuthService authenticates against Dokaz's own backend (/mobile/login),
 /// stores the bearer token in secure storage, and exposes signed-in state.
 class AuthService {
   AuthService._();
   static final AuthService instance = AuthService._();
 
   final _storage = const FlutterSecureStorage();
-  static const _tokenKey = 'vesta_token';
-  static const _emailKey = 'vesta_email';
-  static const _accountKey = 'vesta_account';
+  static const _tokenKey = 'dokaz_token';
+  static const _emailKey = 'dokaz_email';
+  static const _accountKey = 'dokaz_account';
 
   final ValueNotifier<bool> signedIn = ValueNotifier<bool>(false);
 
@@ -51,7 +51,7 @@ class AuthService {
 
   Uri _u(String path) => Uri.parse('${AppConfig.instance.baseUrl}$path');
 
-  Future<LoginResult> login(String email, String password, {String deviceName = 'Vesta app'}) async {
+  Future<LoginResult> login(String email, String password, {String deviceName = 'Dokaz app'}) async {
     try {
       final resp = await http.post(
         _u('/mobile/login'),

@@ -4,9 +4,9 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/preshotcome/vesta/internal/auth"
-	"github.com/preshotcome/vesta/internal/oauth"
-	"github.com/preshotcome/vesta/internal/web/templates"
+	"github.com/preshotcome/dokaz/internal/auth"
+	"github.com/preshotcome/dokaz/internal/oauth"
+	"github.com/preshotcome/dokaz/internal/web/templates"
 )
 
 // staffSSOCookie marks an OAuth flow as an admin-panel step-up rather than a

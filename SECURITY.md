@@ -1,15 +1,15 @@
 # Security Policy
 
-Vesta is a backup-verification product: customers trust it to tell the
+Dokaz is a backup-verification product: customers trust it to tell the
 truth about whether their data can be restored, and to produce evidence
-that holds up under scrutiny. A vulnerability in Vesta is therefore not
+that holds up under scrutiny. A vulnerability in Dokaz is therefore not
 just a bug — it can undermine the integrity of evidence other people
 rely on. We treat security reports accordingly, and we want to make it
 easy and safe for researchers to tell us about problems.
 
 ## Reporting a vulnerability
 
-Email **security@vesta.io** with the details. Please include:
+Email **security@dokaz.io** with the details. Please include:
 
 - a description of the issue and its impact,
 - the steps, proof-of-concept, or request/response needed to reproduce it,
@@ -19,8 +19,8 @@ Email **security@vesta.io** with the details. Please include:
 If you need to send sensitive material, say so in your first email and
 we'll arrange an encrypted channel.
 
-> **Note (pre-launch):** the `security@vesta.io` mailbox goes live once
-> the Postmark sender domain for `vesta.io` is verified (launch-readiness
+> **Note (pre-launch):** the `security@dokaz.io` mailbox goes live once
+> the Postmark sender domain for `dokaz.io` is verified (launch-readiness
 > item #4). Until then, route reports through the repository owner.
 
 Please **do not** open a public GitHub issue, pull request, or
@@ -53,7 +53,7 @@ vulnerability. Specifically, as long as you:
 - only access, modify, or store data that belongs to you (use your own
   test accounts — never another customer's data);
 - do not run denial-of-service, spam, social-engineering, or physical
-  attacks against Vesta, its staff, or its infrastructure;
+  attacks against Dokaz, its staff, or its infrastructure;
 - give us a reasonable amount of time to fix the issue before any public
   disclosure, and coordinate timing with us;
 
@@ -71,7 +71,7 @@ minimum needed to demonstrate a vulnerability.
 
 In scope:
 
-- the Vesta web application and its API (`/v1`),
+- the Dokaz web application and its API (`/v1`),
 - the evidence-signing and verification machinery,
 - authentication, session, billing, and tenant-isolation logic.
 
@@ -82,11 +82,11 @@ Out of scope (report-only, generally not eligible for acknowledgement):
 - volumetric denial-of-service and rate-limit exhaustion;
 - reports from automated scanners with no demonstrated impact;
 - missing security headers or cookie flags with no concrete exploit;
-- social engineering of Vesta staff or customers.
+- social engineering of Dokaz staff or customers.
 
 ## Researcher acknowledgements
 
-We're grateful to the people who help keep Vesta and its customers
+We're grateful to the people who help keep Dokaz and its customers
 safe. With your permission, we credit researchers who report valid
 vulnerabilities here, once a fix has shipped.
 

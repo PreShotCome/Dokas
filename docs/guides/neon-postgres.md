@@ -1,7 +1,7 @@
-# Neon → Vesta
+# Neon → Dokaz
 
 Goal: produce a logical `pg_dump` of your Neon database, then drill it in
-Vesta for signed evidence.
+Dokaz for signed evidence.
 
 ## 1. Get your connection string
 
@@ -20,7 +20,7 @@ export NEON_URL="postgresql://user:password@ep-cool-darkness-123456.us-east-2.aw
 pg_dump "$NEON_URL" -Fc -f neondb.dump
 ```
 
-- `-Fc` is the custom format Vesta restores.
+- `-Fc` is the custom format Dokaz restores.
 - If you have multiple Neon **branches**, dump the branch you actually
   recover from (usually `main`/`production`).
 
@@ -30,10 +30,10 @@ Confirm it's a real dump:
 pg_restore --list neondb.dump | head
 ```
 
-## 3. Drill it in Vesta
+## 3. Drill it in Dokaz
 
 Follow the common path in [README.md](README.md#from-a-dump-to-signed-evidence-common-to-every-guide):
-hand the dump to Vesta, add the database, add a `table_exists` assertion on
+hand the dump to Dokaz, add the database, add a `table_exists` assertion on
 a critical table, run the drill, schedule it weekly, and download + verify
 the signed PDF.
 

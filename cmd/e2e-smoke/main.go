@@ -1,5 +1,5 @@
 // Command e2e-smoke walks a real signup → connect → assert → run drill →
-// download PDF flow against a running Vesta server and exits 0 only if
+// download PDF flow against a running Dokaz server and exits 0 only if
 // the resulting PDF reads "Verdict: PASSED". Wired into CI to catch the
 // class of pre-launch bugs that hit us five times in one onboarding
 // session - each individually-OK piece passes its own unit tests, but

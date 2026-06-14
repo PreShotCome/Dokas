@@ -18,7 +18,7 @@ import 'theme.dart';
 
 // ──────────────────────────────────────────────────────────────────────────
 // Color palette — `VS` per PreShotCome convention (PC = plutus, TS = tech-
-// support, VS = Vesta). Warm hearth/flame tones: the fire that never goes out.
+// support, VS = Dokaz). Warm hearth/flame tones: the fire that never goes out.
 class VS {
   static const background = Color(0xFF14110F); // warm near-black
   static const surface = Color(0xFF1E1A17); // inputs, tiles
@@ -55,18 +55,18 @@ Future<void> main() async {
     debugPrint('Firebase/push not configured — running without push: $e');
   }
 
-  runApp(const VestaApp());
+  runApp(const DokazApp());
 }
 
-class VestaApp extends StatelessWidget {
-  const VestaApp({super.key});
+class DokazApp extends StatelessWidget {
+  const DokazApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Vesta',
+      title: 'Dokaz',
       debugShowCheckedModeBanner: false,
-      theme: buildVestaTheme(),
+      theme: buildDokazTheme(),
       home: const AuthGate(),
     );
   }

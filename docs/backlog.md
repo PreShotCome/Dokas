@@ -106,7 +106,7 @@ Layer-6 observability:
   point traces at a collector; `SENTRY_DSN` enables error reporting. See
   `docs/runbooks/observability.md` and `sentry.md`.
 - **Grafana dashboards as IaC** — the service dashboard
-  (`dashboards/vesta.json`), Prometheus alert rules
+  (`dashboards/dokaz.json`), Prometheus alert rules
   (`dashboards/alerts.yml`), and Grafana provisioning configs
   (`dashboards/provisioning/` — datasource + file dashboard provider) are
   all committed, so Grafana loads the dashboard on startup with no manual
