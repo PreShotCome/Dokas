@@ -50,7 +50,8 @@ templ AccountSettings(lc LayoutCtx, members []account.MembershipWithUser, pendin
 					if lc.Account.Plan == account.PlanTrial {
 						<div class="flex gap-2">
 							@billingCheckout("starter", "Subscribe — Starter")
-							@billingCheckout("pro", "Subscribe — Pro")
+							@billingCheckout("pro", "Subscribe — Growth")
+							@billingCheckout("scale", "Subscribe — Scale")
 						</div>
 					} else {
 						<form method="POST" action="/account/billing/portal">
