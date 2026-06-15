@@ -32,7 +32,7 @@ evidence verification. See `signing-cert.md` for the signing-key lifecycle.
 
 ```sh
 fly apps create dokaz
-fly volumes create dokaz_evidence --region sea --size 1
+fly volumes create dokaz_evidence --region sjc --size 1
 ```
 
 The volume backs `EVIDENCE_DIR` (`/data/evidence`, set in `fly.toml`) so
