@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "724281899690",
+    "project_id": "dokaz-2d5f5",
+    "storage_bucket": "dokaz-2d5f5.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:724281899690:android:aa31ad5bff81d86643eed3",
+        "android_client_info": {
+          "package_name": "com.dokaz.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAkOingfGlAyQb1O_lGJZOPZAnFMSmYZPY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
