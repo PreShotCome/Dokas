@@ -56,15 +56,15 @@ func TestCadenceGating(t *testing.T) {
 	}{
 		{PlanTrial, "off", true},
 		{PlanTrial, "monthly", true},
-		{PlanTrial, "daily", true},
-		{PlanTrial, "hourly", false}, // hourly is Scale-only
+		{PlanTrial, "weekly", true},
+		{PlanTrial, "daily", false}, // daily is Scale-only now
 		{PlanStarter, "monthly", true},
 		{PlanStarter, "weekly", true},
 		{PlanStarter, "daily", false},
-		{PlanStarter, "hourly", false},
-		{PlanPro, "daily", true},
-		{PlanPro, "hourly", false},
-		{PlanScale, "hourly", true},
+		{PlanPro, "weekly", true},
+		{PlanPro, "daily", false}, // Growth tops out at weekly
+		{PlanScale, "daily", true},
+		{PlanScale, "hourly", false}, // hourly is Enterprise/custom, not self-serve
 		{Plan("garbage"), "daily", false},
 	}
 	for _, tc := range tests {
@@ -72,17 +72,17 @@ func TestCadenceGating(t *testing.T) {
 			t.Errorf("CadenceAllowed(%q,%q) = %v, want %v", tc.plan, tc.cadence, got, tc.want)
 		}
 	}
-	if got := TopCadence(PlanTrial); got != "daily" {
-		t.Errorf("TopCadence(trial) = %q, want daily", got)
+	if got := TopCadence(PlanTrial); got != "weekly" {
+		t.Errorf("TopCadence(trial) = %q, want weekly", got)
 	}
 	if got := TopCadence(PlanStarter); got != "weekly" {
 		t.Errorf("TopCadence(starter) = %q, want weekly", got)
 	}
-	if got := TopCadence(PlanPro); got != "daily" {
-		t.Errorf("TopCadence(pro) = %q, want daily", got)
+	if got := TopCadence(PlanPro); got != "weekly" {
+		t.Errorf("TopCadence(pro) = %q, want weekly", got)
 	}
-	if got := TopCadence(PlanScale); got != "hourly" {
-		t.Errorf("TopCadence(scale) = %q, want hourly", got)
+	if got := TopCadence(PlanScale); got != "daily" {
+		t.Errorf("TopCadence(scale) = %q, want daily", got)
 	}
 }
 

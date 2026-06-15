@@ -33,16 +33,15 @@ func LimitsFor(p Plan) Limits {
 }
 
 // AllowedCadences returns the drill cadences a plan may select, from least
-// to most frequent. Starter tops out at weekly; Growth (PlanPro) adds
-// daily; Scale unlocks hourly. Trial mirrors Growth so prospects
-// experience the daily cadence during their first month.
+// to most frequent. Starter and Growth both top out at weekly — they
+// differ on database/drill volume, not frequency. Daily is the headline
+// reason to move up to Scale. Trial mirrors Growth (weekly). Hourly /
+// sub-daily is an Enterprise (custom) arrangement, not a self-serve option.
 func AllowedCadences(p Plan) []string {
 	switch p {
 	case PlanScale:
-		return []string{"off", "monthly", "weekly", "daily", "hourly"}
-	case PlanPro, PlanTrial:
 		return []string{"off", "monthly", "weekly", "daily"}
-	case PlanStarter:
+	case PlanStarter, PlanPro, PlanTrial:
 		return []string{"off", "monthly", "weekly"}
 	default:
 		return []string{"off", "monthly", "weekly"}
