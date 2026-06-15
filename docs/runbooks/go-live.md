@@ -31,8 +31,8 @@ evidence verification. See `signing-cert.md` for the signing-key lifecycle.
 ## 2. Create the Fly app and the evidence volume
 
 ```sh
-fly apps create selket
-fly volumes create selket_evidence --region sea --size 1
+fly apps create dokaz
+fly volumes create dokaz_evidence --region sea --size 1
 ```
 
 The volume backs `EVIDENCE_DIR` (`/data/evidence`, set in `fly.toml`) so
@@ -107,7 +107,7 @@ everything — marketing pages at `/`, the app behind login.
 4. Set a daily schedule; confirm `/reports` shows the drill.
 5. Subscribe with Stripe test card `4242 4242 4242 4242`; confirm the plan
    flips and the Customer Portal opens.
-6. Restart the app (`fly apps restart selket`); re-download the PDF — it
+6. Restart the app (`fly apps restart dokaz`); re-download the PDF — it
    must still verify (proves the persistent evidence key + volume work).
 
 ## 9. Go live
