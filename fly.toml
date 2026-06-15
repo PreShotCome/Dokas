@@ -9,8 +9,8 @@
 # Fly app + evidence-volume names. (Earlier deploys used "soteria"; renamed to
 # "dokaz" for the new brand. The displayed product name is Dokaz everywhere.)
 app = "dokaz"
-# sjc (San Jose) — West Coast region closest to Neon in AWS us-west-2.
-primary_region = "sjc"
+# iad (Ashburn, Virginia) — co-located with the Neon database in AWS us-east-1.
+primary_region = "iad"
 
 [build]
   dockerfile = "Dockerfile"
