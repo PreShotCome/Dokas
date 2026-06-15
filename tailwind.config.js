@@ -11,40 +11,48 @@ module.exports = {
         sans: ["ui-sans-serif", "system-ui", "sans-serif"],
         mono: ["ui-monospace", "SFMono-Regular", "monospace"],
       },
-      // brand — deep ceremonial red (the Dokaz hearth-flame red). The
-      // primary tier. Emerald stays reserved for the verified/passed
-      // state. Cosmic-dark backgrounds use the navy gradient in input.css
-      // (the cool accents in the Dokaz palette).
+      // brand — baby royal blue. Primary tier: buttons, links, the
+      // turtle's shell. Cool, calm, "your data is held".
       colors: {
         brand: {
-          50:  "#fef2f2",
-          100: "#fee2e2",
-          200: "#fecaca",
-          300: "#fca5a5",
-          400: "#f87171",
-          500: "#ef4444",
-          600: "#dc2626",
-          700: "#b91c1c",
-          800: "#991b1b",
-          900: "#7f1d1d",
+          50:  "#eef4ff",
+          100: "#dbe7ff",
+          200: "#b8cfff",
+          300: "#8cb1f7",
+          400: "#6e9bf0",
+          500: "#5b8def",
+          600: "#4f7be0",
+          700: "#3f63c4",
+          800: "#33509f",
+          900: "#243a78",
         },
-        // gold — Egyptian royal gold. The secondary tier, paired with
-        // brand-red for flame gradients (deep red → gold) and used for
-        // ornamental highlights, the "popular" tier badge, and the
-        // signed-evidence sigil.
+        // gold (legacy class name) — now pink. Accent for the "MOST
+        // POPULAR" badge and the central scute of the turtle. Kept as
+        // `gold-*` so every existing template class still works.
         gold: {
-          50:  "#fefce8",
-          100: "#fef9c3",
-          200: "#fef08a",
-          300: "#fde047",
-          400: "#facc15",
-          500: "#eab308",
-          600: "#ca8a04",
-          700: "#a16207",
+          50:  "#fdf2f8",
+          100: "#fce7f3",
+          200: "#fbcfe8",
+          300: "#f9a8d4",
+          400: "#f48fb1",
+          500: "#ec4899",
+          600: "#db2777",
+          700: "#be185d",
         },
-        // lapis — accent blue (the canopic-jar / Nile touch). Used
-        // sparingly for icons, info chips, and the cosmic-dark
-        // background's blue undertone.
+        // steel — steely-gray family for icons, dividers, and the new
+        // background gradient.
+        steel: {
+          100: "#e5ecf2",
+          200: "#c4cfdb",
+          300: "#9aa7b6",
+          400: "#7a8a9c",
+          500: "#5d6c80",
+          600: "#475467",
+          700: "#33405a",
+          800: "#252c35",
+          900: "#1b2027",
+        },
+        // lapis — accent blue (kept for any existing references).
         lapis: {
           100: "#dbeafe",
           300: "#93c5fd",

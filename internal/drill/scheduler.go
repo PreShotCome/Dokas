@@ -20,6 +20,8 @@ func CadenceInterval(cadence string) time.Duration {
 		return 24 * time.Hour
 	case "weekly":
 		return 7 * 24 * time.Hour
+	case "monthly":
+		return 30 * 24 * time.Hour
 	default:
 		return 0
 	}

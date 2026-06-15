@@ -51,13 +51,14 @@ type Plan string
 const (
 	PlanTrial   Plan = "trial"
 	PlanStarter Plan = "starter"
-	PlanPro     Plan = "pro"
+	PlanPro     Plan = "pro"   // "Growth" tier on the marketing page
+	PlanScale   Plan = "scale" // high-volume self-serve tier above Growth
 )
 
 // IsPaid reports whether a plan is a paid subscription (Starter or Pro/Growth)
 // rather than the free trial. Free/trial accounts may only drill the built-in
 // sample dataset; drilling a real backup requires a paid plan.
-func IsPaid(p Plan) bool { return p == PlanStarter || p == PlanPro }
+func IsPaid(p Plan) bool { return p == PlanStarter || p == PlanPro || p == PlanScale }
 
 type Account struct {
 	ID               uuid.UUID

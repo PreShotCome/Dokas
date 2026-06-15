@@ -219,6 +219,8 @@ func cadenceValue(c string) string {
 // cadenceLabel is the human label for a cadence in the schedule dropdown.
 func cadenceLabel(c string) string {
 	switch c {
+	case "monthly":
+		return "Monthly"
 	case "weekly":
 		return "Weekly"
 	case "daily":
@@ -233,6 +235,8 @@ func cadenceLabel(c string) string {
 // cadenceAdverb renders a cadence as a sentence fragment ("every day").
 func cadenceAdverb(c string) string {
 	switch c {
+	case "monthly":
+		return "every month"
 	case "weekly":
 		return "every week"
 	case "daily":

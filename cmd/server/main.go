@@ -88,6 +88,7 @@ func main() {
 		WebhookSecret: cfg.StripeWebhookSecret,
 		PriceStarter:  cfg.StripePriceStarter,
 		PricePro:      cfg.StripePricePro,
+		PriceScale:    cfg.StripePriceScale,
 		MeterEvent:    cfg.StripeMeterEvent,
 	})
 	if billingCustomers.Enabled() {
@@ -279,6 +280,7 @@ func main() {
 		SecureCookies:        cfg.IsProduction(),
 		PriceStarterLabel:    cfg.PriceStarterLabel,
 		PriceProLabel:        cfg.PriceProLabel,
+		PriceScaleLabel:      cfg.PriceScaleLabel,
 		BaseURL:              cfg.BaseURL,
 	})
 

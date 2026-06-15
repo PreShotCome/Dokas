@@ -34,23 +34,33 @@ templ Layout(title string, user *auth.User) {
 	}
 }
 
-// Logo is the brand mark — the phoenix sigil: flame at base, wings
-// spread upward, single star above. Vector, scales cleanly. Pure
-// decoration; the adjacent wordmark carries the name.
+// Logo is the brand mark — a stylized turtle. Blue shell (proof your data
+// is held), steely flippers, pink central scute. Matches the Flutter app
+// (assets/turtle.svg). Pure decoration; the adjacent wordmark carries the
+// name.
 templ Logo() {
-	<svg viewBox="0 0 320 320" class="h-7 w-7 shrink-0" aria-hidden="true" focusable="false">
-		<defs>
-			<linearGradient id="logo-ambr" x1="0.5" y1="1" x2="0.5" y2="0">
-				<stop offset="0%" stop-color="#7f1d1d"></stop>
-				<stop offset="22%" stop-color="#b91c1c"></stop>
-				<stop offset="55%" stop-color="#eab308"></stop>
-				<stop offset="100%" stop-color="#fef9c3"></stop>
-			</linearGradient>
-		</defs>
-		<path d="M 148 196 C 120 184, 90 168, 60 134 C 44 112, 38 92, 46 74 C 56 92, 74 110, 98 130 C 122 148, 140 168, 152 192 Z" fill="url(#logo-ambr)"></path>
-		<path d="M 172 196 C 200 184, 230 168, 260 134 C 276 112, 282 92, 274 74 C 264 92, 246 110, 222 130 C 198 148, 180 168, 168 192 Z" fill="url(#logo-ambr)"></path>
-		<path d="M 160 110 C 150 134, 142 162, 144 196 C 146 224, 152 254, 156 280 C 158 290, 159 298, 160 304 C 161 298, 162 290, 164 280 C 168 254, 174 224, 176 196 C 178 162, 170 134, 160 110 Z" fill="url(#logo-ambr)"></path>
-		<path d="M 160 22 L 164 52 L 196 60 L 164 68 L 160 100 L 156 68 L 124 60 L 156 52 Z" fill="#fef08a"></path>
+	<svg viewBox="0 0 64 64" class="h-7 w-7 shrink-0" aria-hidden="true" focusable="false">
+		<g fill="#8FA3B8">
+			<ellipse cx="15" cy="25" rx="6.5" ry="4.6" transform="rotate(-38 15 25)"></ellipse>
+			<ellipse cx="49" cy="25" rx="6.5" ry="4.6" transform="rotate(38 49 25)"></ellipse>
+			<ellipse cx="15" cy="46" rx="6.5" ry="4.6" transform="rotate(38 15 46)"></ellipse>
+			<ellipse cx="49" cy="46" rx="6.5" ry="4.6" transform="rotate(-38 49 46)"></ellipse>
+		</g>
+		<circle cx="32" cy="11" r="6.5" fill="#8FA3B8"></circle>
+		<circle cx="29.6" cy="10.2" r="1.1" fill="#1B2027"></circle>
+		<circle cx="34.4" cy="10.2" r="1.1" fill="#1B2027"></circle>
+		<ellipse cx="32" cy="35" rx="21" ry="18" fill="#6E9BF0"></ellipse>
+		<ellipse cx="32" cy="35" rx="21" ry="18" fill="none" stroke="#4F7BE0" stroke-width="2.4"></ellipse>
+		<path d="M32 23 L42 30 L42 41 L32 47 L22 41 L22 30 Z" fill="#5B8DEF" stroke="#F48FB1" stroke-width="1.8" stroke-linejoin="round"></path>
+		<g stroke="#4F7BE0" stroke-width="1.8" stroke-linecap="round">
+			<line x1="32" y1="23" x2="32" y2="17.5"></line>
+			<line x1="42" y1="30" x2="49" y2="27"></line>
+			<line x1="42" y1="41" x2="49" y2="45"></line>
+			<line x1="32" y1="47" x2="32" y2="52.5"></line>
+			<line x1="22" y1="41" x2="15" y2="45"></line>
+			<line x1="22" y1="30" x2="15" y2="27"></line>
+		</g>
+		<circle cx="32" cy="35.5" r="2.6" fill="#F48FB1"></circle>
 	</svg>
 }
 
