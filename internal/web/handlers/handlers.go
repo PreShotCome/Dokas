@@ -71,6 +71,7 @@ type Handlers struct {
 	secureCookies        bool
 	priceStarterLabel    string
 	priceProLabel        string
+	priceScaleLabel      string
 	baseURL              string
 }
 
@@ -113,6 +114,7 @@ type Deps struct {
 	SecureCookies        bool
 	PriceStarterLabel    string
 	PriceProLabel        string
+	PriceScaleLabel      string
 	BaseURL              string
 }
 
@@ -160,6 +162,7 @@ func New(d Deps) *Handlers {
 		secureCookies:        d.SecureCookies,
 		priceStarterLabel:    d.PriceStarterLabel,
 		priceProLabel:        d.PriceProLabel,
+		priceScaleLabel:      d.PriceScaleLabel,
 		baseURL:              d.BaseURL,
 	}
 }

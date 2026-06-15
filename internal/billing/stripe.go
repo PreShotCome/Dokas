@@ -27,6 +27,7 @@ const (
 	PlanTrial   = "trial"
 	PlanStarter = "starter"
 	PlanPro     = "pro"
+	PlanScale   = "scale"
 )
 
 // CheckoutInput describes a subscription Checkout Session to create.
@@ -71,8 +72,9 @@ type Service interface {
 type Config struct {
 	SecretKey     string // sk_test_... / sk_live_...
 	WebhookSecret string // whsec_... — webhook signing secret
-	PriceStarter  string // price_... for the Starter plan
-	PricePro      string // price_... for the Pro plan
+	PriceStarter  string // price_... for the Starter plan ($99/mo)
+	PricePro      string // price_... for the Growth (pro) plan ($299/mo)
+	PriceScale    string // price_... for the Scale plan ($799/mo)
 	// MeterEvent is the Stripe Billing Meter event name that drill usage is
 	// reported under. Empty disables usage reporting.
 	MeterEvent string
@@ -127,6 +129,8 @@ func (s *stripeService) PriceID(plan string) string {
 		return s.cfg.PriceStarter
 	case PlanPro:
 		return s.cfg.PricePro
+	case PlanScale:
+		return s.cfg.PriceScale
 	default:
 		return ""
 	}
@@ -138,6 +142,8 @@ func (s *stripeService) PlanForPrice(priceID string) string {
 		return PlanStarter
 	case s.cfg.PricePro:
 		return PlanPro
+	case s.cfg.PriceScale:
+		return PlanScale
 	default:
 		return PlanTrial
 	}

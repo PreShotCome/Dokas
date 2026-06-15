@@ -12,9 +12,9 @@
   }
   body {
     @apply text-zinc-100 antialiased;
-    /* Soft navy-blue easing into near-black, left to right — keeps the
-       dark theme from reading as a flat black wall. */
-    background: linear-gradient(to right, #1e2d4d, #09090b);
+    /* Steely charcoal easing into a deeper slate — matches the app's
+       VS palette. Away from flat black, no warm tones. */
+    background: linear-gradient(to right, #252c35, #1b2027);
     background-attachment: fixed;
   }
   /* WCAG 2.4.7: every focusable element gets a visible focus indicator,

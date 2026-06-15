@@ -14,34 +14,38 @@ type Limits struct {
 	Heartbeats int // backup check-in monitors
 }
 
-// LimitsFor returns the resource caps for a plan tier. The VIP tier
-// (PlanPro) is uncapped; the trial gets the same generous caps as
-// Standard (PlanStarter) for its window; an unknown plan falls to the
-// most restrictive caps so a bad value can never widen access.
+// LimitsFor returns the resource caps for a plan tier. Scale is the
+// uncapped self-serve top tier; Growth (PlanPro) and Starter cap by tier.
+// Trial mirrors Growth so prospects experience the daily-cadence tier
+// during their first month. Unknown plans fall to the most restrictive
+// caps so a bad value can never widen access.
 func LimitsFor(p Plan) Limits {
 	switch p {
-	case PlanPro:
-		return Limits{} // all Unlimited
-	case PlanStarter, PlanTrial:
-		return Limits{Databases: 10, Seats: 10, APIKeys: 5, Webhooks: 5, Heartbeats: 20}
+	case PlanScale:
+		return Limits{} // all Unlimited — self-serve top tier
+	case PlanPro, PlanTrial:
+		return Limits{Databases: 25, Seats: 10, APIKeys: 10, Webhooks: 10, Heartbeats: 25}
+	case PlanStarter:
+		return Limits{Databases: 5, Seats: 3, APIKeys: 3, Webhooks: 3, Heartbeats: 10}
 	default:
 		return Limits{Databases: 1, Seats: 2, APIKeys: 1, Webhooks: 1, Heartbeats: 1}
 	}
 }
 
-// AllowedCadences returns the drill cadences a plan may select, from least to
-// most frequent. Standard (PlanStarter) tops out at weekly; VIP (PlanPro)
-// adds daily. Trial mirrors VIP so prospects can experience the top cadence
-// during the trial window. Hourly is reserved for enterprise / custom and
-// is not exposed by any standard tier.
+// AllowedCadences returns the drill cadences a plan may select, from least
+// to most frequent. Starter tops out at weekly; Growth (PlanPro) adds
+// daily; Scale unlocks hourly. Trial mirrors Growth so prospects
+// experience the daily cadence during their first month.
 func AllowedCadences(p Plan) []string {
 	switch p {
+	case PlanScale:
+		return []string{"off", "monthly", "weekly", "daily", "hourly"}
 	case PlanPro, PlanTrial:
-		return []string{"off", "weekly", "daily"}
+		return []string{"off", "monthly", "weekly", "daily"}
 	case PlanStarter:
-		return []string{"off", "weekly"}
+		return []string{"off", "monthly", "weekly"}
 	default:
-		return []string{"off", "weekly"}
+		return []string{"off", "monthly", "weekly"}
 	}
 }
 

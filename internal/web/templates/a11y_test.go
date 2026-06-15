@@ -22,7 +22,7 @@ func TestAccessibility(t *testing.T) {
 		"login":         Login("", ""),
 		"signup":        Signup("", ""),
 		"signup-closed": SignupClosed(),
-		"pricing":       Pricing(LayoutCtx{}, "$99", "$399", true),
+		"pricing":       Pricing(LayoutCtx{}, "$99", "$299", "$799", true),
 		"how-it-works":  HowItWorks(LayoutCtx{}),
 		"trial-ended":   TrialEnded(LayoutCtx{}),
 		"reports":       Reports(ReportsView{Ctx: LayoutCtx{}, WindowMonths: 3}),

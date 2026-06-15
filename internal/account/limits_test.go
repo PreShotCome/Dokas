@@ -30,13 +30,15 @@ func TestTrialState(t *testing.T) {
 }
 
 func TestLimitsFor(t *testing.T) {
+	growth := Limits{Databases: 25, Seats: 10, APIKeys: 10, Webhooks: 10, Heartbeats: 25}
 	tests := []struct {
 		plan Plan
 		want Limits
 	}{
-		{PlanTrial, Limits{Databases: 10, Seats: 10, APIKeys: 5, Webhooks: 5, Heartbeats: 20}},
-		{PlanStarter, Limits{Databases: 10, Seats: 10, APIKeys: 5, Webhooks: 5, Heartbeats: 20}},
-		{PlanPro, Limits{}},
+		{PlanTrial, growth}, // trial mirrors Growth during the first-month window
+		{PlanStarter, Limits{Databases: 5, Seats: 3, APIKeys: 3, Webhooks: 3, Heartbeats: 10}},
+		{PlanPro, growth},
+		{PlanScale, Limits{}}, // uncapped — self-serve top tier
 		{Plan("garbage"), Limits{Databases: 1, Seats: 2, APIKeys: 1, Webhooks: 1, Heartbeats: 1}},
 	}
 	for _, tc := range tests {
@@ -53,13 +55,16 @@ func TestCadenceGating(t *testing.T) {
 		want    bool
 	}{
 		{PlanTrial, "off", true},
+		{PlanTrial, "monthly", true},
 		{PlanTrial, "daily", true},
-		{PlanTrial, "hourly", false},
+		{PlanTrial, "hourly", false}, // hourly is Scale-only
+		{PlanStarter, "monthly", true},
 		{PlanStarter, "weekly", true},
 		{PlanStarter, "daily", false},
 		{PlanStarter, "hourly", false},
 		{PlanPro, "daily", true},
 		{PlanPro, "hourly", false},
+		{PlanScale, "hourly", true},
 		{Plan("garbage"), "daily", false},
 	}
 	for _, tc := range tests {
@@ -75,6 +80,9 @@ func TestCadenceGating(t *testing.T) {
 	}
 	if got := TopCadence(PlanPro); got != "daily" {
 		t.Errorf("TopCadence(pro) = %q, want daily", got)
+	}
+	if got := TopCadence(PlanScale); got != "hourly" {
+		t.Errorf("TopCadence(scale) = %q, want hourly", got)
 	}
 }
 
