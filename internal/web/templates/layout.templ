@@ -2,6 +2,7 @@ package templates
 
 import (
 	"strconv"
+	"strings"
 
 	"github.com/preshotcome/dokaz/internal/account"
 	"github.com/preshotcome/dokaz/internal/auth"
@@ -20,6 +21,8 @@ type LayoutCtx struct {
 	Accounts []AccountChoice
 	// Impersonation, when set, drives the "you are impersonating" banner.
 	Impersonation *auth.Impersonation
+	// Path is the request's URL path, used to highlight the active nav link.
+	Path string
 }
 
 // AccountChoice is one option in the nav account switcher.
@@ -176,13 +179,14 @@ templ LayoutWith(title string, lc LayoutCtx) {
 				</div>
 				if lc.User != nil && lc.Account != nil {
 					<nav aria-label="Primary" class="mx-auto flex max-w-5xl items-center gap-4 px-4 pb-2 text-sm">
-						<a href="/dashboard" class="hover:underline">Dashboard</a>
-						<a href="/databases" class="hover:underline">Databases</a>
-						<a href="/drills" class="hover:underline">Drills</a>
-						<a href="/heartbeats" class="hover:underline">Check-ins</a>
-						<a href="/reports" class="hover:underline">Reports</a>
-						<a href="/account" class="hover:underline">Account</a>
-						<a href="/help" class="hover:underline">Help</a>
+						@navLink(lc.Path, "/dashboard", "Dashboard")
+						@navLink(lc.Path, "/databases", "Databases")
+						@navLink(lc.Path, "/drills", "Drills")
+						@navLink(lc.Path, "/heartbeats", "Check-ins")
+						@navLink(lc.Path, "/reports", "Reports")
+						@navLink(lc.Path, "/pricing", "Pricing")
+						@navLink(lc.Path, "/account", "Account")
+						@navLink(lc.Path, "/help", "Help")
 						if lc.User.IsStaff {
 							<a href="/admin" class="ml-auto font-medium text-amber-700 hover:underline dark:text-amber-500">Admin</a>
 						}
@@ -207,6 +211,27 @@ templ LayoutWith(title string, lc LayoutCtx) {
 			</footer>
 		</body>
 	</html>
+}
+
+// navLink renders one primary-nav item, underlined and tinted brand when it
+// is the active page so the user can always see where they are.
+templ navLink(current, href, label string) {
+	if navActive(current, href) {
+		<a href={ templ.SafeURL(href) } aria-current="page" class="font-semibold text-brand-600 underline underline-offset-4 dark:text-brand-300">{ label }</a>
+	} else {
+		<a href={ templ.SafeURL(href) } class="text-zinc-600 hover:underline dark:text-zinc-400">{ label }</a>
+	}
+}
+
+// navActive reports whether href is the active section for the current path —
+// an exact match, or current sitting under href (e.g. /drills/123 lights up
+// the /drills tab). "/" only matches itself so the logo link never steals the
+// highlight from a deeper page.
+func navActive(current, href string) bool {
+	if href == "/" {
+		return current == "/"
+	}
+	return current == href || strings.HasPrefix(current, href+"/")
 }
 
 // trialBannerText is the days-left message shown in the trial banner.
