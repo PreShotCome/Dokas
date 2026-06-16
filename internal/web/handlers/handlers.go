@@ -177,7 +177,7 @@ func (h *Handlers) layoutCtx(r *http.Request) templates.LayoutCtx {
 	u, _ := auth.FromContext(r.Context())
 	acct, _ := auth.CurrentAccountFromContext(r.Context())
 	m, _ := auth.MembershipFromContext(r.Context())
-	lc := templates.LayoutCtx{User: u, Account: acct, Membership: m}
+	lc := templates.LayoutCtx{User: u, Account: acct, Membership: m, Path: r.URL.Path}
 	if imp, ok := auth.ImpersonationFromContext(r.Context()); ok {
 		lc.Impersonation = imp
 	}
