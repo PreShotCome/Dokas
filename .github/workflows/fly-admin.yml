@@ -1,0 +1,33 @@
+name: fly-admin
+
+# Manual-only admin escape hatch: run a flyctl command against the app using
+# the deploy token, so machine topology can be inspected/fixed from CI without
+# a local Fly CLI. Inputs are restricted to a short allowlist of safe commands.
+on:
+  workflow_dispatch:
+    inputs:
+      command:
+        description: "flyctl command to run"
+        required: true
+        default: "machines-list"
+        type: choice
+        options:
+          - machines-list
+          - status
+          - scale-count-1
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: superfly/flyctl-actions/setup-flyctl@master
+      - name: Run
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+        run: |
+          case "${{ inputs.command }}" in
+            machines-list) flyctl machines list -a dokaz ;;
+            status)        flyctl status -a dokaz ;;
+            scale-count-1) flyctl scale count 1 -a dokaz -y ;;
+            *) echo "unknown command"; exit 1 ;;
+          esac
