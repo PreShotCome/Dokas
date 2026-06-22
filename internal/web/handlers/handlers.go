@@ -390,6 +390,7 @@ func (h *Handlers) Router(staticFS http.FileSystem) http.Handler {
 			r.Get("/drills/{id}/steps", h.drillStepsPartial)
 			r.Get("/reports", h.reports)
 			r.Get("/reports/export.csv", h.reportsExport)
+			r.Get("/reports/evidence-bundle.zip", h.evidenceBundle)
 		})
 		r.Group(func(r chi.Router) {
 			r.Use(auth.RequireAction(auth.ActionHeartbeatRead))

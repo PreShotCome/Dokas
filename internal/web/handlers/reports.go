@@ -46,6 +46,7 @@ func (h *Handlers) reports(w http.ResponseWriter, r *http.Request) {
 		Databases:    dbs,
 		WindowMonths: months,
 		IsPro:        isPro,
+		IsPaid:       account.IsPaid(lc.Account.Plan),
 	}
 	for _, m := range monthly {
 		view.TotalDrills += m.Total

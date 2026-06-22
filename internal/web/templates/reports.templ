@@ -17,6 +17,7 @@ type ReportsView struct {
 	Failed       int
 	WindowMonths int
 	IsPro        bool
+	IsPaid       bool
 }
 
 templ Reports(v ReportsView) {
@@ -28,9 +29,14 @@ templ Reports(v ReportsView) {
 					Drill history for the last { strconv.Itoa(v.WindowMonths) } months.
 				</p>
 			</div>
-			if v.IsPro {
-				<a href="/reports/export.csv" class="btn-ghost text-sm">Download CSV</a>
-			}
+			<div class="flex flex-wrap gap-2">
+				if v.IsPaid {
+					<a href="/reports/evidence-bundle.zip" class="btn-ghost text-sm">Download evidence bundle (.zip)</a>
+				}
+				if v.IsPro {
+					<a href="/reports/export.csv" class="btn-ghost text-sm">Download CSV</a>
+				}
+			</div>
 		</div>
 		<div class="mb-8 grid grid-cols-2 gap-4 sm:grid-cols-4">
 			@reportTile("Total drills", strconv.Itoa(v.TotalDrills))
