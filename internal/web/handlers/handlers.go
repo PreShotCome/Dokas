@@ -275,6 +275,11 @@ func (h *Handlers) Router(staticFS http.FileSystem) http.Handler {
 	// Public explainer — what backup drilling is and how Dokaz helps.
 	r.Get("/how-it-works", h.howItWorks)
 
+	// Public evidence verifier — anyone handed a signed report can confirm
+	// it is genuine and unaltered here, no account required.
+	r.Get("/verify", h.verifyEvidencePage)
+	r.Post("/verify", h.verifyEvidence)
+
 	// Onboarding sample dump — a known-good fixture a new user can run
 	// their first drill against before connecting a real database.
 	r.Get("/onboarding/sample.dump", h.onboardingSampleDump)

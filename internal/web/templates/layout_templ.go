@@ -595,7 +595,7 @@ func LayoutWith(title string, lc LayoutCtx) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 49, " — backup verification as a service.</p><nav aria-label=\"Footer\" class=\"mt-1 flex flex-wrap justify-center gap-3\"><a href=\"/how-it-works\" class=\"hover:underline\">How it works</a> <a href=\"/pricing\" class=\"hover:underline\">Pricing</a> <a href=\"/docs\" class=\"hover:underline\">API docs</a> <a href=\"/legal/terms\" class=\"hover:underline\">Terms</a> <a href=\"/legal/privacy\" class=\"hover:underline\">Privacy</a> <a href=\"/legal/dpa\" class=\"hover:underline\">DPA</a> <a href=\"/legal/subprocessors\" class=\"hover:underline\">Sub-processors</a> <a href=\"/legal/cookies\" class=\"hover:underline\">Cookies</a></nav></footer></body></html>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 49, " — backup verification as a service.</p><nav aria-label=\"Footer\" class=\"mt-1 flex flex-wrap justify-center gap-3\"><a href=\"/how-it-works\" class=\"hover:underline\">How it works</a> <a href=\"/pricing\" class=\"hover:underline\">Pricing</a> <a href=\"/verify\" class=\"hover:underline\">Verify a report</a> <a href=\"/docs\" class=\"hover:underline\">API docs</a> <a href=\"/legal/terms\" class=\"hover:underline\">Terms</a> <a href=\"/legal/privacy\" class=\"hover:underline\">Privacy</a> <a href=\"/legal/dpa\" class=\"hover:underline\">DPA</a> <a href=\"/legal/subprocessors\" class=\"hover:underline\">Sub-processors</a> <a href=\"/legal/cookies\" class=\"hover:underline\">Cookies</a></nav></footer></body></html>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -634,7 +634,7 @@ func navLink(current, href, label string) templ.Component {
 			var templ_7745c5c3_Var26 templ.SafeURL
 			templ_7745c5c3_Var26, templ_7745c5c3_Err = templ.JoinURLErrs(templ.SafeURL(href))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/templates/layout.templ`, Line: 237, Col: 31}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/templates/layout.templ`, Line: 238, Col: 31}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var26))
 			if templ_7745c5c3_Err != nil {
@@ -647,7 +647,7 @@ func navLink(current, href, label string) templ.Component {
 			var templ_7745c5c3_Var27 string
 			templ_7745c5c3_Var27, templ_7745c5c3_Err = templ.JoinStringErrs(label)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/templates/layout.templ`, Line: 237, Col: 147}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/templates/layout.templ`, Line: 238, Col: 147}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var27))
 			if templ_7745c5c3_Err != nil {
@@ -665,7 +665,7 @@ func navLink(current, href, label string) templ.Component {
 			var templ_7745c5c3_Var28 templ.SafeURL
 			templ_7745c5c3_Var28, templ_7745c5c3_Err = templ.JoinURLErrs(templ.SafeURL(href))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/templates/layout.templ`, Line: 239, Col: 31}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/templates/layout.templ`, Line: 240, Col: 31}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var28))
 			if templ_7745c5c3_Err != nil {
@@ -678,7 +678,7 @@ func navLink(current, href, label string) templ.Component {
 			var templ_7745c5c3_Var29 string
 			templ_7745c5c3_Var29, templ_7745c5c3_Err = templ.JoinStringErrs(label)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/templates/layout.templ`, Line: 239, Col: 98}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/templates/layout.templ`, Line: 240, Col: 98}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var29))
 			if templ_7745c5c3_Err != nil {
