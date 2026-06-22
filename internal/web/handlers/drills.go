@@ -20,6 +20,7 @@ import (
 	"github.com/preshotcome/dokaz/internal/branding"
 	"github.com/preshotcome/dokaz/internal/drill"
 	"github.com/preshotcome/dokaz/internal/evidence"
+	"github.com/preshotcome/dokaz/internal/readiness"
 	"github.com/preshotcome/dokaz/internal/web/templates"
 )
 
@@ -32,7 +33,34 @@ func (h *Handlers) targetsList(w http.ResponseWriter, r *http.Request) {
 		render(w, r, templates.TargetsError("Could not load databases."))
 		return
 	}
-	render(w, r, templates.TargetsPage(lc, targets))
+	render(w, r, templates.TargetsPage(lc, targets, h.readinessScores(r, lc.Account.ID, targets)))
+}
+
+// readinessScores computes the recovery-readiness score for each target,
+// keyed by target ID string for the template. A stats-query failure is
+// non-fatal — the page still renders, just without badges.
+func (h *Handlers) readinessScores(r *http.Request, accountID uuid.UUID, targets []drill.Target) map[string]readiness.Score {
+	stats, err := h.drills.ReadinessStats(r.Context(), accountID)
+	if err != nil {
+		h.logger().Warn("readiness stats", "err", err)
+		return nil
+	}
+	now := time.Now()
+	out := make(map[string]readiness.Score, len(targets))
+	for _, t := range targets {
+		if t.IsSample {
+			continue // the demo dataset isn't a real backup to grade
+		}
+		st := stats[t.ID]
+		out[t.ID.String()] = readiness.Compute(readiness.Stat{
+			Cadence:       t.DrillCadence,
+			LastSuccessAt: st.LastSuccessAt,
+			LastStatus:    st.LastStatus,
+			Recent:        st.Recent,
+			RecentPassed:  st.RecentPassed,
+		}, now)
+	}
+	return out
 }
 
 func (h *Handlers) targetNewPage(w http.ResponseWriter, r *http.Request) {
