@@ -55,7 +55,7 @@ class _LoginScreenState extends State<LoginScreen> {
           controller: ctrl,
           autocorrect: false,
           keyboardType: TextInputType.url,
-          decoration: const InputDecoration(hintText: 'https://app.dokaz.io'),
+          decoration: const InputDecoration(hintText: 'https://app.dokaz.net'),
         ),
         actions: [
           TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),

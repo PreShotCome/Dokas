@@ -11,7 +11,7 @@ the master sequence.
 - **Neon** — managed Postgres (already provisioned).
 - **Stripe** — billing.
 - **Postmark** — transactional email.
-- A **domain registrar** — for `dokaz.io` (or your chosen domain).
+- A **domain registrar** — for `dokaz.net` (or your chosen domain).
 
 ## 1. Generate the production secrets
 
@@ -48,7 +48,7 @@ fly secrets set \
   EVIDENCE_ENCRYPTION_KEY="<step 1>" \
   METRICS_TOKEN="<step 1>" \
   POSTMARK_WEBHOOK_TOKEN="<step 1>" \
-  EMAIL_FROM="notifications@dokaz.io" \
+  EMAIL_FROM="notifications@dokaz.net" \
   STAFF_EMAILS="you@yourdomain.com"
 
 # Multi-line PEM — set on its own:
@@ -93,7 +93,7 @@ GitHub Action — set the `FLY_API_TOKEN` repo secret: `fly tokens create deploy
 ## 7. Domain
 
 ```sh
-fly certs add dokaz.io
+fly certs add dokaz.net
 ```
 
 Add the DNS records Fly prints (A/AAAA + the ACME CNAME). One domain serves

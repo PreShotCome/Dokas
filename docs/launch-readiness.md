@@ -31,17 +31,17 @@ without taking anyone's word for it.*
 | 1 | Merge `claude/compassionate-gauss-Awq2c` → `main` | 🟡 IN PROGRESS | this commit |
 | 2 | LLC EIN + business bank + Stripe activation | ⬜ TODO | — |
 | 3 | Stripe products + webhook + price IDs as Fly secrets | ⬜ TODO | — |
-| 4 | Postmark account + dokaz.io sender domain (DKIM/SPF/DMARC) | ⬜ TODO | — |
-| 5 | DNS for dokaz.io | ⬜ TODO | — |
+| 4 | Postmark account + dokaz.net sender domain (DKIM/SPF/DMARC) | ⬜ TODO | — |
+| 5 | DNS for dokaz.net | ⬜ TODO | — |
 | 6 | First Fly deploy with production secrets | ⬜ TODO | — |
 | 7 | Production Postgres + automated backups | ⬜ TODO | — |
 | 8 | Public signing-key endpoint at `.well-known/evidence-signing-keys.pem` | ✅ DONE | 2026-06-09 |
 | 9 | `dokaz-verify` CLI binaries on GitHub Releases | 🟡 IN PROGRESS | 2026-06-09 |
 | 10 | Terms / Privacy / DPA — rebranded + sub-processor list | 🟡 IN PROGRESS | 2026-06-09 |
 | 11 | Evidence-key backup procedure (signing + encryption) | ⬜ TODO | — |
-| 12 | Status page at `status.dokaz.io` | ⬜ TODO | — |
-| 13 | `security@dokaz.io` + `SECURITY.md` vulnerability disclosure | 🟡 IN PROGRESS | 2026-06-09 |
-| 14 | `support@dokaz.io` forward | ⬜ TODO | — |
+| 12 | Status page at `status.dokaz.net` | ⬜ TODO | — |
+| 13 | `security@dokaz.net` + `SECURITY.md` vulnerability disclosure | 🟡 IN PROGRESS | 2026-06-09 |
+| 14 | `support@dokaz.net` forward | ⬜ TODO | — |
 | 15 | Sentry wired to a real DSN | ⬜ TODO | — |
 | 16 | Fly volume snapshots or S3/R2 evidence storage | ⬜ TODO | — |
 | 17 | Customer-facing data-loss response runbook | ✅ DONE | 2026-06-09 |
@@ -190,7 +190,7 @@ this log; only the attestation does.
 
 ---
 
-## 13. Vulnerability disclosure (`SECURITY.md` + `security@dokaz.io`)
+## 13. Vulnerability disclosure (`SECURITY.md` + `security@dokaz.net`)
 
 A security product that has no way to receive security reports is a
 liability. `SECURITY.md` at the repo root now states how to report a
@@ -199,14 +199,14 @@ vulnerability, the response timeline we commit to (24 h acknowledgement
 researchers, a scope list, and a researcher-acknowledgements section.
 
 This item is IN PROGRESS, not DONE: the policy is published and
-authoritative, but the `security@dokaz.io` mailbox it points to is
-blocked on the Postmark sender-domain verification for `dokaz.io`
+authoritative, but the `security@dokaz.net` mailbox it points to is
+blocked on the Postmark sender-domain verification for `dokaz.net`
 (launch-readiness item #4). The file flags that interim explicitly.
 
 | When | What | Evidence |
 |---|---|---|
 | 2026-06-09 | `SECURITY.md` added at repo root: report instructions, 24 h / 72 h / 7-day timeline table, safe-harbour terms, in/out-of-scope list, and an (intentionally empty) acknowledgements section | This commit |
-| — | `security@dokaz.io` mailbox live | Blocked on item #4 (Postmark sender domain for `dokaz.io`) |
+| — | `security@dokaz.net` mailbox live | Blocked on item #4 (Postmark sender domain for `dokaz.net`) |
 
 ---
 

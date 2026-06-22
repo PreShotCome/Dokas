@@ -38,7 +38,7 @@ flutter pub get
 flutter run
 ```
 
-The backend URL defaults to `https://app.dokaz.io` and is editable in-app
+The backend URL defaults to `https://app.dokaz.net` and is editable in-app
 (Settings). Point it at a local server for development.
 
 ## Backend endpoints used

@@ -9,7 +9,7 @@ easy and safe for researchers to tell us about problems.
 
 ## Reporting a vulnerability
 
-Email **security@dokaz.io** with the details. Please include:
+Email **security@dokaz.net** with the details. Please include:
 
 - a description of the issue and its impact,
 - the steps, proof-of-concept, or request/response needed to reproduce it,
@@ -19,8 +19,8 @@ Email **security@dokaz.io** with the details. Please include:
 If you need to send sensitive material, say so in your first email and
 we'll arrange an encrypted channel.
 
-> **Note (pre-launch):** the `security@dokaz.io` mailbox goes live once
-> the Postmark sender domain for `dokaz.io` is verified (launch-readiness
+> **Note (pre-launch):** the `security@dokaz.net` mailbox goes live once
+> the Postmark sender domain for `dokaz.net` is verified (launch-readiness
 > item #4). Until then, route reports through the repository owner.
 
 Please **do not** open a public GitHub issue, pull request, or

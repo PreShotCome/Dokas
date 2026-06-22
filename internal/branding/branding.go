@@ -19,22 +19,22 @@ const (
 	Slug = "dokaz"
 
 	// DomainSite is the marketing/docs domain (host only, no scheme).
-	DomainSite = "dokaz.io"
+	DomainSite = "dokaz.net"
 	// DomainApp is the application domain (host only, no scheme).
-	DomainApp = "app.dokaz.io"
+	DomainApp = "app.dokaz.net"
 
 	// EmailFrom is the default transactional sender address.
-	EmailFrom = "notifications@dokaz.io"
+	EmailFrom = "notifications@dokaz.net"
 	// SupportEmail is the support contact address.
-	SupportEmail = "support@dokaz.io"
+	SupportEmail = "support@dokaz.net"
 	// SalesEmail is the sales contact address.
-	SalesEmail = "sales@dokaz.io"
+	SalesEmail = "sales@dokaz.net"
 	// LegalEmail is the legal/terms contact address.
-	LegalEmail = "legal@dokaz.io"
+	LegalEmail = "legal@dokaz.net"
 	// PrivacyEmail is the privacy/data-protection contact address.
-	PrivacyEmail = "privacy@dokaz.io"
+	PrivacyEmail = "privacy@dokaz.net"
 	// SecurityEmail is the vulnerability-disclosure contact address.
-	SecurityEmail = "security@dokaz.io"
+	SecurityEmail = "security@dokaz.net"
 
 	// TOTPIssuer is the label shown in authenticator apps.
 	TOTPIssuer = ProductName
