@@ -29,47 +29,6 @@ import (
 //go:embed sample.dump
 var sampleDump []byte
 
-// debugSample is a TEMPORARY diagnostic for the prod sample-drill failure. It
-// reports the serving machine's view of the sample dump: cwd, configured
-// source dir, the resolved path, whether it exists, and a directory listing.
-func (h *Handlers) debugSample(w http.ResponseWriter, r *http.Request) {
-	cwd, _ := os.Getwd()
-	out := map[string]any{
-		"cwd":           cwd,
-		"source_dir":    h.sourceDir,
-		"embedded_size": len(sampleDump),
-		"hostname":      os.Getenv("FLY_MACHINE_ID"),
-		"region":        os.Getenv("FLY_REGION"),
-	}
-	dir, _ := filepath.Abs(filepath.Join(h.sourceDir, "_"+branding.Slug+"_sample"))
-	path := filepath.Join(dir, "sample.dump")
-	out["resolved_path"] = path
-	if fi, err := os.Stat(path); err == nil {
-		out["exists"] = true
-		out["size"] = fi.Size()
-	} else {
-		out["exists"] = false
-		out["stat_err"] = err.Error()
-	}
-	if entries, err := os.ReadDir(dir); err == nil {
-		names := []string{}
-		for _, e := range entries {
-			names = append(names, e.Name())
-		}
-		out["dir_listing"] = names
-	} else {
-		out["readdir_err"] = err.Error()
-	}
-	// Attempt a fresh materialize and report the outcome.
-	if p, err := MaterializeSample(h.sourceDir); err != nil {
-		out["materialize_err"] = err.Error()
-	} else {
-		out["materialize_ok"] = p
-	}
-	w.Header().Set("Content-Type", "application/json")
-	_ = json.NewEncoder(w).Encode(out)
-}
-
 // onboardingSampleDump serves the embedded fixture as a file download. It's
 // public — the whole point is to hand a frictionless first artifact to
 // someone who hasn't connected a real source yet. Cached for a day; the

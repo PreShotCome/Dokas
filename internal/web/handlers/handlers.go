@@ -279,10 +279,6 @@ func (h *Handlers) Router(staticFS http.FileSystem) http.Handler {
 	// their first drill against before connecting a real database.
 	r.Get("/onboarding/sample.dump", h.onboardingSampleDump)
 
-	// TEMPORARY diagnostic: report the sample-dump filesystem state on the
-	// serving machine. Removed once the prod sample-drill issue is resolved.
-	r.Get("/debug/sample", h.debugSample)
-
 	r.Handle("/static/*", http.StripPrefix("/static/", http.FileServer(staticFS)))
 
 	r.Get("/", h.index)
