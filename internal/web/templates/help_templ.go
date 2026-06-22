@@ -90,7 +90,7 @@ func HelpPage(lc LayoutCtx) templ.Component {
 				"Go to Check-ins → New monitor and set how often you expect the "+
 					"job to run plus a grace window. Copy the ping URL and call it "+
 					"at the end of your backup script — e.g. add "+
-					"'curl -fsS https://app.dokaz.io/ping/<token>' after a "+
+					"'curl -fsS https://app.dokaz.net/ping/<token>' after a "+
 					"successful run. Send /fail instead to report a failure "+
 					"immediately, or /start to record that the job began.").Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
@@ -110,7 +110,7 @@ func HelpPage(lc LayoutCtx) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "</div><p class=\"mt-8 text-sm text-zinc-600 dark:text-zinc-400\">Still stuck? Email <a class=\"underline\" href=\"mailto:support@dokaz.io\">support@dokaz.io</a>.</p>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "</div><p class=\"mt-8 text-sm text-zinc-600 dark:text-zinc-400\">Still stuck? Email <a class=\"underline\" href=\"mailto:support@dokaz.net\">support@dokaz.net</a>.</p>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

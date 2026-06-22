@@ -14,7 +14,7 @@ can hand it to a prospect, an auditor, or an underwriter so they can see
 > This sample was signed with a **throwaway demo key**, not Dokaz's
 > production signing key — so it proves the *mechanism*, not a real customer
 > drill. Production evidence is signed with the persistent key published at
-> `https://app.dokaz.io/.well-known/evidence-signing-keys.pem`.
+> `https://app.dokaz.net/.well-known/evidence-signing-keys.pem`.
 
 ## Verify it yourself
 

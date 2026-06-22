@@ -10,14 +10,14 @@ If you can complete this, you've exercised the whole product:
 **provision → fetch → restore → assert → report → teardown**, plus
 independent verification.
 
-Throughout, `https://app.dokaz.io` stands in for your Dokaz instance
+Throughout, `https://app.dokaz.net` stands in for your Dokaz instance
 (use `http://localhost:5173` if you're running locally).
 
 ---
 
 ## Step 1 — Sign up
 
-Go to `https://app.dokaz.io/signup`, create an account, and verify your
+Go to `https://app.dokaz.net/signup`, create an account, and verify your
 email. New accounts get a 14-day trial — enough to run drills
 immediately, no card required. After signing in you land on the
 dashboard.
@@ -30,13 +30,13 @@ with a single `public.events` table. Download it:
 **macOS / Linux:**
 
 ```sh
-curl -fL https://app.dokaz.io/onboarding/sample.dump -o sample.dump
+curl -fL https://app.dokaz.net/onboarding/sample.dump -o sample.dump
 ```
 
 **Windows (PowerShell):**
 
 ```powershell
-Invoke-WebRequest https://app.dokaz.io/onboarding/sample.dump -OutFile sample.dump
+Invoke-WebRequest https://app.dokaz.net/onboarding/sample.dump -OutFile sample.dump
 ```
 
 > ⚠️ **On Windows, use `Invoke-WebRequest -OutFile`, not `... > sample.dump`.**
@@ -112,7 +112,7 @@ app**.
 Fetch Dokaz's public signing keys:
 
 ```sh
-curl -fL https://app.dokaz.io/.well-known/evidence-signing-keys.pem -o dokaz.pem
+curl -fL https://app.dokaz.net/.well-known/evidence-signing-keys.pem -o dokaz.pem
 ```
 
 Each key block in that file is preceded by a `# PublicKeyID:` comment.

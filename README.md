@@ -39,9 +39,9 @@ link and verification fails loudly.
 
 ```sh
 # Independently verify a drill:
-curl -H "Authorization: Bearer $KEY" https://app.dokaz.io/v1/drills/$ID/evidence  > drill.pdf
-curl -H "Authorization: Bearer $KEY" https://app.dokaz.io/v1/drills/$ID/signature > sig.json
-curl https://dokaz.io/.well-known/evidence-signing-keys.pem > dokaz.pem
+curl -H "Authorization: Bearer $KEY" https://app.dokaz.net/v1/drills/$ID/evidence  > drill.pdf
+curl -H "Authorization: Bearer $KEY" https://app.dokaz.net/v1/drills/$ID/signature > sig.json
+curl https://dokaz.net/.well-known/evidence-signing-keys.pem > dokaz.pem
 go run ./cmd/dokaz-verify --pdf=drill.pdf --sig=sig.json --pubkey=dokaz.pem
 # OK  key=9f2c4b…a17b  signed_at=2026-05-25T04:11:02Z  retain_until=2033-05-25T04:11:02Z
 ```
@@ -52,7 +52,7 @@ detail.
 ## What's in the repo
 
 This repo contains the application (Go monolith) deployed at
-`app.dokaz.io`. The marketing site lives in a separate repo. The
+`app.dokaz.net`. The marketing site lives in a separate repo. The
 verifier CLI ships here so the chain stays in one auditable place.
 
 ## Status
@@ -113,7 +113,7 @@ unique URL on success:
 
 ```sh
 # at the end of your nightly backup cron
-pg_dump … && curl -fsS https://app.dokaz.io/ping/<token>
+pg_dump … && curl -fsS https://app.dokaz.net/ping/<token>
 ```
 
 If a check-in is overdue, a once-a-minute River sweeper flips the monitor to

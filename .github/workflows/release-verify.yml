@@ -90,6 +90,6 @@ jobs:
             ```
 
             Fetch the public key(s) from
-            `https://app.dokaz.io/.well-known/evidence-signing-keys.pem` and
+            `https://app.dokaz.net/.well-known/evidence-signing-keys.pem` and
             match the `public_key_id` in the signature to a key block there.
             Exit code 0 means the signature is valid.

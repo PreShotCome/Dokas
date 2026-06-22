@@ -34,7 +34,7 @@ The integration is fully implemented; activation is configuration only.
 
 The `From` address must be a confirmed sender, or Postmark rejects the send.
 
-1. **Sender Signatures** → add your domain (e.g. `dokaz.io`).
+1. **Sender Signatures** → add your domain (e.g. `dokaz.net`).
 2. Add the **DKIM** and **Return-Path** DNS records Postmark shows you. The
    Return-Path record is what gives SPF alignment — Postmark walks you
    through it.
@@ -43,7 +43,7 @@ The `From` address must be a confirmed sender, or Postmark rejects the send.
 4. Wait for Postmark to report the domain **verified**.
 
 `EMAIL_FROM` must be an address on that verified domain (default
-`notifications@dokaz.io`).
+`notifications@dokaz.net`).
 
 ### 3. Configure the bounce / complaint webhook
 
@@ -61,7 +61,7 @@ Postmark webhooks carry no signature, so the URL embeds a secret token.
 | Variable | Required | Value |
 |---|---|---|
 | `POSTMARK_TOKEN` | yes | Server API Token from step 1 |
-| `EMAIL_FROM` | recommended | Verified `From` address (default `notifications@dokaz.io`) |
+| `EMAIL_FROM` | recommended | Verified `From` address (default `notifications@dokaz.net`) |
 | `POSTMARK_WEBHOOK_TOKEN` | recommended | Random secret from step 3 |
 
 ## Verify
