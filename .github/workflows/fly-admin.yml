@@ -15,6 +15,7 @@ on:
           - machines-list
           - status
           - scale-count-1
+          - kill-release-machines
 
 jobs:
   run:
@@ -29,5 +30,16 @@ jobs:
             machines-list) flyctl machines list -a dokaz ;;
             status)        flyctl status -a dokaz ;;
             scale-count-1) flyctl scale count 1 -a dokaz -y ;;
+            kill-release-machines)
+              # Destroy stray fly_app_release_command machines left behind by a
+              # timed-out release_command. They run the app image and so steal
+              # drill jobs from the River queue, but lack the volume + latest
+              # image, failing every drill. Only the 'app' group should run.
+              flyctl machines list -a dokaz --json \
+                | jq -r '.[] | select((.config.metadata.fly_process_group // "") == "fly_app_release_command") | .id' \
+                | while read -r id; do
+                    echo "destroying stray release machine $id"
+                    flyctl machine destroy "$id" -a dokaz --force
+                  done ;;
             *) echo "unknown command"; exit 1 ;;
           esac
