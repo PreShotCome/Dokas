@@ -16,6 +16,7 @@ on:
           - status
           - scale-count-1
           - kill-release-machines
+          - set-evidence-keys
 
 jobs:
   run:
@@ -41,5 +42,21 @@ jobs:
                     echo "destroying stray release machine $id"
                     flyctl machine destroy "$id" -a dokaz --force
                   done ;;
+            set-evidence-keys)
+              # Generate stable evidence keys IN THE RUNNER and set them as Fly
+              # secrets, so the values never appear in chat, code, or logs.
+              # Without these the server uses ephemeral keys that reset on every
+              # restart, so signatures stop verifying and at-rest evidence stops
+              # decrypting. Idempotent: skips if already set, never rotates.
+              if flyctl secrets list -a dokaz --json | jq -e '.[] | select(.Name=="EVIDENCE_SIGNING_KEY")' >/dev/null; then
+                echo "evidence keys already set — leaving them as-is (no rotation)"
+              else
+                ENC="$(openssl rand -base64 32)"
+                SIGN="$(openssl genpkey -algorithm ed25519)"
+                flyctl secrets set -a dokaz \
+                  EVIDENCE_ENCRYPTION_KEY="$ENC" \
+                  EVIDENCE_SIGNING_KEY="$SIGN" >/dev/null
+                echo "evidence keys generated and set (values not printed)"
+              fi ;;
             *) echo "unknown command"; exit 1 ;;
           esac
