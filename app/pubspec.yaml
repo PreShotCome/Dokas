@@ -23,6 +23,18 @@ dependencies:
 
 dev_dependencies:
   flutter_lints: ^3.0.0
+  # App-launcher icon generator. Android icons are already committed under
+  # res/mipmap-*; run `dart run flutter_launcher_icons` to (re)generate the
+  # iOS AppIcon set + Android adaptive icons from assets/icon.png.
+  flutter_launcher_icons: ^0.13.1
+
+flutter_launcher_icons:
+  image_path: "assets/icon.png"
+  android: true
+  ios: true
+  remove_alpha_ios: true
+  adaptive_icon_background: "#eef4ff"
+  adaptive_icon_foreground: "assets/icon.png"
 
 flutter:
   uses-material-design: true
