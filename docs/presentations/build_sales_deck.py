@@ -106,7 +106,7 @@ def page_chrome(slide, eyebrow, title, slide_num, total):
     textbox(slide, Inches(12.2), Inches(7.05), Inches(1), Inches(0.3),
             f'{slide_num} / {total}', size=9, color=ZINC_400, align=PP_ALIGN.RIGHT)
     textbox(slide, Inches(0.6), Inches(7.05), Inches(6), Inches(0.3),
-            'DOKAZ  ·  app.dokaz.io', size=9, color=ZINC_400)
+            'DOKAZ  ·  app.dokaz.net', size=9, color=ZINC_400)
 
 
 TOTAL = 6
@@ -142,7 +142,7 @@ textbox(s, Inches(0.9), Inches(5.3), Inches(11), Inches(0.8),
 # CTA strip
 rounded(s, Inches(0.9), Inches(6.45), Inches(5.2), Inches(0.55), GOLD_500, radius=0.4)
 textbox(s, Inches(0.9), Inches(6.46), Inches(5.2), Inches(0.55),
-        '→  Start free at  app.dokaz.io/signup', size=14, bold=True,
+        '→  Start free at  app.dokaz.net/signup', size=14, bold=True,
         color=BRAND_900, align=PP_ALIGN.CENTER, anchor=MSO_ANCHOR.MIDDLE)
 
 
@@ -441,11 +441,11 @@ step_chip(s, Inches(8.8),  Inches(3.4), '3',
 # Big CTA
 rounded(s, Inches(0.9), Inches(6.2), Inches(7.0), Inches(0.7), GOLD_500, radius=0.35)
 textbox(s, Inches(0.9), Inches(6.21), Inches(7.0), Inches(0.7),
-        '→  app.dokaz.io/signup', size=20, bold=True,
+        '→  app.dokaz.net/signup', size=20, bold=True,
         color=BRAND_900, align=PP_ALIGN.CENTER, anchor=MSO_ANCHOR.MIDDLE)
 
 textbox(s, Inches(8.2), Inches(6.32), Inches(4.8), Inches(0.5),
-        'Questions?  hello@dokaz.io', size=12, color=BRAND_100)
+        'Questions?  hello@dokaz.net', size=12, color=BRAND_100)
 
 
 out = Path(__file__).parent / 'Dokaz_Sales_Deck.pptx'

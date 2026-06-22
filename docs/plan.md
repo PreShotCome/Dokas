@@ -27,8 +27,8 @@ Locked decisions (from clarifying questions):
 
 Two deployable artifacts, single Postgres:
 
-1. **`app.dokaz.io`** — Go monolith (Chi + Templ + HTMX + Tailwind) serving the authenticated dashboard, API, webhooks, and orchestrator. Single binary, deployed to Fly.io.
-2. **`dokaz.io`** (marketing/docs/blog) — Astro static site on Cloudflare Pages. Decoupled so MDX content + Lighthouse SEO don't fight HTMX.
+1. **`app.dokaz.net`** — Go monolith (Chi + Templ + HTMX + Tailwind) serving the authenticated dashboard, API, webhooks, and orchestrator. Single binary, deployed to Fly.io.
+2. **`dokaz.net`** (marketing/docs/blog) — Astro static site on Cloudflare Pages. Decoupled so MDX content + Lighthouse SEO don't fight HTMX.
 
 Drill execution runs on **Fly Machines** spun on-demand per drill (no inbound network, scoped outbound to S3 + control plane, destroyed on completion). Job queue is **River** (Postgres-native) with each drill modeled as a multi-step workflow: `provision → fetch → restore → assert → report → teardown → bill`. Each step is its own River job with idempotency keys so failures resume mid-flight without re-restoring 80GB.
 
@@ -506,7 +506,7 @@ out of scope; the app gets a correct robots.txt.
   `FEATURE_<NAME>`) behind a `Flags` interface seam. `self_serve_signup`
   gates the signup route (off → "request access" / sales-led page).
 - **Referral:** the signed evidence PDF footer carries "Verified by
-  Dokaz — dokaz.io".
+  Dokaz — dokaz.net".
 - **robots.txt:** the app disallows indexing (marketing is indexed
   separately).
 

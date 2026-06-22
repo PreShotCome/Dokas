@@ -408,7 +408,7 @@ func SignupClosed() templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 26, " is sales-led</h1><p class=\"mb-4 text-sm text-zinc-600 dark:text-zinc-400\">We're onboarding customers directly right now. Email <a class=\"underline\" href=\"mailto:sales@dokaz.io\">sales@dokaz.io</a> and we'll get you set up.</p><a href=\"/login\" class=\"btn-ghost\">Already have an account? Sign in</a></div></div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 26, " is sales-led</h1><p class=\"mb-4 text-sm text-zinc-600 dark:text-zinc-400\">We're onboarding customers directly right now. Email <a class=\"underline\" href=\"mailto:sales@dokaz.net\">sales@dokaz.net</a> and we'll get you set up.</p><a href=\"/login\" class=\"btn-ghost\">Already have an account? Sign in</a></div></div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

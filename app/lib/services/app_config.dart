@@ -7,7 +7,7 @@ class AppConfig {
   static final AppConfig instance = AppConfig._();
 
   static const _key = 'backend_base_url';
-  static const _default = 'https://app.dokaz.io';
+  static const _default = 'https://app.dokaz.net';
 
   String _baseUrl = _default;
   String get baseUrl => _baseUrl;

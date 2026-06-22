@@ -332,7 +332,7 @@ for i, c in enumerate([RGBColor(0xEF, 0x44, 0x44), RGBColor(0xF5, 0x9E, 0x0B), E
                              Inches(0.13), Inches(0.13))
     dot.fill.solid(); dot.fill.fore_color.rgb = c; dot.line.fill.background()
 textbox(s, mock_left + Inches(0.95), mock_top + Inches(0.12), Inches(5), Inches(0.25),
-        'app.dokaz.io/drills/a1f9c2', size=9, color=ZINC_400, font='Consolas')
+        'app.dokaz.net/drills/a1f9c2', size=9, color=ZINC_400, font='Consolas')
 
 # Content
 textbox(s, mock_left + Inches(0.3), mock_top + Inches(0.7), Inches(4), Inches(0.35),
@@ -428,7 +428,7 @@ def drill_card(slide, left, top, w, h, *, status, pill_bg, pill_fg, stats, steps
                                      Inches(0.12), Inches(0.12))
         dot.fill.solid(); dot.fill.fore_color.rgb = c; dot.line.fill.background()
     textbox(slide, left + Inches(0.85), top + Inches(0.1), Inches(5), Inches(0.25),
-            'app.dokaz.io/drills/...', size=9, color=ZINC_400, font='Consolas')
+            'app.dokaz.net/drills/...', size=9, color=ZINC_400, font='Consolas')
     # header
     textbox(slide, left + Inches(0.3), top + Inches(0.6), Inches(3.5), Inches(0.3),
             'production-primary', size=13, bold=True, color=ZINC_900)
