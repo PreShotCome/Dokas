@@ -15,10 +15,12 @@ primary_region = "iad"
 [build]
   dockerfile = "Dockerfile"
 
-# Runs migrations in a one-off machine on the new image before the deploy
-# is promoted. DATABASE_URL must be set as a secret for this to work.
-[deploy]
-  release_command = "/app/migrate up"
+# No release_command: the server applies migrations itself at startup from
+# the SQL embedded in the binary (see cmd/server/main.go + internal/dbmigrate).
+# The previous `/app/migrate up` release machine frequently false-timed-out
+# waiting to be destroyed and aborted the entire deploy, so the new image
+# never shipped. Self-migration keeps a deploy to a single, reliable step.
+# Single-machine deployment, so there is no migration race on boot.
 
 [env]
   ADDR = ":8080"
