@@ -119,6 +119,18 @@ func main() {
 		os.Exit(1)
 	}
 
+	// Pre-stage the embedded sample dump on local disk at startup, before any
+	// drill worker runs. The sample drill's fetch step stats this file; the
+	// source dir is ephemeral, so materializing it here (in addition to per
+	// request) guarantees every worker process has it regardless of which
+	// process created the sample target.
+	if path, err := handlers.MaterializeSample(cfg.SourceDir); err != nil {
+		logger.Error("materialize sample dump", "err", err)
+		os.Exit(1)
+	} else {
+		logger.Info("sample dump staged", "path", path)
+	}
+
 	var drillRunner runner.Runner = runner.NewLocalRunner(cfg.DatabaseURL)
 	if cfg.FlyAPIToken != "" && cfg.FlyAppName != "" {
 		drillRunner = runner.NewFlyMachineRunner(
