@@ -23,7 +23,9 @@ func (h *Handlers) accountSettings(w http.ResponseWriter, r *http.Request) {
 	lc := h.layoutCtx(r)
 	members, _ := h.accounts.ListMembers(r.Context(), lc.Account.ID)
 	pending, _ := h.accounts.ListPendingInvitations(r.Context(), lc.Account.ID)
-	render(w, r, templates.AccountSettings(lc, members, pending, h.billing.Enabled()))
+	ch, _ := h.alerts.Get(r.Context(), lc.Account.ID)
+	render(w, r, templates.AccountSettings(lc, members, pending, h.billing.Enabled(),
+		templates.AlertStatus{Slack: ch.SlackWebhookURL != "", PagerDuty: ch.PagerDutyRoutingKey != ""}))
 }
 
 // --- /account/invitations ---

@@ -18,3 +18,21 @@ const (
 type Notifier interface {
 	NotifyDrill(ctx context.Context, drill Drill, event, reason string) error
 }
+
+// MultiNotifier fans a drill notification out to several notifiers (e.g.
+// mobile push + Slack/PagerDuty). A failure in one does not stop the others;
+// the first error is returned for logging.
+type MultiNotifier []Notifier
+
+func (m MultiNotifier) NotifyDrill(ctx context.Context, drill Drill, event, reason string) error {
+	var firstErr error
+	for _, n := range m {
+		if n == nil {
+			continue
+		}
+		if err := n.NotifyDrill(ctx, drill, event, reason); err != nil && firstErr == nil {
+			firstErr = err
+		}
+	}
+	return firstErr
+}

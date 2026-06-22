@@ -7,7 +7,14 @@ import (
 	"github.com/preshotcome/dokaz/internal/auth"
 )
 
-templ AccountSettings(lc LayoutCtx, members []account.MembershipWithUser, pending []account.Invitation, stripeEnabled bool) {
+// AlertStatus reports which outbound alert channels an account has configured
+// (the secrets themselves are never sent to the template).
+type AlertStatus struct {
+	Slack     bool
+	PagerDuty bool
+}
+
+templ AccountSettings(lc LayoutCtx, members []account.MembershipWithUser, pending []account.Invitation, stripeEnabled bool, alerts AlertStatus) {
 	@LayoutWith("Account", lc) {
 		<h1 class="mb-6 text-2xl font-semibold tracking-tight">Account</h1>
 
@@ -62,6 +69,60 @@ templ AccountSettings(lc LayoutCtx, members []account.MembershipWithUser, pendin
 				}
 			</div>
 		</section>
+
+		if lc.Membership != nil && auth.Allowed(lc.Membership.Role, auth.ActionAccountWrite) {
+			<section class="mb-8">
+				<h2 class="mb-3 text-lg font-semibold">Alerts</h2>
+				<form method="POST" action="/account/alerts" class="card space-y-5">
+					@CSRFField()
+					<p class="text-sm text-zinc-600 dark:text-zinc-400">
+						Get a drill failure or a backup check-in going dark pushed straight to
+						Slack and PagerDuty, alongside email and mobile push.
+					</p>
+					<div>
+						<div class="flex items-center justify-between">
+							<label class="label mb-0" for="slack_webhook_url">Slack incoming webhook URL</label>
+							if alerts.Slack {
+								<span class="inline-flex items-center gap-1 text-xs font-medium text-emerald-700 dark:text-emerald-400">
+									@landingCheck()
+									Configured
+								</span>
+							}
+						</div>
+						<input id="slack_webhook_url" name="slack_webhook_url" type="url" autocomplete="off"
+							class="form-input mt-1" placeholder={ slackPlaceholder(alerts.Slack) }/>
+						if alerts.Slack {
+							<label class="form-hint mt-1 inline-flex items-center gap-1.5">
+								<input type="checkbox" name="clear_slack" value="1"/> Remove the Slack webhook
+							</label>
+						} else {
+							<p class="form-hint">Slack → Apps → Incoming Webhooks → Add to a channel, then paste the URL.</p>
+						}
+					</div>
+					<div>
+						<div class="flex items-center justify-between">
+							<label class="label mb-0" for="pagerduty_routing_key">PagerDuty integration key</label>
+							if alerts.PagerDuty {
+								<span class="inline-flex items-center gap-1 text-xs font-medium text-emerald-700 dark:text-emerald-400">
+									@landingCheck()
+									Configured
+								</span>
+							}
+						</div>
+						<input id="pagerduty_routing_key" name="pagerduty_routing_key" type="text" autocomplete="off"
+							class="form-input mt-1" placeholder={ pdPlaceholder(alerts.PagerDuty) }/>
+						if alerts.PagerDuty {
+							<label class="form-hint mt-1 inline-flex items-center gap-1.5">
+								<input type="checkbox" name="clear_pagerduty" value="1"/> Remove the PagerDuty key
+							</label>
+						} else {
+							<p class="form-hint">An Events API v2 integration key from a PagerDuty service.</p>
+						}
+					</div>
+					<button type="submit" class="btn-primary">Save alert settings</button>
+				</form>
+			</section>
+		}
 
 		<section class="mb-8">
 			<h2 class="mb-3 text-lg font-semibold">Security</h2>
@@ -276,4 +337,20 @@ templ billingCheckout(plan, label string) {
 		<input type="hidden" name="plan" value={ plan }/>
 		<button type="submit" class="btn-primary text-sm">{ label }</button>
 	</form>
+}
+
+// slackPlaceholder / pdPlaceholder pick the input placeholder: a prompt when
+// unset, or a "leave blank to keep" hint when a value is already stored.
+func slackPlaceholder(configured bool) string {
+	if configured {
+		return "Leave blank to keep the current webhook"
+	}
+	return "https://hooks.slack.com/services/T000/B000/XXXX"
+}
+
+func pdPlaceholder(configured bool) string {
+	if configured {
+		return "Leave blank to keep the current key"
+	}
+	return "PagerDuty Events API v2 integration key"
 }

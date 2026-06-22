@@ -17,6 +17,7 @@ import (
 	"github.com/riverqueue/river/riverdriver/riverpgxv5"
 
 	"github.com/preshotcome/dokaz/internal/account"
+	"github.com/preshotcome/dokaz/internal/alerting"
 	"github.com/preshotcome/dokaz/internal/analytics"
 	"github.com/preshotcome/dokaz/internal/apikey"
 	"github.com/preshotcome/dokaz/internal/audit"
@@ -163,11 +164,18 @@ func main() {
 	} else {
 		logger.Info("push disabled (no FIREBASE_SERVICE_ACCOUNT) — using log sender")
 	}
+	// Per-account Slack + PagerDuty alerts, alongside email and mobile push.
+	alertStore := alerting.NewStore(pool)
+	alertNotifier := alerting.New(alertStore, logger)
 	heartbeatNotifier := heartbeat.MultiNotifier{
 		heartbeatnotify.New(mailer, accountStore, cfg.BaseURL, logger),
 		push.NewHeartbeatNotifier(pushDevices, pushSender, logger),
+		alertNotifier,
 	}
-	drillNotifier := push.NewDrillNotifier(pushDevices, pushSender, logger)
+	drillNotifier := drill.MultiNotifier{
+		push.NewDrillNotifier(pushDevices, pushSender, logger),
+		alertNotifier,
+	}
 	analyticsClient := analytics.New(cfg.PostHogAPIKey, cfg.PostHogHost, logger)
 	featureFlags := flags.New(cfg.PostHogAPIKey, cfg.PostHogHost, logger)
 	oauthRegistry := oauth.NewRegistry(
@@ -283,6 +291,7 @@ func main() {
 		Throttle:        loginThrottle,
 		Webhooks:        webhookStore,
 		WebhookDispatch: webhookDispatch,
+		Alerts:          alertStore,
 		CSRF:            csrf.New(cfg.IsProduction(), "/webhooks/", "/v1/", "/ping/", "/mobile/"),
 		AuthLimiter:     authLimiter,
 		AppLimiter:      appLimiter,

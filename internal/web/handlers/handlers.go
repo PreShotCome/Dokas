@@ -11,6 +11,7 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 
 	"github.com/preshotcome/dokaz/internal/account"
+	"github.com/preshotcome/dokaz/internal/alerting"
 	"github.com/preshotcome/dokaz/internal/analytics"
 	"github.com/preshotcome/dokaz/internal/apikey"
 	"github.com/preshotcome/dokaz/internal/audit"
@@ -46,6 +47,7 @@ type Handlers struct {
 	throttle        *auth.LoginThrottle
 	webhooks        *webhooks.Store
 	webhookDispatch *webhooks.Dispatcher
+	alerts          *alerting.Store
 	csrf            *csrf.Protector
 	authLimiter     *ratelimit.Limiter
 	appLimiter      *ratelimit.Limiter
@@ -89,6 +91,7 @@ type Deps struct {
 	Throttle        *auth.LoginThrottle
 	Webhooks        *webhooks.Store
 	WebhookDispatch *webhooks.Dispatcher
+	Alerts          *alerting.Store
 	CSRF            *csrf.Protector
 	AuthLimiter     *ratelimit.Limiter
 	AppLimiter      *ratelimit.Limiter
@@ -136,6 +139,7 @@ func New(d Deps) *Handlers {
 		billing:         d.Billing,
 		throttle:        d.Throttle,
 		webhooks:        d.Webhooks,
+		alerts:          d.Alerts,
 		webhookDispatch: d.WebhookDispatch,
 		csrf:            d.CSRF,
 		authLimiter:     d.AuthLimiter,
@@ -454,6 +458,7 @@ func (h *Handlers) Router(staticFS http.FileSystem) http.Handler {
 			r.Post("/account/webhooks/{id}/deliveries/{delivery_id}/replay", h.webhookReplay)
 			r.Post("/account/api-keys", h.apiKeyCreate)
 			r.Post("/account/api-keys/{id}/revoke", h.apiKeyRevoke)
+			r.Post("/account/alerts", h.alertChannelsSave)
 			r.Get("/account/export", h.accountExport)
 			r.Post("/account/delete", h.accountDelete)
 		})
