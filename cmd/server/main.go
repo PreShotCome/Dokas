@@ -25,6 +25,7 @@ import (
 	"github.com/preshotcome/dokaz/internal/compliance"
 	"github.com/preshotcome/dokaz/internal/config"
 	"github.com/preshotcome/dokaz/internal/db"
+	"github.com/preshotcome/dokaz/internal/dbmigrate"
 	"github.com/preshotcome/dokaz/internal/drill"
 	"github.com/preshotcome/dokaz/internal/drill/steps"
 	"github.com/preshotcome/dokaz/internal/email"
@@ -70,6 +71,21 @@ func main() {
 		defer shutCancel()
 		observ.Shutdown(shutCtx)
 	}()
+
+	// Apply migrations at startup from the embedded SQL. This replaces the
+	// flaky Fly release_command machine (which often false-timed-out waiting
+	// to be destroyed and aborted the whole deploy). The binary is now
+	// self-contained: it brings the schema up to date itself before serving.
+	// Single-machine deployment, so there is no migration race. Set
+	// DISABLE_STARTUP_MIGRATE=1 to skip (e.g. if running a manual migration).
+	if os.Getenv("DISABLE_STARTUP_MIGRATE") != "1" {
+		logger.Info("applying migrations")
+		if err := dbmigrate.Up(rootCtx, cfg.DatabaseURL); err != nil {
+			logger.Error("migrate", "err", err)
+			os.Exit(1)
+		}
+		logger.Info("migrations up to date")
+	}
 
 	pool, err := db.Open(rootCtx, cfg.DatabaseURL)
 	if err != nil {
