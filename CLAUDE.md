@@ -37,3 +37,28 @@ log live in `docs/plan.md` and `docs/backlog.md` — read them first.
 - Every goose migration needs paired `+goose Up` / `+goose Down` sections
   (CI enforces this).
 - Tests that need Postgres skip when `DATABASE_URL` is unset.
+
+## End-to-end testing (no manual steps)
+
+`scripts/e2e.sh` is the one-command, zero-input check. In a web session the
+SessionStart hook has already started Postgres and exported `DATABASE_URL`,
+so just run:
+
+```
+bash scripts/e2e.sh
+```
+
+It migrates, runs `go test ./...`, boots a real server, then runs two
+crawlers against it and tears the server down:
+
+- `cmd/linkcheck` — signs up a throwaway account and crawls every page
+  (public + authenticated nav), failing on any broken link or error page.
+- `cmd/e2e-smoke` — walks signup → sample drill → signed PDF and asserts
+  the verdict is PASSED.
+
+To link-check the **live** site without signing up (read-only, public
+pages only):
+
+```
+BASE_URL=https://dokaz.net LINKCHECK_PUBLIC_ONLY=1 go run ./cmd/linkcheck
+```
