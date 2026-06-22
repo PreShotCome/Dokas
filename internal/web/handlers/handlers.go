@@ -284,6 +284,9 @@ func (h *Handlers) Router(staticFS http.FileSystem) http.Handler {
 	r.Get("/verify", h.verifyEvidencePage)
 	r.Post("/verify", h.verifyEvidence)
 
+	// Public status page — live component health for trust + transparency.
+	r.Get("/status", h.statusPage)
+
 	// Onboarding sample dump — a known-good fixture a new user can run
 	// their first drill against before connecting a real database.
 	r.Get("/onboarding/sample.dump", h.onboardingSampleDump)
