@@ -37,33 +37,37 @@ templ Layout(title string, user *auth.User) {
 	}
 }
 
-// Logo is the brand mark — a stylized turtle. Blue shell (proof your data
-// is held), steely flippers, pink central scute. Matches the Flutter app
-// (assets/turtle.svg). Pure decoration; the adjacent wordmark carries the
-// name.
+// Logo is the brand mark — a turtle shell drawn as a hexagonal shield
+// (protection + longevity) with a verified check at its centre (proof your
+// backup restores). Source of truth: branding/logo.svg, from which the
+// favicons, app icon, and social card are rendered. Pure decoration; the
+// adjacent wordmark carries the name.
 templ Logo() {
 	<svg viewBox="0 0 64 64" class="h-7 w-7 shrink-0" aria-hidden="true" focusable="false">
-		<g fill="#8FA3B8">
-			<ellipse cx="15" cy="25" rx="6.5" ry="4.6" transform="rotate(-38 15 25)"></ellipse>
-			<ellipse cx="49" cy="25" rx="6.5" ry="4.6" transform="rotate(38 49 25)"></ellipse>
-			<ellipse cx="15" cy="46" rx="6.5" ry="4.6" transform="rotate(38 15 46)"></ellipse>
-			<ellipse cx="49" cy="46" rx="6.5" ry="4.6" transform="rotate(-38 49 46)"></ellipse>
+		<defs>
+			<linearGradient id="logoShell" x1="32" y1="12" x2="32" y2="58" gradientUnits="userSpaceOnUse">
+				<stop offset="0" stop-color="#7FA8F6"></stop>
+				<stop offset="1" stop-color="#4F7BE0"></stop>
+			</linearGradient>
+		</defs>
+		<g fill="#7A8A9C">
+			<ellipse cx="14" cy="24" rx="6" ry="4.2" transform="rotate(-40 14 24)"></ellipse>
+			<ellipse cx="50" cy="24" rx="6" ry="4.2" transform="rotate(40 50 24)"></ellipse>
+			<ellipse cx="14" cy="47" rx="6" ry="4.2" transform="rotate(40 14 47)"></ellipse>
+			<ellipse cx="50" cy="47" rx="6" ry="4.2" transform="rotate(-40 50 47)"></ellipse>
+			<circle cx="32" cy="9.5" r="6"></circle>
 		</g>
-		<circle cx="32" cy="11" r="6.5" fill="#8FA3B8"></circle>
-		<circle cx="29.6" cy="10.2" r="1.1" fill="#1B2027"></circle>
-		<circle cx="34.4" cy="10.2" r="1.1" fill="#1B2027"></circle>
-		<ellipse cx="32" cy="35" rx="21" ry="18" fill="#6E9BF0"></ellipse>
-		<ellipse cx="32" cy="35" rx="21" ry="18" fill="none" stroke="#4F7BE0" stroke-width="2.4"></ellipse>
-		<path d="M32 23 L42 30 L42 41 L32 47 L22 41 L22 30 Z" fill="#5B8DEF" stroke="#F48FB1" stroke-width="1.8" stroke-linejoin="round"></path>
-		<g stroke="#4F7BE0" stroke-width="1.8" stroke-linecap="round">
-			<line x1="32" y1="23" x2="32" y2="17.5"></line>
-			<line x1="42" y1="30" x2="49" y2="27"></line>
-			<line x1="42" y1="41" x2="49" y2="45"></line>
-			<line x1="32" y1="47" x2="32" y2="52.5"></line>
-			<line x1="22" y1="41" x2="15" y2="45"></line>
-			<line x1="22" y1="30" x2="15" y2="27"></line>
+		<path d="M32 13 L51 24 L51 46 L32 57 L13 46 L13 24 Z" fill="url(#logoShell)" stroke="#3F63C4" stroke-width="2.6" stroke-linejoin="round"></path>
+		<path d="M32 22 L43.5 28.5 L43.5 41.5 L32 48 L20.5 41.5 L20.5 28.5 Z" fill="#5B8DEF" stroke="#3F63C4" stroke-width="1.6" stroke-linejoin="round"></path>
+		<g stroke="#3F63C4" stroke-width="1.6" stroke-linecap="round">
+			<line x1="32" y1="22" x2="32" y2="13"></line>
+			<line x1="43.5" y1="28.5" x2="51" y2="24"></line>
+			<line x1="43.5" y1="41.5" x2="51" y2="46"></line>
+			<line x1="32" y1="48" x2="32" y2="57"></line>
+			<line x1="20.5" y1="41.5" x2="13" y2="46"></line>
+			<line x1="20.5" y1="28.5" x2="13" y2="24"></line>
 		</g>
-		<circle cx="32" cy="35.5" r="2.6" fill="#F48FB1"></circle>
+		<path d="M26.3 35 L30.5 39.2 L38.2 30.2" fill="none" stroke="#FFFFFF" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"></path>
 	</svg>
 }
 
@@ -74,8 +78,21 @@ templ LayoutWith(title string, lc LayoutCtx) {
 			<meta charset="UTF-8"/>
 			<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 			<meta name="referrer" content="strict-origin-when-cross-origin"/>
+			<meta name="description" content="Automated restore drills that prove your database backups actually recover — with signed, independently verifiable Proof-of-Recovery evidence for SOC 2, ISO 27001, and cyber-insurance."/>
 			<title>{ title } · { branding.ProductName }</title>
+			<!-- Social share card (Open Graph + Twitter) -->
+			<meta property="og:type" content="website"/>
+			<meta property="og:site_name" content={ branding.ProductName }/>
+			<meta property="og:title" content={ title + " · " + branding.ProductName }/>
+			<meta property="og:description" content="Prove your backups actually restore. Signed Proof-of-Recovery evidence for SOC 2, ISO 27001, and cyber-insurance renewals."/>
+			<meta property="og:image" content={ "https://" + branding.DomainSite + "/static/og.png" }/>
+			<meta property="og:url" content={ "https://" + branding.DomainSite }/>
+			<meta name="twitter:card" content="summary_large_image"/>
+			<meta name="twitter:title" content={ title + " · " + branding.ProductName }/>
+			<meta name="twitter:description" content="Prove your backups actually restore. Signed Proof-of-Recovery evidence."/>
+			<meta name="twitter:image" content={ "https://" + branding.DomainSite + "/static/og.png" }/>
 			<link rel="icon" type="image/x-icon" href="/static/favicon.ico"/>
+			<link rel="icon" type="image/svg+xml" href="/static/favicon.svg"/>
 			<link rel="icon" type="image/png" sizes="32x32" href="/static/favicon-32.png"/>
 			<link rel="icon" type="image/png" sizes="16x16" href="/static/favicon-16.png"/>
 			<link rel="apple-touch-icon" sizes="180x180" href="/static/favicon-180.png"/>
