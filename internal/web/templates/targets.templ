@@ -9,6 +9,7 @@ import (
 	"github.com/preshotcome/dokaz/internal/auth"
 	"github.com/preshotcome/dokaz/internal/branding"
 	"github.com/preshotcome/dokaz/internal/drill"
+	"github.com/preshotcome/dokaz/internal/readiness"
 )
 
 type TargetFormValues struct {
@@ -16,7 +17,7 @@ type TargetFormValues struct {
 	SourceURI string
 }
 
-templ TargetsPage(lc LayoutCtx, targets []drill.Target) {
+templ TargetsPage(lc LayoutCtx, targets []drill.Target, scores map[string]readiness.Score) {
 	@LayoutWith("Databases", lc) {
 		<div class="mb-6 flex items-baseline justify-between gap-3">
 			<h1 class="text-2xl font-semibold tracking-tight">Databases</h1>
@@ -43,7 +44,7 @@ templ TargetsPage(lc LayoutCtx, targets []drill.Target) {
 				}
 			</div>
 		} else {
-			@TargetsTable(targets, lc.Membership)
+			@TargetsTable(targets, lc.Membership, scores)
 		}
 	}
 }
@@ -58,12 +59,13 @@ templ sampleDrillForm(label, btnClass string) {
 	</form>
 }
 
-templ TargetsTable(targets []drill.Target, m *account.Membership) {
+templ TargetsTable(targets []drill.Target, m *account.Membership, scores map[string]readiness.Score) {
 	<div class="card overflow-x-auto p-0">
 		<table class="min-w-full divide-y divide-zinc-200 text-sm dark:divide-zinc-800">
 			<thead class="bg-zinc-50 dark:bg-zinc-900/50">
 				<tr>
 					<th class="px-4 py-2 text-left font-medium">Name</th>
+					<th class="px-4 py-2 text-left font-medium">Recovery readiness</th>
 					<th class="px-4 py-2 text-left font-medium">Source</th>
 					<th class="px-4 py-2 text-right font-medium">Actions</th>
 				</tr>
@@ -74,6 +76,13 @@ templ TargetsTable(targets []drill.Target, m *account.Membership) {
 						<td class="px-4 py-2 font-medium">
 							<a class="underline" href={ templ.SafeURL("/databases/" + t.ID.String()) }>{ t.Name }</a>
 						</td>
+						<td class="px-4 py-2">
+							if sc, ok := scores[t.ID.String()]; ok {
+								@ReadinessBadge(sc)
+							} else {
+								<span class="text-xs text-zinc-400">—</span>
+							}
+						</td>
 						<td class="px-4 py-2 font-mono text-xs text-zinc-600 dark:text-zinc-400">{ t.SourceURI }</td>
 						<td class="px-4 py-2 text-right">
 							<a href={ templ.SafeURL("/databases/" + t.ID.String()) } class="text-sm underline">Manage</a>
@@ -83,6 +92,28 @@ templ TargetsTable(targets []drill.Target, m *account.Membership) {
 			</tbody>
 		</table>
 	</div>
+}
+
+// ReadinessBadge renders a recovery-readiness score as a coloured grade pill
+// with the score and a tooltip summary.
+templ ReadinessBadge(sc readiness.Score) {
+	<span class={ "inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium", readinessClasses(sc.Tone) } title={ sc.Summary }>
+		<span class="font-semibold">{ sc.Grade }</span>
+		<span class="opacity-80">{ sc.Label }</span>
+		<span class="opacity-60">· { fmt.Sprintf("%d", sc.Value) }</span>
+	</span>
+}
+
+// readinessClasses maps a score tone to badge colours.
+func readinessClasses(tone string) string {
+	switch tone {
+	case "green":
+		return "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300"
+	case "amber":
+		return "bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300"
+	default:
+		return "bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300"
+	}
 }
 
 templ TargetNewForm(lc LayoutCtx, values TargetFormValues, errMsg string) {

@@ -13,6 +13,7 @@ import (
 	"github.com/preshotcome/dokaz/internal/auth"
 	"github.com/preshotcome/dokaz/internal/drill"
 	"github.com/preshotcome/dokaz/internal/heartbeat"
+	"github.com/preshotcome/dokaz/internal/readiness"
 )
 
 // DashboardView is the dashboard's input bundle.
@@ -21,6 +22,7 @@ type DashboardView struct {
 	Targets    []drill.Target
 	Drills     []drill.Drill
 	Heartbeats []heartbeat.Heartbeat
+	Scores     map[string]readiness.Score
 	BaseURL    string
 }
 
@@ -87,7 +89,7 @@ func Dashboard(v DashboardView) templ.Component {
 						return templ_7745c5c3_Err
 					}
 				} else {
-					templ_7745c5c3_Err = TargetsTable(v.Targets, v.Ctx.Membership).Render(ctx, templ_7745c5c3_Buffer)
+					templ_7745c5c3_Err = TargetsTable(v.Targets, v.Ctx.Membership, v.Scores).Render(ctx, templ_7745c5c3_Buffer)
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}

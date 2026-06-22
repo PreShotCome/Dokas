@@ -5,6 +5,7 @@ import (
 	"github.com/preshotcome/dokaz/internal/auth"
 	"github.com/preshotcome/dokaz/internal/drill"
 	"github.com/preshotcome/dokaz/internal/heartbeat"
+	"github.com/preshotcome/dokaz/internal/readiness"
 )
 
 // DashboardView is the dashboard's input bundle.
@@ -13,6 +14,7 @@ type DashboardView struct {
 	Targets    []drill.Target
 	Drills     []drill.Drill
 	Heartbeats []heartbeat.Heartbeat
+	Scores     map[string]readiness.Score
 	BaseURL    string
 }
 
@@ -32,7 +34,7 @@ templ Dashboard(v DashboardView) {
 				if len(v.Targets) == 0 {
 					<p class="text-sm text-zinc-500">No databases yet.</p>
 				} else {
-					@TargetsTable(v.Targets, v.Ctx.Membership)
+					@TargetsTable(v.Targets, v.Ctx.Membership, v.Scores)
 				}
 			</section>
 			<section>
