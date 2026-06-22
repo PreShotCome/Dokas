@@ -12,9 +12,13 @@
   }
   body {
     @apply text-zinc-100 antialiased;
-    /* Steely charcoal easing into a deeper slate — matches the app's
-       VS palette. Away from flat black, no warm tones. */
-    background: linear-gradient(to right, #252c35, #1b2027);
+    /* Steely charcoal base with two soft brand glows for depth — a cool
+       blue from the top-left and a faint pink from the top-right. Keeps the
+       VS palette but stops the page reading as a flat slab. */
+    background:
+      radial-gradient(900px 520px at 12% -8%, rgba(79, 123, 224, 0.20), transparent 60%),
+      radial-gradient(720px 520px at 100% -4%, rgba(244, 143, 177, 0.10), transparent 55%),
+      linear-gradient(to right, #252c35, #1b2027);
     background-attachment: fixed;
   }
   /* WCAG 2.4.7: every focusable element gets a visible focus indicator,
@@ -33,10 +37,13 @@
   .btn,
   .btn-primary,
   .btn-ghost {
-    @apply inline-flex items-center justify-center rounded-md px-4 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-brand-500 disabled:opacity-50;
+    @apply inline-flex items-center justify-center rounded-md px-4 py-2 text-sm font-medium transition duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-brand-500 disabled:opacity-50;
   }
+  /* Primary CTA: a subtle vertical gradient + soft brand shadow that
+     brightens and lifts on hover, presses on click. Reads as a real button,
+     not a flat fill. */
   .btn-primary {
-    @apply bg-brand-700 text-white hover:bg-brand-600;
+    @apply bg-gradient-to-b from-brand-500 to-brand-700 text-white shadow-sm shadow-brand-900/40 hover:from-brand-400 hover:to-brand-600 hover:shadow-md hover:shadow-brand-900/50 hover:-translate-y-px active:translate-y-0 active:shadow-sm;
   }
   .btn-ghost {
     @apply bg-transparent hover:bg-zinc-200 dark:hover:bg-zinc-800;
@@ -56,7 +63,15 @@
     @apply absolute left-2 top-2 z-50 -translate-y-16 rounded-md bg-brand-700 px-3 py-2 text-sm font-medium text-white transition-transform focus-visible:translate-y-0;
   }
   .card {
-    @apply rounded-lg border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-900;
+    @apply rounded-xl border border-zinc-200 bg-white p-6 shadow-sm transition-shadow duration-150 hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900;
+  }
+  /* hero-grid: a faint dot grid laid behind the hero for texture. Masked to
+     fade out toward the edges so it never competes with the content. */
+  .hero-grid {
+    background-image: radial-gradient(currentColor 1px, transparent 1px);
+    background-size: 22px 22px;
+    -webkit-mask-image: radial-gradient(ellipse 80% 70% at 50% 35%, #000 40%, transparent 80%);
+    mask-image: radial-gradient(ellipse 80% 70% at 50% 35%, #000 40%, transparent 80%);
   }
   .alert-error {
     @apply rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800 dark:border-red-900/50 dark:bg-red-950/50 dark:text-red-200;

@@ -8,6 +8,7 @@ templ Landing(lc LayoutCtx) {
 	@LayoutWith("Backup verification as a service", lc) {
 		<div class="space-y-24">
 			@landingHero()
+			@landingTrust()
 			@landingHow()
 			@landingEvidence()
 			@landingFeatures()
@@ -20,26 +21,56 @@ templ Landing(lc LayoutCtx) {
 // --- hero -------------------------------------------------------------
 
 templ landingHero() {
-	<section class="relative overflow-hidden rounded-3xl border border-zinc-200 bg-gradient-to-b from-brand-50 to-white px-6 py-14 text-center dark:border-zinc-800 dark:from-brand-900/30 dark:to-zinc-950">
-		<p class="mb-5 inline-flex items-center gap-2 rounded-full border border-gold-300 bg-white/70 px-3 py-1 text-xs font-medium text-gold-700 dark:border-gold-700 dark:bg-gold-700/15 dark:text-gold-300">
-			<span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
-			Backup verification as a service
-		</p>
-		<h1 class="mx-auto max-w-3xl text-4xl font-semibold tracking-tight sm:text-5xl">
-			Your backups are untested until something restores them.
-		</h1>
-		<p class="mx-auto mt-5 max-w-xl text-lg text-zinc-600 dark:text-zinc-400">
-			{ branding.ProductName } restores your database backups in an isolated sandbox on a
-			schedule, proves the data really came back, and signs the result —
-			so a broken backup shows up in a report, not an outage.
-		</p>
-		<div class="mt-8 flex flex-wrap justify-center gap-3">
-			<a href="/signup" class="btn-primary px-6 py-3 text-base">Start free</a>
-			<a href="/pricing" class="btn-ghost px-6 py-3 text-base">View pricing</a>
+	<section class="relative overflow-hidden rounded-3xl border border-zinc-200 bg-gradient-to-b from-brand-50 to-white px-6 py-16 text-center dark:border-zinc-800 dark:from-brand-900/30 dark:to-zinc-950">
+		<div class="hero-grid pointer-events-none absolute inset-0 text-brand-400/25 dark:text-brand-300/15"></div>
+		<div class="relative">
+			<div class="mb-6 flex justify-center">
+				<span class="flex h-16 w-16 items-center justify-center rounded-2xl border border-brand-200 bg-white/80 shadow-lg shadow-brand-900/10 dark:border-brand-800 dark:bg-zinc-900/80">
+					<span class="h-10 w-10">
+						@Logo()
+					</span>
+				</span>
+			</div>
+			<p class="mb-5 inline-flex items-center gap-2 rounded-full border border-gold-300 bg-white/70 px-3 py-1 text-xs font-medium text-gold-700 dark:border-gold-700 dark:bg-gold-700/15 dark:text-gold-300">
+				<span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
+				Backup verification as a service
+			</p>
+			<h1 class="mx-auto max-w-3xl text-4xl font-semibold tracking-tight sm:text-5xl">
+				Your backups are untested until something restores them.
+			</h1>
+			<p class="mx-auto mt-5 max-w-xl text-lg text-zinc-600 dark:text-zinc-400">
+				{ branding.ProductName } restores your database backups in an isolated sandbox on a
+				schedule, proves the data really came back, and signs the result —
+				so a broken backup shows up in a report, not an outage.
+			</p>
+			<div class="mt-8 flex flex-wrap justify-center gap-3">
+				<a href="/signup" class="btn-primary px-6 py-3 text-base">Start free</a>
+				<a href="/pricing" class="btn-ghost px-6 py-3 text-base">View pricing</a>
+			</div>
+			<p class="mt-4 text-xs text-zinc-500">First month $1 · Cancel anytime · Postgres supported today</p>
+			<div class="mx-auto mt-12 max-w-3xl">
+				@landingMockup()
+			</div>
 		</div>
-		<p class="mt-4 text-xs text-zinc-500">No card required · Postgres supported today</p>
-		<div class="mx-auto mt-12 max-w-3xl">
-			@landingMockup()
+	</section>
+}
+
+// landingTrust is the compliance/standards strip under the hero — the
+// frameworks a signed Proof-of-Recovery report supports. Names only, no
+// borrowed logos.
+templ landingTrust() {
+	<section class="-mt-12">
+		<p class="text-center text-xs font-medium uppercase tracking-widest text-zinc-500">
+			Evidence your auditor and insurer accept
+		</p>
+		<div class="mt-4 flex flex-wrap items-center justify-center gap-x-8 gap-y-3 text-sm font-semibold text-zinc-500 dark:text-zinc-400">
+			<span>SOC 2</span>
+			<span class="text-zinc-300 dark:text-zinc-700">·</span>
+			<span>ISO 27001</span>
+			<span class="text-zinc-300 dark:text-zinc-700">·</span>
+			<span>HIPAA</span>
+			<span class="text-zinc-300 dark:text-zinc-700">·</span>
+			<span>Cyber-insurance renewals</span>
 		</div>
 	</section>
 }
