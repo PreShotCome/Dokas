@@ -1,0 +1,67 @@
+package templates
+
+import "github.com/preshotcome/dokaz/internal/branding"
+
+// StatusComponent is one row on the public status page.
+type StatusComponent struct {
+	Name   string
+	Detail string
+	OK     bool
+}
+
+// StatusPage is the public health page. Overall status is "operational" only
+// when every component check passes.
+templ StatusPage(lc LayoutCtx, components []StatusComponent) {
+	@LayoutWith("Status", lc) {
+		<div class="mx-auto max-w-2xl">
+			if allOK(components) {
+				<div class="card mb-6 flex items-center gap-3 border-emerald-300 bg-emerald-50 dark:border-emerald-800 dark:bg-emerald-950/40">
+					<span class="flex h-9 w-9 items-center justify-center rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-900/60 dark:text-emerald-300">
+						@landingCheck()
+					</span>
+					<div>
+						<p class="font-semibold text-emerald-900 dark:text-emerald-200">All systems operational</p>
+						<p class="text-xs text-emerald-700 dark:text-emerald-400">{ branding.ProductName } is running normally.</p>
+					</div>
+				</div>
+			} else {
+				<div class="alert-warning mb-6">
+					<p class="font-semibold">Some systems are degraded</p>
+					<p class="mt-1 text-sm">We're aware of an issue with one or more components below and are looking into it.</p>
+				</div>
+			}
+
+			<div class="card divide-y divide-zinc-200 p-0 dark:divide-zinc-800">
+				for _, c := range components {
+					<div class="flex items-center justify-between px-5 py-4">
+						<div>
+							<p class="text-sm font-medium">{ c.Name }</p>
+							<p class="text-xs text-zinc-500">{ c.Detail }</p>
+						</div>
+						if c.OK {
+							<span class="inline-flex items-center gap-1.5 rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-medium text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300">
+								<span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
+								Operational
+							</span>
+						} else {
+							<span class="inline-flex items-center gap-1.5 rounded-full bg-red-100 px-2.5 py-1 text-xs font-medium text-red-800 dark:bg-red-900/40 dark:text-red-300">
+								<span class="h-1.5 w-1.5 rounded-full bg-red-500"></span>
+								Degraded
+							</span>
+						}
+					</div>
+				}
+			</div>
+			<p class="mt-4 text-center text-xs text-zinc-500">Live checks, refreshed each time this page loads.</p>
+		</div>
+	}
+}
+
+func allOK(components []StatusComponent) bool {
+	for _, c := range components {
+		if !c.OK {
+			return false
+		}
+	}
+	return true
+}
