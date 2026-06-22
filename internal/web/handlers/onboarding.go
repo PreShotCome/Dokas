@@ -51,7 +51,17 @@ func (h *Handlers) onboardingSampleDump(w http.ResponseWriter, _ *http.Request) 
 // target row survives in the database. The embedded dump in the binary is the
 // real source of truth — disk is just a cache the runner can stat.
 func (h *Handlers) materializeSample() (string, error) {
-	dir, err := filepath.Abs(filepath.Join(h.sourceDir, "_"+branding.Slug+"_sample"))
+	return MaterializeSample(h.sourceDir)
+}
+
+// MaterializeSample writes the embedded sample dump under sourceDir and
+// returns its absolute path. Exported so the server can call it once at
+// startup — that guarantees the dump is on the local disk of every machine
+// that runs a drill worker, before any job runs, regardless of which process
+// first created the sample target. See materializeSample's doc for the
+// idempotent/self-healing/atomic-write behaviour.
+func MaterializeSample(sourceDir string) (string, error) {
+	dir, err := filepath.Abs(filepath.Join(sourceDir, "_"+branding.Slug+"_sample"))
 	if err != nil {
 		return "", err
 	}
