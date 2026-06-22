@@ -42,7 +42,14 @@ func (h *Handlers) onboardingSampleDump(w http.ResponseWriter, _ *http.Request) 
 
 // materializeSample writes the embedded sample dump to a file the drill runner
 // can read (inside the configured source directory) and returns its absolute
-// path. Idempotent: it only writes the file once.
+// path. It is idempotent and self-healing: if a correctly-sized file is
+// already present it returns cheaply, otherwise it (re)writes it atomically.
+//
+// This must be safe to call on every sample drill, not just at target
+// creation: the source directory is ephemeral on the deployed host (only the
+// evidence volume persists), so the file vanishes on each redeploy while the
+// target row survives in the database. The embedded dump in the binary is the
+// real source of truth — disk is just a cache the runner can stat.
 func (h *Handlers) materializeSample() (string, error) {
 	dir, err := filepath.Abs(filepath.Join(h.sourceDir, "_"+branding.Slug+"_sample"))
 	if err != nil {
@@ -52,10 +59,25 @@ func (h *Handlers) materializeSample() (string, error) {
 		return "", err
 	}
 	path := filepath.Join(dir, "sample.dump")
-	if _, err := os.Stat(path); err == nil {
-		return path, nil
+	if fi, err := os.Stat(path); err == nil && fi.Size() == int64(len(sampleDump)) {
+		return path, nil // already present and intact
 	}
-	if err := os.WriteFile(path, sampleDump, 0o644); err != nil {
+	// Write to a temp file and rename so a concurrent drill never reads a
+	// half-written dump.
+	tmp, err := os.CreateTemp(dir, "sample-*.dump.tmp")
+	if err != nil {
+		return "", err
+	}
+	tmpName := tmp.Name()
+	defer os.Remove(tmpName) // harmless no-op once the rename succeeds
+	if _, err := tmp.Write(sampleDump); err != nil {
+		tmp.Close()
+		return "", err
+	}
+	if err := tmp.Close(); err != nil {
+		return "", err
+	}
+	if err := os.Rename(tmpName, path); err != nil {
 		return "", err
 	}
 	return path, nil
@@ -66,16 +88,22 @@ func (h *Handlers) materializeSample() (string, error) {
 // table — the first time. Idempotent and race-tolerant (a unique index
 // guarantees one sample target per account).
 func (h *Handlers) ensureSampleTarget(ctx context.Context, accountID, userID uuid.UUID) (drill.Target, error) {
+	// Always re-materialize the embedded dump first — before checking for an
+	// existing target. The target row persists in the DB but the file on disk
+	// does not survive a redeploy, so writing only at creation time left the
+	// first post-deploy drill failing with "no such file". The path is
+	// deterministic, so a pre-existing target already points at it.
+	path, err := h.materializeSample()
+	if err != nil {
+		return drill.Target{}, err
+	}
+
 	if t, err := h.drills.GetSampleTarget(ctx, accountID); err == nil {
 		return t, nil
 	} else if !errors.Is(err, drill.ErrNotFound) {
 		return drill.Target{}, err
 	}
 
-	path, err := h.materializeSample()
-	if err != nil {
-		return drill.Target{}, err
-	}
 	t, err := h.drills.CreateTarget(ctx, drill.Target{
 		AccountID:       accountID,
 		CreatedByUserID: userID,
