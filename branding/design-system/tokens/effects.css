@@ -1,0 +1,37 @@
+/* ─────────────────────────────────────────────────────────────────────────
+   Dokaz — Elevation, focus, motion, gradients.
+   Dark surfaces: shadows are deep + low-opacity; "lift" comes from a brand-
+   tinted glow on primary actions, not big drop shadows.
+   ───────────────────────────────────────────────────────────────────────── */
+:root {
+  /* Elevation — tuned for dark charcoal backgrounds */
+  --shadow-xs: 0 1px 2px rgba(0,0,0,0.35);
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.40), 0 1px 2px rgba(0,0,0,0.30);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.45);
+  --shadow-lg: 0 12px 28px rgba(0,0,0,0.50);
+  --shadow-xl: 0 24px 60px rgba(0,0,0,0.55);
+
+  /* Brand glows — the signature "your data is held" lift on primary CTAs */
+  --glow-brand:  0 6px 20px rgba(36,58,120,0.45);
+  --glow-brand-strong: 0 10px 30px rgba(36,58,120,0.55);
+  --glow-teal:   0 0 0 1px rgba(86,197,150,0.35), 0 6px 18px rgba(31,138,112,0.30);
+
+  /* Primary button face — a subtle vertical gradient, brand-500 → brand-700 */
+  --grad-primary:       linear-gradient(to bottom, var(--blue-500), var(--blue-700));
+  --grad-primary-hover: linear-gradient(to bottom, var(--blue-400), var(--blue-600));
+  /* Closing-CTA panel */
+  --grad-cta: linear-gradient(135deg, var(--blue-700), var(--blue-900));
+
+  /* Focus ring — WCAG 2.4.7, always visible */
+  --focus-ring: 0 0 0 2px var(--bg-base), 0 0 0 4px var(--primary-ring);
+
+  /* Motion — calm, no bounce. Fades + 1px lifts. */
+  --ease-standard: cubic-bezier(0.2, 0, 0, 1); /* @kind other */
+  --ease-out:      cubic-bezier(0.16, 1, 0.3, 1); /* @kind other */
+  --dur-fast:   120ms; /* @kind other */
+  --dur-normal: 180ms; /* @kind other */
+  --dur-slow:   320ms; /* @kind other */
+
+  /* Hero dot-grid texture (masked, fades to edges) */
+  --hero-dot: radial-gradient(currentColor 1px, transparent 1px); /* @kind other */
+}
