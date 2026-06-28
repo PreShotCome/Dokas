@@ -8,8 +8,11 @@ module.exports = {
   theme: {
     extend: {
       fontFamily: {
-        sans: ["ui-sans-serif", "system-ui", "sans-serif"],
-        mono: ["ui-monospace", "SFMono-Regular", "monospace"],
+        // Geist (sans) + JetBrains Mono — loaded from Google Fonts in
+        // layout.templ. ui-sans-serif/ui-monospace are the system fallbacks
+        // for the brief window before the webfont swaps in.
+        sans: ["Geist", "ui-sans-serif", "system-ui", "sans-serif"],
+        mono: ["\"JetBrains Mono\"", "ui-monospace", "SFMono-Regular", "monospace"],
       },
       // brand — baby royal blue. Primary tier: buttons, links, the
       // turtle's shell. Cool, calm, "your data is held".
@@ -39,9 +42,11 @@ module.exports = {
           600: "#db2777",
           700: "#be185d",
         },
-        // steel — steely-gray family for icons, dividers, and the new
-        // background gradient.
+        // steel — full charcoal ramp. 800/900 are the page; #2e3640 (between
+        // 700 and 800) is the canonical card surface and is wired into the
+        // .card component in input.css.
         steel: {
+          50:  "#f4f7fa",
           100: "#e5ecf2",
           200: "#c4cfdb",
           300: "#9aa7b6",
@@ -51,6 +56,26 @@ module.exports = {
           700: "#33405a",
           800: "#252c35",
           900: "#1b2027",
+          950: "#11151a",
+        },
+        // teal — sea-teal for "passed / up / verified". Cooler than emerald,
+        // reinforces the beach-meets-audit-room mood; the success color for
+        // every positive verdict (drill passed, heartbeat up, signature ok).
+        teal: {
+          50:  "#e6f7f1",
+          100: "#c2ece0",
+          200: "#8fdcc6",
+          300: "#5fcbac",
+          400: "#56c596",
+          500: "#2ba888",
+          600: "#1f8a70",
+          700: "#186b58",
+        },
+        // danger — pink-red, harmonises with the pink accent rather than
+        // crashing against it. Used for failed/down verdicts.
+        danger: {
+          DEFAULT: "#ff6b81",
+          strong:  "#e23d56",
         },
         // lapis — accent blue (kept for any existing references).
         lapis: {

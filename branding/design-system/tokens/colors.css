@@ -1,0 +1,96 @@
+/* ─────────────────────────────────────────────────────────────────────────
+   Dokaz — Color tokens
+   Source of truth: tailwind.config.js (web) + app/lib/main.dart `VS` palette.
+   Dokaz is a DARK-ONLY brand. <html class="dark"> is hard-set in the product;
+   surfaces are steely charcoal, primary is a baby-royal-blue, accent is pink,
+   and "healthy / verified" reads as a cool sea-teal — the beach-meets-
+   professional pairing behind the turtle mark.
+   ───────────────────────────────────────────────────────────────────────── */
+:root {
+  /* ── Brand blue — primary. Buttons, links, the turtle's shell. ───────── */
+  --blue-50:  #eef4ff;
+  --blue-100: #dbe7ff;
+  --blue-200: #b8cfff;
+  --blue-300: #8cb1f7;
+  --blue-400: #6e9bf0; /* app primary (VS.blue) */
+  --blue-500: #5b8def; /* web primary */
+  --blue-600: #4f7be0;
+  --blue-700: #3f63c4;
+  --blue-800: #33509f;
+  --blue-900: #243a78;
+
+  /* ── Pink — accent. Badges, the turtle's central scute, secondary. ───── */
+  --pink-50:  #fdf2f8;
+  --pink-100: #fce7f3;
+  --pink-200: #fbcfe8;
+  --pink-300: #f9a8d4;
+  --pink-400: #f48fb1; /* app accent (VS.pink) */
+  --pink-500: #ec4899;
+  --pink-600: #db2777;
+  --pink-700: #be185d;
+
+  /* ── Sea-teal — "healthy / verified / passed". The beach-cool green. ─── */
+  --teal-50:  #e6f7f1;
+  --teal-100: #c2ece0;
+  --teal-200: #8fdcc6;
+  --teal-300: #5fcbac;
+  --teal-400: #56c596; /* app "up / passed" (VS.up) */
+  --teal-500: #2ba888;
+  --teal-600: #1f8a70;
+  --teal-700: #186b58;
+
+  /* ── Steel — neutral. Charcoal surfaces, icons, dividers, body text. ─── */
+  --steel-50:  #f4f7fa;
+  --steel-100: #e5ecf2;
+  --steel-200: #c4cfdb;
+  --steel-300: #9aa7b6;
+  --steel-400: #7a8a9c;
+  --steel-500: #5d6c80;
+  --steel-600: #475467;
+  --steel-700: #33405a;
+  --steel-800: #252c35;
+  --steel-900: #1b2027;
+  --steel-950: #11151a;
+
+  /* ── Raw status hues ─────────────────────────────────────────────────── */
+  --danger:  #ff6b81; /* down / failed (VS.down) */
+  --danger-strong: #e23d56;
+  --warning: #f0b429; /* draft / informational notice */
+  --success: var(--teal-400);
+  --info:    var(--blue-400);
+
+  /* ── Semantic aliases — prefer these in product UI ───────────────────── */
+  /* surfaces (dark-only) */
+  --bg-base:        var(--steel-900); /* page background base */
+  --surface:        var(--steel-800); /* inputs, tiles, recessed */
+  --surface-card:   #2e3640;          /* cards (VS.card) */
+  --surface-raised: #353f4b;          /* popovers, menus, hovered cards */
+  --surface-inset:  var(--steel-950); /* code blocks, wells */
+
+  /* text */
+  --text-strong: #edf1f6; /* headings (VS.ink) */
+  --text-body:   #d7dee7;
+  --text-muted:  #9aa7b6; /* secondary (VS.muted) */
+  --text-faint:  #6b7a8d;
+  --text-on-brand: #ffffff;
+
+  /* lines */
+  --border:        #33405a;        /* default hairline */
+  --border-strong: #475467;
+  --border-subtle: rgba(154,167,182,0.14);
+
+  /* interactive */
+  --primary:        var(--blue-500);
+  --primary-hover:  var(--blue-400);
+  --primary-press:  var(--blue-600);
+  --primary-ring:   var(--blue-500);
+  --accent:         var(--pink-400);
+  --link:           var(--blue-300);
+
+  /* signature page background — steely charcoal with a cool blue glow
+     top-left and a faint pink glow top-right (from assets/css/input.css). */
+  --bg-app:
+    radial-gradient(900px 520px at 12% -8%, rgba(79,123,224,0.20), transparent 60%),
+    radial-gradient(720px 520px at 100% -4%, rgba(244,143,177,0.10), transparent 55%),
+    linear-gradient(to right, #252c35, #1b2027);
+}

@@ -1,6 +1,7 @@
 package templates
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/preshotcome/dokaz/internal/auth"
@@ -88,29 +89,34 @@ templ DrillsErrorPage(lc LayoutCtx, msg string) {
 
 templ DrillDetail(lc LayoutCtx, d drill.Drill, t drill.Target, steps []drill.Step, ars []drill.AssertionResult, verify evidence.VerifyResult) {
 	@LayoutWith("Drill", lc) {
-		<div class="mb-4 flex items-baseline justify-between">
-			<h1 class="text-2xl font-semibold tracking-tight">Drill</h1>
-			<a href="/drills" class="text-sm underline">All drills</a>
+		<div class="mb-5">
+			<a href="/drills" class="text-sm text-steel-300 hover:text-steel-100">← Back to drills</a>
 		</div>
-		<dl class="card mb-6 grid grid-cols-1 gap-x-4 gap-y-2 text-sm sm:grid-cols-2">
-			<dt class="font-medium">Target</dt>
-			<dd>{ t.Name } <span class="text-xs text-zinc-500">({ t.SourceURI })</span></dd>
-			<dt class="font-medium">Drill ID</dt>
-			<dd class="font-mono text-xs">{ d.ID.String() }</dd>
-			<dt class="font-medium">Status</dt>
-			<dd id="drill-status">@StatusBadge(d.Status)</dd>
-			<dt class="font-medium">Created</dt>
-			<dd class="text-xs">{ d.CreatedAt.UTC().Format(time.RFC3339) }</dd>
-			<dt class="font-medium">Duration</dt>
-			<dd id="drill-duration" class="text-xs">{ duration(d.StartedAt, d.CompletedAt) }</dd>
-			<dt class="font-medium">Evidence</dt>
-			<dd id="drill-evidence">@drillEvidenceCell(d)</dd>
-		</dl>
 
-		if verify.Signed {
-			@SignaturePanel(verify)
-		}
+		<div class="mb-6 flex flex-wrap items-start justify-between gap-4">
+			<div>
+				<div class="flex items-center gap-3">
+					<h1 class="text-2xl font-semibold tracking-tight">{ t.Name }</h1>
+					<span id="drill-status">@StatusBadge(d.Status)</span>
+				</div>
+				<p class="mt-1 font-mono text-xs text-steel-400">
+					drill_{ shortID(d.ID.String()) } · { d.CreatedAt.UTC().Format("2006-01-02 15:04 UTC") } · { t.SourceURI }
+				</p>
+			</div>
+			<span id="drill-evidence">@drillEvidenceCell(d)</span>
+		</div>
 
+		// 4-tile stat grid. "Evidence" stays in sync with the polling partial
+		// via an out-of-band swap on its inner span.
+		<div class="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
+			@statTile("Restore time", evidenceDuration(d.StartedAt, d.CompletedAt))
+			@statTile("Rows verified", rowCountFromAssertions(ars))
+			@statTile("Assertions", assertionScore(ars))
+			@statTile("Evidence", evidenceLabel(d, verify))
+		</div>
+
+		// Polled live until the drill terminates — pipeline + assertions +
+		// (when signed) the mono receipt.
 		<section
 			id="steps-pane"
 			hx-get={ "/drills/" + d.ID.String() + "/steps" }
@@ -120,31 +126,49 @@ templ DrillDetail(lc LayoutCtx, d drill.Drill, t drill.Target, steps []drill.Ste
 			@DrillStepsPartial(d, steps, ars)
 		</section>
 
+		if verify.Signed {
+			@SignatureReceipt(verify)
+		}
+
 		<script src="/static/drill-poll.js" defer></script>
 	}
 }
 
+// statTile is one cell of the drill-summary stat grid.
+templ statTile(label, value string) {
+	<div class="card-quiet px-4 py-3">
+		<p class="text-[11px] font-medium uppercase tracking-wider text-steel-400">{ label }</p>
+		<p class="mt-1 text-lg font-semibold text-steel-100">{ value }</p>
+	</div>
+}
+
 // SignaturePanel renders the live tamper-check result for a drill's evidence.
+// Used by the admin drill view; the customer-facing drill detail uses the
+// richer SignatureReceipt below.
 templ SignaturePanel(v evidence.VerifyResult) {
 	<div class="card mb-6">
-		<div class="mb-2 flex items-center gap-2">
+		<div class="mb-3 flex items-center gap-2">
 			<h2 class="text-base font-semibold">Evidence signature</h2>
 			if v.Valid {
-				<span class="inline-flex rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300">verified</span>
+				<span class="inline-flex items-center gap-1.5 rounded-full bg-teal-400/15 px-2.5 py-0.5 text-xs font-medium text-teal-300">
+					<span class="h-1.5 w-1.5 rounded-full bg-teal-400"></span>verified
+				</span>
 			} else {
-				<span class="inline-flex rounded-full bg-rose-100 px-2 py-0.5 text-xs font-medium text-rose-800 dark:bg-rose-900/40 dark:text-rose-300">invalid</span>
+				<span class="inline-flex items-center gap-1.5 rounded-full bg-danger/15 px-2.5 py-0.5 text-xs font-medium text-danger">
+					<span class="h-1.5 w-1.5 rounded-full bg-danger"></span>invalid
+				</span>
 			}
 		</div>
 		<dl class="grid grid-cols-1 gap-x-4 gap-y-1 text-xs sm:grid-cols-2">
-			<dt class="text-zinc-500">Signed at</dt>
+			<dt class="text-steel-400">Signed at</dt>
 			<dd>{ v.SignedAt.UTC().Format(time.RFC3339) }</dd>
-			<dt class="text-zinc-500">Retain until</dt>
+			<dt class="text-steel-400">Retain until</dt>
 			<dd>{ v.RetainUntil.UTC().Format("2006-01-02") }</dd>
-			<dt class="text-zinc-500">Signing key</dt>
-			<dd class="truncate font-mono">{ v.PublicKeyID }</dd>
+			<dt class="text-steel-400">Signing key</dt>
+			<dd class="truncate font-mono text-steel-200">{ v.PublicKeyID }</dd>
 			if !v.Valid {
-				<dt class="text-rose-500">Reason</dt>
-				<dd class="text-rose-600 dark:text-rose-400">{ v.Reason }</dd>
+				<dt class="text-danger">Reason</dt>
+				<dd class="text-danger">{ v.Reason }</dd>
 			}
 		</dl>
 	</div>
@@ -156,61 +180,139 @@ templ DrillStepsPartial(d drill.Drill, steps []drill.Step, ars []drill.Assertion
 	} else {
 		<div hx-swap-oob="true" id="poll-marker" data-terminal="false"></div>
 	}
-	// Out-of-band updates so the summary card stays current while only the
-	// steps pane is polled — otherwise the badge freezes at its load value.
-	<dd hx-swap-oob="true" id="drill-status">@StatusBadge(d.Status)</dd>
-	<dd hx-swap-oob="true" id="drill-duration" class="text-xs">{ duration(d.StartedAt, d.CompletedAt) }</dd>
-	<dd hx-swap-oob="true" id="drill-evidence">@drillEvidenceCell(d)</dd>
-	<h2 class="mb-3 text-lg font-semibold">Steps</h2>
-	<div class="card overflow-x-auto p-0">
-		<table class="min-w-full divide-y divide-zinc-200 text-sm dark:divide-zinc-800">
-			<thead class="bg-zinc-50 dark:bg-zinc-900/50">
-				<tr>
-					<th class="px-4 py-2 text-left font-medium">Step</th>
-					<th class="px-4 py-2 text-left font-medium">Status</th>
-					<th class="px-4 py-2 text-left font-medium">Started</th>
-					<th class="px-4 py-2 text-left font-medium">Completed</th>
-					<th class="px-4 py-2 text-left font-medium">Error</th>
-				</tr>
-			</thead>
-			<tbody class="divide-y divide-zinc-200 dark:divide-zinc-800">
-				for _, s := range steps {
-					<tr>
-						<td class="px-4 py-2 font-medium">{ string(s.Name) }</td>
-						<td class="px-4 py-2">@StatusBadge(s.Status)</td>
-						<td class="px-4 py-2 text-xs">{ timeOrDash(s.StartedAt) }</td>
-						<td class="px-4 py-2 text-xs">{ timeOrDash(s.CompletedAt) }</td>
-						<td class="px-4 py-2 text-xs text-rose-600 dark:text-rose-400">{ errOrDash(s.Error) }</td>
-					</tr>
-				}
-			</tbody>
-		</table>
+	// Out-of-band updates so the hero stats stay current while only the steps
+	// pane is polled.
+	<span hx-swap-oob="true" id="drill-status">@StatusBadge(d.Status)</span>
+	<span hx-swap-oob="true" id="drill-evidence">@drillEvidenceCell(d)</span>
+
+	// First-failed step's error, surfaced as a mono callout (the design's
+	// "name the failure, in machine voice" pattern).
+	if firstStepErr(steps) != "" {
+		<div class="mb-5 rounded-lg border border-danger/30 bg-danger/10 px-4 py-3 font-mono text-xs text-danger">{ firstStepErr(steps) }</div>
+	}
+
+	// Pipeline — the six canonical Dokaz steps as chips.
+	<p class="mb-2 text-[11px] font-semibold uppercase tracking-widest text-steel-400">Pipeline</p>
+	<div class="mb-6 flex flex-wrap gap-2">
+		for _, s := range steps {
+			@StepChip(s)
+		}
 	</div>
+
+	// Assertions — expected vs. actual rows.
 	if len(ars) > 0 {
-		<h2 class="mb-3 mt-6 text-lg font-semibold">Assertions</h2>
-		<div class="card overflow-x-auto p-0">
-			<table class="min-w-full divide-y divide-zinc-200 text-sm dark:divide-zinc-800">
-				<thead class="bg-zinc-50 dark:bg-zinc-900/50">
-					<tr>
-						<th class="px-4 py-2 text-left font-medium">Kind</th>
-						<th class="px-4 py-2 text-left font-medium">Expected</th>
-						<th class="px-4 py-2 text-left font-medium">Actual</th>
-						<th class="px-4 py-2 text-left font-medium">Result</th>
-					</tr>
-				</thead>
-				<tbody class="divide-y divide-zinc-200 dark:divide-zinc-800">
-					for _, a := range ars {
-						<tr>
-							<td class="px-4 py-2">{ a.Kind }</td>
-							<td class="px-4 py-2 font-mono text-xs">{ string(a.Expected) }</td>
-							<td class="px-4 py-2 font-mono text-xs">{ string(a.Actual) }</td>
-							<td class="px-4 py-2">@PassFailBadge(a.Passed)</td>
-						</tr>
-					}
-				</tbody>
-			</table>
+		<p class="mb-2 text-[11px] font-semibold uppercase tracking-widest text-steel-400">Assertions — expected vs. actual</p>
+		<div class="card mb-6 p-2">
+			for i, a := range ars {
+				@AssertionRow(a, i == len(ars)-1)
+			}
 		</div>
 	}
+}
+
+// StepChip renders one pipeline stage as a status-tinted monospace chip with
+// the step name and (when complete) a check / cross glyph.
+templ StepChip(s drill.Step) {
+	switch s.Status {
+		case drill.StatusSucceeded:
+			<span class="inline-flex items-center gap-1.5 rounded-md border border-teal-400/30 bg-teal-400/10 px-2.5 py-1 font-mono text-xs text-teal-300">
+				@chipCheck()
+				{ string(s.Name) }
+			</span>
+		case drill.StatusFailed:
+			<span class="inline-flex items-center gap-1.5 rounded-md border border-danger/30 bg-danger/10 px-2.5 py-1 font-mono text-xs text-danger">
+				@chipCross()
+				{ string(s.Name) }
+			</span>
+		case drill.StatusRunning:
+			<span class="inline-flex items-center gap-1.5 rounded-md border border-gold-400/30 bg-gold-400/10 px-2.5 py-1 font-mono text-xs text-gold-300">
+				<span class="h-1.5 w-1.5 rounded-full bg-gold-400 animate-pulse"></span>
+				{ string(s.Name) }
+			</span>
+		case drill.StatusSkipped:
+			<span class="inline-flex items-center gap-1.5 rounded-md border border-steel-700 bg-steel-800/60 px-2.5 py-1 font-mono text-xs text-steel-400">
+				{ string(s.Name) }
+			</span>
+		default:
+			<span class="inline-flex items-center gap-1.5 rounded-md border border-steel-700 bg-steel-800/60 px-2.5 py-1 font-mono text-xs text-steel-400">
+				{ string(s.Name) }
+			</span>
+	}
+}
+
+// AssertionRow is the "proof, not a checkmark" primitive: kind, expected,
+// actual, and a pass/fail marker, on one row. Stacked inside a card.
+templ AssertionRow(a drill.AssertionResult, last bool) {
+	<div class={ "grid grid-cols-1 items-center gap-2 px-3 py-3 sm:grid-cols-[1fr_1.2fr_1.2fr_auto] sm:gap-4",
+		templ.KV("border-b border-steel-700/60", !last) }>
+		<div class="font-mono text-xs text-steel-200">{ a.Kind }</div>
+		<div class="text-xs">
+			<span class="text-steel-500">expected </span>
+			<span class="font-mono text-steel-200">{ string(a.Expected) }</span>
+		</div>
+		<div class="text-xs">
+			<span class="text-steel-500">actual </span>
+			<span class="font-mono text-steel-100">{ string(a.Actual) }</span>
+		</div>
+		<div class="justify-self-start sm:justify-self-end">
+			@PassFailBadge(a.Passed)
+		</div>
+	</div>
+}
+
+// SignatureReceipt is the mono "Signed Proof-of-Recovery evidence" panel on
+// the drill detail page. Replaces the older SignaturePanel layout; rendered
+// only when verify.Signed is true.
+templ SignatureReceipt(v evidence.VerifyResult) {
+	<div class="card mt-6">
+		<div class="mb-3 flex items-center justify-between border-b border-dashed border-steel-700 pb-3">
+			<div class="flex items-center gap-2">
+				@shieldCheck()
+				<span class="font-semibold text-steel-100">Signed Proof-of-Recovery evidence</span>
+			</div>
+			if v.Valid {
+				<span class="inline-flex items-center gap-1.5 rounded-full bg-teal-400/15 px-2.5 py-0.5 text-xs font-medium text-teal-300">
+					<span class="h-1.5 w-1.5 rounded-full bg-teal-400"></span>verified
+				</span>
+			} else {
+				<span class="inline-flex items-center gap-1.5 rounded-full bg-danger/15 px-2.5 py-0.5 text-xs font-medium text-danger">
+					<span class="h-1.5 w-1.5 rounded-full bg-danger"></span>invalid
+				</span>
+			}
+		</div>
+		<div class="space-y-2 font-mono text-xs">
+			@receiptRow("signed at", v.SignedAt.UTC().Format("2006-01-02 15:04:05 UTC"), "")
+			@receiptRow("retain until", v.RetainUntil.UTC().Format("2006-01-02"), "")
+			@receiptRow("signing key", v.PublicKeyID, ternary(v.Valid, "valid", ""))
+			if !v.Valid && v.Reason != "" {
+				@receiptRow("reason", v.Reason, "")
+			}
+		</div>
+	</div>
+}
+
+templ receiptRow(k, v, tag string) {
+	<div class="flex items-center justify-between gap-3 rounded-md bg-steel-900/60 px-3 py-2">
+		<span class="text-steel-500">{ k }</span>
+		<span class="break-all text-right text-steel-200">
+			{ v }
+			if tag != "" {
+				<span class="ml-2 text-teal-300">· { tag }</span>
+			}
+		</span>
+	</div>
+}
+
+// chipCheck / chipCross / shieldCheck — tiny inline SVG glyphs matching the
+// design system's stroke weight.
+templ chipCheck() {
+	<svg class="h-3 w-3" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7.5l2.5 2.5L11 4"></path></svg>
+}
+templ chipCross() {
+	<svg class="h-3 w-3" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4l6 6M10 4l-6 6"></path></svg>
+}
+templ shieldCheck() {
+	<svg class="h-4 w-4 text-steel-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 12l2 2 4-4m-3-7l7 4v6c0 4-3 7-7 8-4-1-7-4-7-8V7z"></path></svg>
 }
 
 // drillEvidenceCell renders the evidence column of the summary card: a
@@ -223,26 +325,44 @@ templ drillEvidenceCell(d drill.Drill) {
 	}
 }
 
+// StatusBadge — the canonical Dokaz status pill. A low-alpha tint of the
+// status' semantic colour, paired with a 1.5px coloured dot. Passed/up read
+// as sea-teal, failed/down as the brand-harmonised danger pink-red, running
+// in the pink accent, pending/skipped in steel.
 templ StatusBadge(s drill.Status) {
 	switch s {
 		case drill.StatusSucceeded:
-			<span class="inline-flex rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300">{ string(s) }</span>
+			<span class="inline-flex items-center gap-1.5 rounded-full bg-teal-400/15 px-2.5 py-0.5 text-xs font-medium text-teal-300">
+				<span class="h-1.5 w-1.5 rounded-full bg-teal-400"></span>{ string(s) }
+			</span>
 		case drill.StatusFailed:
-			<span class="inline-flex rounded-full bg-rose-100 px-2 py-0.5 text-xs font-medium text-rose-800 dark:bg-rose-900/40 dark:text-rose-300">{ string(s) }</span>
+			<span class="inline-flex items-center gap-1.5 rounded-full bg-danger/15 px-2.5 py-0.5 text-xs font-medium text-danger">
+				<span class="h-1.5 w-1.5 rounded-full bg-danger"></span>{ string(s) }
+			</span>
 		case drill.StatusRunning:
-			<span class="inline-flex rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-800 dark:bg-blue-900/40 dark:text-blue-300">{ string(s) }</span>
+			<span class="inline-flex items-center gap-1.5 rounded-full bg-gold-400/15 px-2.5 py-0.5 text-xs font-medium text-gold-300">
+				<span class="h-1.5 w-1.5 rounded-full bg-gold-400 animate-pulse"></span>{ string(s) }
+			</span>
 		case drill.StatusSkipped:
-			<span class="inline-flex rounded-full bg-zinc-100 px-2 py-0.5 text-xs font-medium text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300">{ string(s) }</span>
+			<span class="inline-flex items-center gap-1.5 rounded-full bg-steel-700/40 px-2.5 py-0.5 text-xs font-medium text-steel-300">
+				<span class="h-1.5 w-1.5 rounded-full bg-steel-400"></span>{ string(s) }
+			</span>
 		default:
-			<span class="inline-flex rounded-full bg-zinc-100 px-2 py-0.5 text-xs font-medium text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300">{ string(s) }</span>
+			<span class="inline-flex items-center gap-1.5 rounded-full bg-steel-700/40 px-2.5 py-0.5 text-xs font-medium text-steel-300">
+				<span class="h-1.5 w-1.5 rounded-full bg-steel-400"></span>{ string(s) }
+			</span>
 	}
 }
 
 templ PassFailBadge(passed bool) {
 	if passed {
-		<span class="inline-flex rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300">PASS</span>
+		<span class="inline-flex items-center gap-1.5 rounded-full bg-teal-400/15 px-2.5 py-0.5 text-xs font-medium text-teal-300">
+			<span class="h-1.5 w-1.5 rounded-full bg-teal-400"></span>PASS
+		</span>
 	} else {
-		<span class="inline-flex rounded-full bg-rose-100 px-2 py-0.5 text-xs font-medium text-rose-800 dark:bg-rose-900/40 dark:text-rose-300">FAIL</span>
+		<span class="inline-flex items-center gap-1.5 rounded-full bg-danger/15 px-2.5 py-0.5 text-xs font-medium text-danger">
+			<span class="h-1.5 w-1.5 rounded-full bg-danger"></span>FAIL
+		</span>
 	}
 }
 
@@ -268,4 +388,97 @@ func duration(start, end *time.Time) string {
 		return "running…"
 	}
 	return end.Sub(*start).Round(time.Millisecond).String()
+}
+
+// shortID is the first 8 chars of a drill UUID — short enough to render in a
+// mono ID label, long enough to disambiguate within an account.
+func shortID(s string) string {
+	if len(s) >= 8 {
+		return s[:8]
+	}
+	return s
+}
+
+// firstStepErr returns the error message of the first failed step, or "" when
+// nothing has failed. Drives the mono error callout on the detail page.
+func firstStepErr(steps []drill.Step) string {
+	for _, s := range steps {
+		if s.Status == drill.StatusFailed && s.Error != nil && *s.Error != "" {
+			return *s.Error
+		}
+	}
+	return ""
+}
+
+// evidenceDuration formats the wall-clock for the Restore-time stat tile. We
+// reuse start→end across the whole drill rather than just the restore step;
+// for a one-step demo drill that is the restore window, and for richer drills
+// it conveys "how long until we knew we could recover".
+func evidenceDuration(start, end *time.Time) string {
+	if start == nil {
+		return "—"
+	}
+	if end == nil {
+		return "running…"
+	}
+	d := end.Sub(*start)
+	if d < time.Second {
+		return d.Round(time.Millisecond).String()
+	}
+	if d < time.Minute {
+		return d.Round(100 * time.Millisecond).String()
+	}
+	mins := int(d.Minutes())
+	secs := int(d.Seconds()) - mins*60
+	return fmt.Sprintf("%dm %02ds", mins, secs)
+}
+
+// rowCountFromAssertions surfaces the largest row_count assertion's actual
+// value to feed the "Rows verified" tile. Returns "—" when no row_count was
+// run, which is the honest answer for free-tier sample drills.
+func rowCountFromAssertions(ars []drill.AssertionResult) string {
+	for _, a := range ars {
+		if a.Kind == "row_count" && a.Passed && len(a.Actual) > 0 {
+			return string(a.Actual)
+		}
+	}
+	return "—"
+}
+
+// assertionScore is the "passed/total" string for the Assertions tile.
+func assertionScore(ars []drill.AssertionResult) string {
+	if len(ars) == 0 {
+		return "—"
+	}
+	passed := 0
+	for _, a := range ars {
+		if a.Passed {
+			passed++
+		}
+	}
+	return fmt.Sprintf("%d / %d", passed, len(ars))
+}
+
+// evidenceLabel is the Evidence tile's single-word verdict.
+func evidenceLabel(d drill.Drill, v evidence.VerifyResult) string {
+	switch {
+	case d.EvidencePath == nil || *d.EvidencePath == "":
+		if d.Status == drill.StatusFailed {
+			return "Withheld"
+		}
+		return "Pending"
+	case v.Signed && v.Valid:
+		return "Signed"
+	case v.Signed && !v.Valid:
+		return "Invalid"
+	default:
+		return "Signed"
+	}
+}
+
+func ternary(cond bool, a, b string) string {
+	if cond {
+		return a
+	}
+	return b
 }
