@@ -1,0 +1,33 @@
+/* ─────────────────────────────────────────────────────────────────────────
+   Dokaz — Spacing & radius tokens. 4px base grid.
+   ───────────────────────────────────────────────────────────────────────── */
+:root {
+  --space-0:  0;
+  --space-1:  4px;
+  --space-2:  8px;
+  --space-3:  12px;
+  --space-4:  16px;
+  --space-5:  20px;
+  --space-6:  24px;
+  --space-8:  32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+  --space-20: 80px;
+  --space-24: 96px;
+
+  /* Radii — product uses md on controls, xl on cards, 2xl/3xl on hero panels.
+     Pills (full) for status badges. */
+  --radius-sm:   6px;
+  --radius-md:   8px;   /* buttons, inputs */
+  --radius-lg:   12px;  /* tiles, app cards (Flutter uses 12) */
+  --radius-xl:   16px;  /* web cards */
+  --radius-2xl:  24px;  /* hero / CTA panels */
+  --radius-3xl:  32px;
+  --radius-full: 9999px;
+
+  /* Container widths */
+  --container-prose:   42rem; /* @kind other */
+  --container-content: 64rem; /* @kind other */
+  --container-wide:    80rem; /* @kind other */
+}

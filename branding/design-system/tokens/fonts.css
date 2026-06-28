@@ -1,0 +1,12 @@
+/* Dokaz typefaces.
+   SUBSTITUTION NOTE: the Dokaz app ships with the OS system sans
+   (ui-sans-serif/system-ui) and ui-monospace — no bundled webfont. For a
+   design system that renders consistently everywhere, we standardise on:
+     • Geist        — body + display sans (neutral, modern, professional)
+     • JetBrains Mono — code/evidence/hashes (the product is full of SHA-256
+                        digests, Ed25519 signatures and SQL, so the mono face
+                        is load-bearing here, not decorative)
+   Both are loaded from Google Fonts. If you have a preferred licensed brand
+   face, drop the .woff2 files in /assets/fonts and replace these rules. */
+
+@import url("https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap");

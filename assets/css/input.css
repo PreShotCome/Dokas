@@ -62,8 +62,20 @@
   .skip-link {
     @apply absolute left-2 top-2 z-50 -translate-y-16 rounded-md bg-brand-700 px-3 py-2 text-sm font-medium text-white transition-transform focus-visible:translate-y-0;
   }
+  /* Card — the canonical Dokaz surface. Steel fill #2e3640, hairline steel
+     border, xl radius, subtle shadow. Hover brightens the border and deepens
+     the shadow (a quiet lift, no scale) so interactive cards feel alive. */
   .card {
-    @apply rounded-xl border border-zinc-200 bg-white p-6 shadow-sm transition-shadow duration-150 hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900;
+    @apply rounded-xl border border-steel-700 bg-[#2e3640] p-6 shadow-sm transition-all duration-150 hover:border-steel-600 hover:shadow-md;
+  }
+  /* card-quiet keeps the steel border on hover — for read-only surfaces. */
+  .card-quiet {
+    @apply rounded-xl border border-steel-700 bg-[#2e3640] p-6 shadow-sm;
+  }
+  /* card-receipt: an evidence-style card. Same surface, with a dashed under-
+     header divider to evoke a printed certificate/receipt. */
+  .card-receipt {
+    @apply rounded-xl border border-steel-700 bg-[#2e3640] p-6 shadow-sm;
   }
   /* hero-grid: a faint dot grid laid behind the hero for texture. Masked to
      fade out toward the edges so it never competes with the content. */

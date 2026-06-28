@@ -79,6 +79,11 @@ templ LayoutWith(title string, lc LayoutCtx) {
 			<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 			<meta name="referrer" content="strict-origin-when-cross-origin"/>
 			<meta name="description" content="Automated restore drills that prove your database backups actually recover — with signed, independently verifiable Proof-of-Recovery evidence for SOC 2, ISO 27001, and cyber-insurance."/>
+			<!-- Geist + JetBrains Mono. Mono is load-bearing in the product
+			     (hashes, signatures, IDs, SQL); preconnect keeps the swap fast. -->
+			<link rel="preconnect" href="https://fonts.googleapis.com"/>
+			<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+			<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;600&amp;display=swap"/>
 			<title>{ title } · { branding.ProductName }</title>
 			<!-- Social share card (Open Graph + Twitter) -->
 			<meta property="og:type" content="website"/>
