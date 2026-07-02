@@ -144,97 +144,183 @@ templ LayoutWith(title string, lc LayoutCtx) {
 					</div>
 				}
 			}
-			<header class="border-b border-zinc-200 dark:border-zinc-800">
-				<div class="mx-auto flex max-w-5xl items-center justify-between px-4 py-3">
-					<div class="flex items-center gap-3">
-						<a href="/" class="flex items-center gap-2 font-semibold tracking-tight">
-							@Logo()
-							<span>{ branding.ProductName }</span>
-						</a>
-						if lc.Account != nil {
-							<span class="hidden text-zinc-300 sm:inline dark:text-zinc-700">/</span>
-							if len(lc.Accounts) > 1 {
-								<form method="POST" action="/account/switch" class="hidden items-center gap-1 sm:flex">
-									@CSRFField()
-									<select
-										name="account_id"
-										data-account-switcher
-										aria-label="Switch account"
-										class="rounded border border-zinc-300 bg-transparent px-2 py-1 text-sm dark:border-zinc-700"
-									>
-										for _, a := range lc.Accounts {
-											if lc.Account != nil && a.ID == lc.Account.ID.String() {
-												<option value={ a.ID } selected>{ a.Name }</option>
-											} else {
-												<option value={ a.ID }>{ a.Name }</option>
-											}
-										}
-									</select>
-									<button type="submit" class="btn-ghost text-xs">Switch</button>
-								</form>
-							} else {
-								<a href="/account" class="hidden text-sm text-zinc-600 hover:underline sm:inline dark:text-zinc-400">
-									{ lc.Account.Name }
-								</a>
-							}
-							if lc.Membership != nil {
-								<span class="hidden rounded-full bg-zinc-100 px-2 py-0.5 text-xs text-zinc-600 sm:inline dark:bg-zinc-800 dark:text-zinc-400">
-									{ string(lc.Membership.Role) }
-								</span>
-							}
-						}
-					</div>
-					<nav class="flex items-center gap-3 text-sm">
-						if lc.User != nil {
-							<span class="text-zinc-500 dark:text-zinc-400">{ lc.User.Email }</span>
-							<form method="POST" action="/logout" class="inline">
-								@CSRFField()
-								<button type="submit" class="btn-ghost">Sign out</button>
-							</form>
-						} else {
-							<a href="/how-it-works" class="btn-ghost">How it works</a>
-							<a href="/pricing" class="btn-ghost">Pricing</a>
-							<a href="/login" class="btn-ghost">Sign in</a>
-							<a href="/signup" class="btn-primary">Sign up</a>
-						}
-					</nav>
-				</div>
-				if lc.User != nil && lc.Account != nil {
-					<nav aria-label="Primary" class="mx-auto flex max-w-5xl items-center gap-4 px-4 pb-2 text-sm">
-						@navLink(lc.Path, "/dashboard", "Dashboard")
-						@navLink(lc.Path, "/databases", "Databases")
-						@navLink(lc.Path, "/drills", "Drills")
-						@navLink(lc.Path, "/heartbeats", "Check-ins")
-						@navLink(lc.Path, "/reports", "Reports")
-						@navLink(lc.Path, "/pricing", "Pricing")
-						@navLink(lc.Path, "/account", "Account")
-						@navLink(lc.Path, "/help", "Help")
-						if lc.User.IsStaff {
-							<a href="/admin" class="ml-auto font-medium text-amber-700 hover:underline dark:text-amber-500">Admin</a>
-						}
-					</nav>
+			if lc.User != nil && lc.Account != nil {
+				@AppShell(title, lc) {
+					{ children... }
 				}
-			</header>
-			<main id="main-content" class="mx-auto w-full max-w-5xl flex-1 px-4 py-8">
-				{ children... }
-			</main>
-			<footer class="border-t border-zinc-200 px-4 py-4 text-center text-xs text-zinc-500 dark:border-zinc-800 dark:text-zinc-400">
-				<p>{ branding.ProductName } — backup verification as a service.</p>
-				<nav aria-label="Footer" class="mt-1 flex flex-wrap justify-center gap-3">
-					<a href="/how-it-works" class="hover:underline">How it works</a>
-					<a href="/pricing" class="hover:underline">Pricing</a>
-					<a href="/verify" class="hover:underline">Verify a report</a>
-					<a href="/status" class="hover:underline">Status</a>
-					<a href="/docs" class="hover:underline">API docs</a>
-					<a href="/legal/terms" class="hover:underline">Terms</a>
-					<a href="/legal/privacy" class="hover:underline">Privacy</a>
-					<a href="/legal/dpa" class="hover:underline">DPA</a>
-					<a href="/legal/subprocessors" class="hover:underline">Sub-processors</a>
-					<a href="/legal/cookies" class="hover:underline">Cookies</a>
-				</nav>
-			</footer>
+			} else {
+				@MarketingShell(lc) {
+					{ children... }
+				}
+			}
 		</body>
 	</html>
+}
+
+// AppShell — the authenticated experience. A fixed vertical sidebar (logo,
+// icon+label nav, user card at the bottom) and a slim topbar with the page
+// title. Below `lg` the sidebar collapses to a drawer opened via a hamburger.
+templ AppShell(title string, lc LayoutCtx) {
+	<div class="flex min-h-screen">
+		// The drawer checkbox is the sidebar's mobile toggle — CSS-only, no
+		// JS, and the label at both ends of the checkbox controls visibility.
+		<input type="checkbox" id="sidebar-open" class="peer hidden"/>
+		// Backdrop that dims the page while the mobile drawer is open. It
+		// closes the drawer when tapped.
+		<label for="sidebar-open" class="fixed inset-0 z-20 hidden bg-black/50 peer-checked:block lg:hidden" aria-hidden="true"></label>
+
+		<aside class="fixed inset-y-0 left-0 z-30 flex w-[230px] -translate-x-full flex-col border-r border-steel-700 bg-steel-900/60 backdrop-blur peer-checked:translate-x-0 lg:sticky lg:top-0 lg:h-screen lg:translate-x-0" aria-label="Primary">
+			<div class="flex items-center justify-between px-4 pt-5 pb-4">
+				<a href="/dashboard" class="flex items-center gap-2 font-semibold tracking-tight text-steel-100">
+					@Logo()
+					<span>{ branding.ProductName }</span>
+				</a>
+				<label for="sidebar-open" class="cursor-pointer p-1 text-steel-400 hover:text-steel-200 lg:hidden" aria-label="Close menu">
+					<svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 6l12 12M18 6L6 18"></path></svg>
+				</label>
+			</div>
+			<nav class="flex-1 space-y-1 px-3">
+				@sideNav(lc.Path, "/dashboard", "Dashboard", "M3 12l9-9 9 9v9a2 2 0 01-2 2h-4v-7H10v7H6a2 2 0 01-2-2v-9z")
+				@sideNav(lc.Path, "/databases", "Databases", "M4 6c0-1.5 3.6-3 8-3s8 1.5 8 3-3.6 3-8 3-8-1.5-8-3zM4 6v12c0 1.5 3.6 3 8 3s8-1.5 8-3V6")
+				@sideNav(lc.Path, "/drills", "Drills", "M4 6h16M4 12h16M4 18h10")
+				@sideNav(lc.Path, "/heartbeats", "Check-ins", "M3 12h4l2 6 4-14 2 8h6")
+				@sideNav(lc.Path, "/reports", "Reports", "M9 12l2 2 4-4m-3-7l7 4v6c0 4-3 7-7 8-4-1-7-4-7-8V7z")
+				@sideNav(lc.Path, "/account", "Account", "M12 15a3 3 0 100-6 3 3 0 000 6zM19 12a7 7 0 00-.1-1l2-1.6-2-3.4-2.4 1a7 7 0 00-1.7-1L14.5 2h-4l-.4 2.4a7 7 0 00-1.7 1l-2.4-1-2 3.4 2 1.6a7 7 0 000 2l-2 1.6 2 3.4 2.4-1a7 7 0 001.7 1l.4 2.4h4l.4-2.4a7 7 0 001.7-1l2.4 1 2-3.4-2-1.6a7 7 0 00.1-1z")
+				<div class="pt-3">
+					<p class="px-3 pb-1 text-[10px] font-semibold uppercase tracking-widest text-steel-500">More</p>
+					@sideNav(lc.Path, "/pricing", "Pricing", "M12 8v13m0-13l-4 4m4-4l4 4m8 5H0")
+					@sideNav(lc.Path, "/help", "Help", "M9.1 9a3 3 0 015.8 1c0 2-3 2-3 4M12 17h.01M22 12a10 10 0 11-20 0 10 10 0 0120 0z")
+				</div>
+				if lc.User.IsStaff {
+					<div class="pt-3">
+						<p class="px-3 pb-1 text-[10px] font-semibold uppercase tracking-widest text-amber-500">Staff</p>
+						@sideNav(lc.Path, "/admin", "Admin", "M12 2l8 4v6c0 5-4 9-8 10-4-1-8-5-8-10V6l8-4z")
+					</div>
+				}
+			</nav>
+			// User card + account switcher + sign-out at the bottom.
+			<div class="border-t border-steel-700 p-3">
+				if lc.Account != nil && len(lc.Accounts) > 1 {
+					<form method="POST" action="/account/switch" class="mb-3">
+						@CSRFField()
+						<select
+							name="account_id"
+							data-account-switcher
+							aria-label="Switch account"
+							class="w-full rounded-md border border-steel-700 bg-steel-800 px-2 py-1.5 text-xs text-steel-100"
+						>
+							for _, a := range lc.Accounts {
+								if lc.Account != nil && a.ID == lc.Account.ID.String() {
+									<option value={ a.ID } selected>{ a.Name }</option>
+								} else {
+									<option value={ a.ID }>{ a.Name }</option>
+								}
+							}
+						</select>
+					</form>
+				}
+				<div class="flex items-center gap-2 px-1 py-1.5 text-sm">
+					<span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-brand-700 text-xs font-semibold text-white">
+						{ userInitials(lc.User.Email) }
+					</span>
+					<div class="min-w-0 flex-1">
+						<p class="truncate text-xs font-medium text-steel-100">{ lc.User.Email }</p>
+						if lc.Account != nil {
+							<p class="truncate text-[11px] text-steel-400">
+								{ lc.Account.Name }
+								if lc.Membership != nil {
+									<span class="text-steel-500"> · { string(lc.Membership.Role) }</span>
+								}
+							</p>
+						}
+					</div>
+				</div>
+				<form method="POST" action="/logout" class="mt-2">
+					@CSRFField()
+					<button type="submit" class="w-full rounded-md px-3 py-1.5 text-left text-xs text-steel-400 hover:bg-steel-800 hover:text-steel-100">Sign out</button>
+				</form>
+			</div>
+		</aside>
+
+		<div class="flex min-w-0 flex-1 flex-col">
+			<header class="sticky top-0 z-10 flex items-center gap-3 border-b border-steel-700 bg-steel-900/70 px-4 py-3 backdrop-blur">
+				<label for="sidebar-open" class="cursor-pointer rounded-md p-1.5 text-steel-300 hover:bg-steel-800 lg:hidden" aria-label="Open menu">
+					<svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M4 12h16M4 18h16"></path></svg>
+				</label>
+				<h1 class="truncate text-lg font-semibold tracking-tight text-steel-100">{ title }</h1>
+			</header>
+			<main id="main-content" class="flex-1 px-4 py-8 sm:px-8">
+				<div class="mx-auto w-full max-w-5xl">
+					{ children... }
+				</div>
+			</main>
+		</div>
+	</div>
+}
+
+// MarketingShell — the signed-out experience. Horizontal top nav + wide
+// content area + full footer, matching the design's marketing layout.
+templ MarketingShell(lc LayoutCtx) {
+	<div class="flex min-h-screen flex-col">
+		<header class="border-b border-steel-700">
+			<div class="mx-auto flex max-w-5xl items-center justify-between px-4 py-3">
+				<a href="/" class="flex items-center gap-2 font-semibold tracking-tight text-steel-100">
+					@Logo()
+					<span>{ branding.ProductName }</span>
+				</a>
+				<nav class="flex items-center gap-3 text-sm">
+					<a href="/how-it-works" class="btn-ghost">How it works</a>
+					<a href="/pricing" class="btn-ghost">Pricing</a>
+					<a href="/login" class="btn-ghost">Sign in</a>
+					<a href="/signup" class="btn-primary">Sign up</a>
+				</nav>
+			</div>
+		</header>
+		<main id="main-content" class="mx-auto w-full max-w-5xl flex-1 px-4 py-8">
+			{ children... }
+		</main>
+		<footer class="border-t border-steel-700 px-4 py-4 text-center text-xs text-steel-400">
+			<p>{ branding.ProductName } — backup verification as a service.</p>
+			<nav aria-label="Footer" class="mt-1 flex flex-wrap justify-center gap-3">
+				<a href="/how-it-works" class="hover:underline">How it works</a>
+				<a href="/pricing" class="hover:underline">Pricing</a>
+				<a href="/verify" class="hover:underline">Verify a report</a>
+				<a href="/status" class="hover:underline">Status</a>
+				<a href="/docs" class="hover:underline">API docs</a>
+				<a href="/legal/terms" class="hover:underline">Terms</a>
+				<a href="/legal/privacy" class="hover:underline">Privacy</a>
+				<a href="/legal/dpa" class="hover:underline">DPA</a>
+				<a href="/legal/subprocessors" class="hover:underline">Sub-processors</a>
+				<a href="/legal/cookies" class="hover:underline">Cookies</a>
+			</nav>
+		</footer>
+	</div>
+}
+
+// sideNav renders one sidebar entry: an icon + label with an active state
+// (brand-tinted background + brand-300 text). The path is matched with the
+// same navActive logic used by the horizontal nav so nested pages light up
+// their section (/drills/123 → Drills).
+templ sideNav(current, href, label, iconPath string) {
+	if navActive(current, href) {
+		<a href={ templ.SafeURL(href) } aria-current="page" class="flex items-center gap-3 rounded-md bg-brand-500/15 px-3 py-2 text-sm font-semibold text-brand-300">
+			<span class="text-brand-300">
+				@sideIcon(iconPath)
+			</span>
+			{ label }
+		</a>
+	} else {
+		<a href={ templ.SafeURL(href) } class="flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium text-steel-300 hover:bg-steel-800 hover:text-steel-100">
+			<span class="text-steel-400">
+				@sideIcon(iconPath)
+			</span>
+			{ label }
+		</a>
+	}
+}
+
+templ sideIcon(d string) {
+	<svg class="h-[18px] w-[18px] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d={ d }></path></svg>
 }
 
 // navLink renders one primary-nav item, underlined and tinted brand when it
@@ -272,4 +358,34 @@ func trialBannerText(a *account.Account) string {
 	default:
 		return strconv.Itoa(days) + " days left in your free trial."
 	}
+}
+
+// userInitials renders 1-2 uppercase initials for the sidebar avatar chip.
+// Drawn from the local-part of the email so it does the right thing whether
+// the address is "j.smith@…", "jane@…", or "j+extras@…".
+func userInitials(email string) string {
+	local := email
+	if at := strings.IndexByte(email, '@'); at > 0 {
+		local = email[:at]
+	}
+	if p := strings.IndexByte(local, '+'); p > 0 {
+		local = local[:p]
+	}
+	parts := strings.FieldsFunc(local, func(r rune) bool {
+		return r == '.' || r == '-' || r == '_'
+	})
+	out := ""
+	for _, p := range parts {
+		if p == "" {
+			continue
+		}
+		out += strings.ToUpper(string(p[0]))
+		if len(out) >= 2 {
+			break
+		}
+	}
+	if out == "" && local != "" {
+		out = strings.ToUpper(string(local[0]))
+	}
+	return out
 }
