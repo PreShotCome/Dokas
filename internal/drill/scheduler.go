@@ -8,6 +8,8 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/riverqueue/river"
+
+	"github.com/preshotcome/dokaz/internal/account"
 )
 
 // CadenceInterval maps a drill cadence to its interval. An unrecognised
@@ -47,9 +49,38 @@ func (w *SchedulerWorker) Work(ctx context.Context, _ *river.Job[SchedulerArgs])
 	if err != nil {
 		return err
 	}
-	for _, t := range due {
+	for _, ds := range due {
+		t := ds.Target
 		interval := CadenceInterval(t.DrillCadence)
 		if interval == 0 || t.NextDrillAt == nil {
+			continue
+		}
+		// Re-check the cadence against the account's *current* plan every
+		// fire. A Scale→Growth downgrade leaves the stored `daily` cadence
+		// untouched (SyncSubscription only writes the plan column), and
+		// without this check the schedule would keep firing daily against a
+		// plan that only allows weekly. When disallowed, we don't just skip
+		// the fire — we downshift the stored cadence to the plan's
+		// highest-allowed so the account isn't wedged in a broken state.
+		if !account.CadenceAllowed(account.Plan(ds.Plan), t.DrillCadence) {
+			fallback := account.TopCadence(account.Plan(ds.Plan))
+			if w.Logger != nil {
+				w.Logger.Warn("scheduler: cadence disallowed for plan; downshifting",
+					"target_id", t.ID, "plan", ds.Plan,
+					"from", t.DrillCadence, "to", fallback)
+			}
+			// If even the top cadence for the plan is "off", stop scheduling.
+			nextInterval := CadenceInterval(fallback)
+			if nextInterval == 0 {
+				if err := w.Store.SetTargetSchedule(ctx, t.AccountID, t.ID, "off", nil); err != nil {
+					w.logErr("downshift schedule off", t.ID, err)
+				}
+				continue
+			}
+			nextAt := time.Now().UTC().Add(nextInterval)
+			if err := w.Store.SetTargetSchedule(ctx, t.AccountID, t.ID, fallback, &nextAt); err != nil {
+				w.logErr("downshift schedule", t.ID, err)
+			}
 			continue
 		}
 		// The idempotency key is unique per scheduled slot, so a double

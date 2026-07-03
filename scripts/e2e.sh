@@ -23,6 +23,23 @@ export DATABASE_URL="${DATABASE_URL:-postgres://restoredrill:restoredrill@127.0.
 echo "==> DATABASE_URL=${DATABASE_URL%%\?*}?…"
 echo "==> base URL ${BASE_URL}"
 
+# Self-heal: if the SessionStart hook died before it could bring Postgres up
+# (or a later shell killed the cluster), start it here rather than fail with a
+# raw connection refusal. Idempotent — matches the hook's provisioning.
+if ! pg_isready -q >/dev/null 2>&1; then
+  echo "==> Postgres not up, starting it"
+  sudo pg_ctlcluster 16 main start >/dev/null 2>&1 || true
+  for _ in $(seq 1 30); do pg_isready -q && break; sleep 1; done
+  if ! pg_isready -q; then
+    echo "!! Postgres would not start — is the cluster installed?" >&2
+    exit 1
+  fi
+  sudo -u postgres psql -tAc "SELECT 1 FROM pg_roles WHERE rolname='restoredrill'" | grep -q 1 \
+    || sudo -u postgres psql -tAc "CREATE ROLE restoredrill LOGIN SUPERUSER PASSWORD 'restoredrill'"
+  sudo -u postgres psql -tAc "SELECT 1 FROM pg_database WHERE datname='restoredrill'" | grep -q 1 \
+    || sudo -u postgres createdb -O restoredrill restoredrill
+fi
+
 echo "==> migrate up"
 go run ./cmd/migrate up
 

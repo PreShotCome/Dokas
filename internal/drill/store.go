@@ -307,10 +307,18 @@ func (s *Store) SetTargetSchedule(ctx context.Context, accountID, targetID uuid.
 // the pool's auto-transaction, so the lock lives only for the query's
 // duration; that's enough to prevent two workers from picking up the same
 // row in the same instant.
-func (s *Store) DueTargets(ctx context.Context) ([]Target, error) {
+// DueSchedule pairs a due target with the account plan the scheduler needs to
+// re-check its cadence against — a Scale→Starter downgrade must stop daily
+// drills at the next fire, not just at the next schedule edit.
+type DueSchedule struct {
+	Target Target
+	Plan   string
+}
+
+func (s *Store) DueTargets(ctx context.Context) ([]DueSchedule, error) {
 	rows, err := s.pool.Query(ctx, `
 		SELECT t.id, t.account_id, t.created_by_user_id, t.name, t.source_kind, t.source_uri,
-		       t.created_at, t.drill_cadence, t.next_drill_at
+		       t.created_at, t.drill_cadence, t.next_drill_at, a.plan
 		  FROM database_targets t
 		  JOIN accounts a ON a.id = t.account_id
 		 WHERE t.deleted_at IS NULL
@@ -322,21 +330,25 @@ func (s *Store) DueTargets(ctx context.Context) ([]Target, error) {
 		   AND t.is_sample = false
 		   -- Only paid plans get scheduled drills of their own backups; a
 		   -- downgraded (now-trial) account stops being drilled automatically.
-		   AND a.plan IN ('starter', 'pro')
+		   -- The scheduler additionally re-checks the plan's allowed cadences
+		   -- for each fire — a Scale→Starter downgrade must not keep firing
+		   -- daily drills against a plan that only allows weekly.
+		   AND a.plan IN ('starter', 'pro', 'scale')
 		 FOR UPDATE OF t SKIP LOCKED
 	`)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var out []Target
+	var out []DueSchedule
 	for rows.Next() {
-		var t Target
-		if err := rows.Scan(&t.ID, &t.AccountID, &t.CreatedByUserID, &t.Name, &t.SourceKind, &t.SourceURI,
-			&t.CreatedAt, &t.DrillCadence, &t.NextDrillAt); err != nil {
+		var d DueSchedule
+		if err := rows.Scan(&d.Target.ID, &d.Target.AccountID, &d.Target.CreatedByUserID,
+			&d.Target.Name, &d.Target.SourceKind, &d.Target.SourceURI,
+			&d.Target.CreatedAt, &d.Target.DrillCadence, &d.Target.NextDrillAt, &d.Plan); err != nil {
 			return nil, err
 		}
-		out = append(out, t)
+		out = append(out, d)
 	}
 	return out, rows.Err()
 }
