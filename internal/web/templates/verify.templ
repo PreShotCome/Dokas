@@ -15,34 +15,24 @@ type VerifyResult struct {
 // VerifyEvidence is the public, no-account tool an auditor uses to confirm a
 // Dokaz report is genuine and unaltered: upload the PDF + its signature JSON,
 // and we check the detached Ed25519 signature against our published keys.
+// A verified result renders as the same on-brand receipt an in-app drill
+// detail shows — this page is the thesis surface, so "green alert with a
+// checkmark" would badly under-sell the moat.
 templ VerifyEvidence(lc LayoutCtx, result *VerifyResult) {
 	@LayoutWith("Verify evidence", lc) {
 		<div class="mx-auto max-w-xl">
 			<div class="mb-8 text-center">
-				<h1 class="text-3xl font-semibold tracking-tight">Verify a { branding.ProductName } report</h1>
-				<p class="mx-auto mt-3 max-w-md text-zinc-600 dark:text-zinc-400">
+				<h1 class="text-3xl font-semibold tracking-tight text-steel-100">Verify a { branding.ProductName } report</h1>
+				<p class="mx-auto mt-3 max-w-md text-sm text-steel-300">
 					Were you handed a { branding.ProductName } Proof-of-Recovery PDF? Confirm it's
 					genuine and unaltered here — no account needed. The check runs against
-					our <a class="underline" href="/.well-known/evidence-signing-keys.pem">published signing keys</a>.
+					our <a class="underline text-brand-300 hover:text-brand-200" href="/.well-known/evidence-signing-keys.pem">published signing keys</a>.
 				</p>
 			</div>
 
 			if result != nil {
 				if result.OK {
-					<div class="card mb-6 border-emerald-300 bg-emerald-50 dark:border-emerald-800 dark:bg-emerald-950/40">
-						<div class="flex items-center gap-2 text-emerald-800 dark:text-emerald-300">
-							<span class="flex h-6 w-6 items-center justify-center rounded-full bg-emerald-100 dark:bg-emerald-900/60">
-								@landingCheck()
-							</span>
-							<span class="text-lg font-semibold">Verified</span>
-						</div>
-						<p class="mt-2 text-sm text-emerald-900 dark:text-emerald-200">{ result.Message }</p>
-						<dl class="mt-4 space-y-1.5 border-t border-emerald-200 pt-4 text-xs dark:border-emerald-800/60">
-							@verifyRow("Signing key", result.KeyID)
-							@verifyRow("Signed at", result.SignedAt)
-							@verifyRow("PDF SHA-256", result.PDFSHA256)
-						</dl>
-					</div>
+					@verifyReceipt(result)
 				} else {
 					<div class="alert-error mb-6">
 						<p class="font-semibold">Not verified</p>
@@ -56,29 +46,51 @@ templ VerifyEvidence(lc LayoutCtx, result *VerifyResult) {
 				<div>
 					<label class="label" for="pdf">Evidence PDF</label>
 					<input id="pdf" name="pdf" type="file" accept="application/pdf,.pdf" required
-						class="block w-full text-sm text-zinc-600 file:mr-3 file:rounded-md file:border-0 file:bg-brand-700 file:px-3 file:py-2 file:text-sm file:font-medium file:text-white hover:file:bg-brand-600 dark:text-zinc-400"/>
+						class="block w-full text-sm text-steel-300 file:mr-3 file:rounded-md file:border-0 file:bg-brand-600 file:px-3 file:py-2 file:text-sm file:font-medium file:text-white hover:file:bg-brand-500"/>
 					<p class="form-hint">The PDF from the drill's <span class="font-medium">Evidence</span> link.</p>
 				</div>
 				<div>
 					<label class="label" for="signature">Signature JSON</label>
 					<input id="signature" name="signature" type="file" accept="application/json,.json" required
-						class="block w-full text-sm text-zinc-600 file:mr-3 file:rounded-md file:border-0 file:bg-brand-700 file:px-3 file:py-2 file:text-sm file:font-medium file:text-white hover:file:bg-brand-600 dark:text-zinc-400"/>
+						class="block w-full text-sm text-steel-300 file:mr-3 file:rounded-md file:border-0 file:bg-brand-600 file:px-3 file:py-2 file:text-sm file:font-medium file:text-white hover:file:bg-brand-500"/>
 					<p class="form-hint">The JSON from the drill's <span class="font-medium">Signature</span> link.</p>
 				</div>
 				<button type="submit" class="btn-primary w-full">Verify report</button>
 			</form>
 
-			<p class="mt-6 text-center text-xs text-zinc-500">
-				Prefer to verify offline? The open-source <code>dokaz-verify</code> CLI does the
+			<p class="mt-6 text-center text-xs text-steel-500">
+				Prefer to verify offline? The open-source <code class="font-mono text-steel-300">dokaz-verify</code> CLI does the
 				same check on your own machine against the published key — nothing leaves your computer.
 			</p>
 		</div>
 	}
 }
 
-templ verifyRow(label, value string) {
-	<div class="flex justify-between gap-4">
-		<dt class="text-emerald-700 dark:text-emerald-400">{ label }</dt>
-		<dd class="break-all text-right font-mono text-emerald-900 dark:text-emerald-200">{ value }</dd>
+// verifyReceipt mirrors the in-app SignatureReceipt component: dashed-divider
+// header, mono rows, inset signature well. The visual grammar is the same in
+// the app and in the auditor-facing verifier by design — a report holder
+// should recognise the receipt they were handed.
+templ verifyReceipt(r *VerifyResult) {
+	<div class="card mb-6">
+		<div class="mb-3 flex items-center justify-between border-b border-dashed border-steel-700 pb-3">
+			<div class="flex items-center gap-2">
+				@shieldCheck()
+				<span class="font-semibold text-steel-100">{ branding.ProductName } · Verification receipt</span>
+			</div>
+			<span class="inline-flex items-center gap-1.5 rounded-full bg-teal-400/15 px-2.5 py-0.5 text-xs font-medium text-teal-300">
+				<span class="h-1.5 w-1.5 rounded-full bg-teal-400"></span>verified
+			</span>
+		</div>
+		<p class="mb-3 text-sm text-steel-300">{ r.Message }</p>
+		<div class="space-y-2 font-mono text-xs">
+			@receiptRow("signed at", r.SignedAt, "")
+			@receiptRow("signing key", r.KeyID, "trusted")
+			@receiptRow("pdf sha-256", r.PDFSHA256, "matches")
+		</div>
+		<p class="mt-4 border-t border-dashed border-steel-700 pt-3 text-[11px] text-steel-500">
+			This report was produced by the { branding.ProductName } signing key above and has not been
+			altered since it was signed. The signature can be re-checked on any machine with
+			<code class="font-mono text-steel-400">dokaz-verify</code>.
+		</p>
 	</div>
 }

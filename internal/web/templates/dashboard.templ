@@ -22,7 +22,7 @@ templ Dashboard(v DashboardView) {
 	@LayoutWith("Dashboard", v.Ctx) {
 		<div class="mb-6 flex items-baseline justify-between">
 			<h1 class="text-2xl font-semibold tracking-tight">Dashboard</h1>
-			if v.Ctx.Membership != nil && auth.Allowed(v.Ctx.Membership.Role, auth.ActionTargetWrite) {
+			if v.Ctx.Membership != nil && auth.Allowed(v.Ctx.Membership.Role, auth.ActionTargetWrite) && len(v.Targets) > 0 {
 				<a href="/databases/new" class="btn-primary">Connect a database</a>
 			}
 		</div>
@@ -61,28 +61,69 @@ templ Dashboard(v DashboardView) {
 	}
 }
 
+// DrillsEmpty is the first-run screen for a brand-new account. It leads with
+// the *sample* drill — the one action every plan (including trial) can
+// perform — because that's the action that produces the first signed PDF
+// and completes the "prove it, don't promise it" thesis. Connecting a real
+// database is a secondary path (the "when you're ready" step) so trial users
+// aren't sent to the paywalled action as their only CTA.
 templ DrillsEmpty(m *account.Membership) {
-	<div class="card flex flex-col items-center justify-center gap-3 py-16 text-center">
-		<div class="rounded-full bg-zinc-100 p-3 dark:bg-zinc-800">
-			<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="h-8 w-8 text-zinc-500" aria-hidden="true" focusable="false">
-				<path stroke-linecap="round" stroke-linejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z"/>
-			</svg>
-		</div>
-		<h2 class="text-lg font-semibold">Your first drill runs in 3 minutes.</h2>
-		<p class="max-w-md text-sm text-zinc-600 dark:text-zinc-400">
-			Connect a Postgres backup source and we'll restore the latest dump in
-			an isolated sandbox, run your assertions, and email you a signed PDF.
-		</p>
-		if m != nil && auth.Allowed(m.Role, auth.ActionTargetWrite) {
-			<a href="/databases/new" class="btn-primary mt-2">Connect a database</a>
-		} else {
-			<p class="text-xs text-zinc-500">Ask an admin or member of this account to connect a database.</p>
-		}
-		if m != nil && auth.Allowed(m.Role, auth.ActionHeartbeatWrite) {
-			<p class="mt-2 text-xs text-zinc-500">
-				Or <a href="/heartbeats" class="underline">set up a backup check-in</a> to
-				be alerted the moment a backup job stops running.
+	<div class="grid gap-4 lg:grid-cols-3">
+		// Primary card — the sample drill. Takes two columns so it visually
+		// dominates the first-run screen.
+		<div class="card lg:col-span-2 lg:p-8">
+			<div class="mb-4 flex items-center gap-3">
+				<span class="flex h-10 w-10 items-center justify-center rounded-lg bg-brand-500/15 text-brand-300">
+					<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5" aria-hidden="true">
+						<path d="M9 12l2 2 4-4m-3-7l7 4v6c0 4-3 7-7 8-4-1-7-4-7-8V7z"></path>
+					</svg>
+				</span>
+				<div>
+					<p class="text-[10px] font-semibold uppercase tracking-widest text-brand-300">Step 1 · 30 seconds</p>
+					<h2 class="text-lg font-semibold text-steel-100">See a signed Proof-of-Recovery report in one click.</h2>
+				</div>
+			</div>
+			<p class="mb-6 text-sm text-steel-300">
+				Run a drill against our built-in sample dataset — a real
+				<span class="font-mono text-xs text-steel-200">pg_dump</span>
+				exercised through the full provision → restore → assert → sign
+				pipeline. You'll see the same signed PDF your database will
+				produce, without touching your own backup.
 			</p>
-		}
+			if m != nil && auth.Allowed(m.Role, auth.ActionDrillWrite) {
+				@sampleDrillForm("Run the sample drill", "btn-primary")
+			} else {
+				<p class="text-xs text-steel-400">Ask an admin or member of this account to run the sample drill.</p>
+			}
+		</div>
+
+		// Secondary — when you're ready, connect your own DB.
+		<div class="space-y-4">
+			<div class="card">
+				<p class="mb-1 text-[10px] font-semibold uppercase tracking-widest text-steel-500">Step 2 · when you're ready</p>
+				<h3 class="text-sm font-semibold text-steel-100">Connect your own database</h3>
+				<p class="mt-2 text-xs text-steel-400">
+					Point Dokaz at the dump your backup job already produces. We
+					restore it in an isolated sandbox on your schedule — we never
+					touch your production database.
+				</p>
+				if m != nil && auth.Allowed(m.Role, auth.ActionTargetWrite) {
+					<a href="/databases/new" class="btn-ghost mt-3 w-full">Connect a database</a>
+				} else {
+					<p class="mt-3 text-[11px] text-steel-500">Ask an admin to connect one.</p>
+				}
+			</div>
+			<div class="card">
+				<p class="mb-1 text-[10px] font-semibold uppercase tracking-widest text-steel-500">Also useful</p>
+				<h3 class="text-sm font-semibold text-steel-100">Set up a backup check-in</h3>
+				<p class="mt-2 text-xs text-steel-400">
+					A short-lived URL your <span class="font-mono">pg_dump</span> cron
+					hits after each successful backup. If it doesn't ping, we page you.
+				</p>
+				if m != nil && auth.Allowed(m.Role, auth.ActionHeartbeatWrite) {
+					<a href="/heartbeats" class="btn-ghost mt-3 w-full">Create a check-in</a>
+				}
+			</div>
+		</div>
 	</div>
 }

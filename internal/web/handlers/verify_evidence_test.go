@@ -50,8 +50,11 @@ func TestVerifyEvidence(t *testing.T) {
 	}})
 
 	// Happy path: genuine PDF + signature verifies.
-	if body := postVerify(t, h, pdf, sigJSON); !strings.Contains(body, "Verified") || strings.Contains(body, "Not verified") {
-		t.Errorf("genuine report should verify; body did not show Verified")
+	// The verified surface renders a "Verification receipt" panel with a
+	// lowercase "verified" status pill; the body must NOT contain the
+	// "Not verified" negative marker.
+	if body := postVerify(t, h, pdf, sigJSON); !strings.Contains(body, "Verification receipt") || strings.Contains(body, "Not verified") {
+		t.Errorf("genuine report should verify; body did not show Verification receipt")
 	}
 
 	// Tampered PDF: one byte changed must fail the digest check.

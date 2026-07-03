@@ -23,6 +23,9 @@ type VerifyResult struct {
 // VerifyEvidence is the public, no-account tool an auditor uses to confirm a
 // Dokaz report is genuine and unaltered: upload the PDF + its signature JSON,
 // and we check the detached Ed25519 signature against our published keys.
+// A verified result renders as the same on-brand receipt an in-app drill
+// detail shows — this page is the thesis surface, so "green alert with a
+// checkmark" would badly under-sell the moat.
 func VerifyEvidence(lc LayoutCtx, result *VerifyResult) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
@@ -56,100 +59,63 @@ func VerifyEvidence(lc LayoutCtx, result *VerifyResult) templ.Component {
 				}()
 			}
 			ctx = templ.InitializeContext(ctx)
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"mx-auto max-w-xl\"><div class=\"mb-8 text-center\"><h1 class=\"text-3xl font-semibold tracking-tight\">Verify a ")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"mx-auto max-w-xl\"><div class=\"mb-8 text-center\"><h1 class=\"text-3xl font-semibold tracking-tight text-steel-100\">Verify a ")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var3 string
 			templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(branding.ProductName)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/templates/verify.templ`, Line: 22, Col: 85}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/templates/verify.templ`, Line: 25, Col: 100}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, " report</h1><p class=\"mx-auto mt-3 max-w-md text-zinc-600 dark:text-zinc-400\">Were you handed a ")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, " report</h1><p class=\"mx-auto mt-3 max-w-md text-sm text-steel-300\">Were you handed a ")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var4 string
 			templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(branding.ProductName)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/templates/verify.templ`, Line: 24, Col: 45}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/templates/verify.templ`, Line: 27, Col: 45}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, " Proof-of-Recovery PDF? Confirm it's genuine and unaltered here — no account needed. The check runs against our <a class=\"underline\" href=\"/.well-known/evidence-signing-keys.pem\">published signing keys</a>.</p></div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, " Proof-of-Recovery PDF? Confirm it's genuine and unaltered here — no account needed. The check runs against our <a class=\"underline text-brand-300 hover:text-brand-200\" href=\"/.well-known/evidence-signing-keys.pem\">published signing keys</a>.</p></div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			if result != nil {
 				if result.OK {
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "<div class=\"card mb-6 border-emerald-300 bg-emerald-50 dark:border-emerald-800 dark:bg-emerald-950/40\"><div class=\"flex items-center gap-2 text-emerald-800 dark:text-emerald-300\"><span class=\"flex h-6 w-6 items-center justify-center rounded-full bg-emerald-100 dark:bg-emerald-900/60\">")
+					templ_7745c5c3_Err = verifyReceipt(result).Render(ctx, templ_7745c5c3_Buffer)
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = landingCheck().Render(ctx, templ_7745c5c3_Buffer)
-					if templ_7745c5c3_Err != nil {
-						return templ_7745c5c3_Err
-					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "</span> <span class=\"text-lg font-semibold\">Verified</span></div><p class=\"mt-2 text-sm text-emerald-900 dark:text-emerald-200\">")
+				} else {
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "<div class=\"alert-error mb-6\"><p class=\"font-semibold\">Not verified</p><p class=\"mt-1\">")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 					var templ_7745c5c3_Var5 string
 					templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(result.Message)
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/templates/verify.templ`, Line: 39, Col: 85}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/templates/verify.templ`, Line: 39, Col: 38}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "</p><dl class=\"mt-4 space-y-1.5 border-t border-emerald-200 pt-4 text-xs dark:border-emerald-800/60\">")
-					if templ_7745c5c3_Err != nil {
-						return templ_7745c5c3_Err
-					}
-					templ_7745c5c3_Err = verifyRow("Signing key", result.KeyID).Render(ctx, templ_7745c5c3_Buffer)
-					if templ_7745c5c3_Err != nil {
-						return templ_7745c5c3_Err
-					}
-					templ_7745c5c3_Err = verifyRow("Signed at", result.SignedAt).Render(ctx, templ_7745c5c3_Buffer)
-					if templ_7745c5c3_Err != nil {
-						return templ_7745c5c3_Err
-					}
-					templ_7745c5c3_Err = verifyRow("PDF SHA-256", result.PDFSHA256).Render(ctx, templ_7745c5c3_Buffer)
-					if templ_7745c5c3_Err != nil {
-						return templ_7745c5c3_Err
-					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "</dl></div>")
-					if templ_7745c5c3_Err != nil {
-						return templ_7745c5c3_Err
-					}
-				} else {
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "<div class=\"alert-error mb-6\"><p class=\"font-semibold\">Not verified</p><p class=\"mt-1\">")
-					if templ_7745c5c3_Err != nil {
-						return templ_7745c5c3_Err
-					}
-					var templ_7745c5c3_Var6 string
-					templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(result.Message)
-					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/templates/verify.templ`, Line: 49, Col: 38}
-					}
-					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
-					if templ_7745c5c3_Err != nil {
-						return templ_7745c5c3_Err
-					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "</p></div>")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "</p></div>")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 				}
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "<form method=\"POST\" action=\"/verify\" enctype=\"multipart/form-data\" class=\"card space-y-4\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "<form method=\"POST\" action=\"/verify\" enctype=\"multipart/form-data\" class=\"card space-y-4\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -157,7 +123,7 @@ func VerifyEvidence(lc LayoutCtx, result *VerifyResult) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "<div><label class=\"label\" for=\"pdf\">Evidence PDF</label> <input id=\"pdf\" name=\"pdf\" type=\"file\" accept=\"application/pdf,.pdf\" required class=\"block w-full text-sm text-zinc-600 file:mr-3 file:rounded-md file:border-0 file:bg-brand-700 file:px-3 file:py-2 file:text-sm file:font-medium file:text-white hover:file:bg-brand-600 dark:text-zinc-400\"><p class=\"form-hint\">The PDF from the drill's <span class=\"font-medium\">Evidence</span> link.</p></div><div><label class=\"label\" for=\"signature\">Signature JSON</label> <input id=\"signature\" name=\"signature\" type=\"file\" accept=\"application/json,.json\" required class=\"block w-full text-sm text-zinc-600 file:mr-3 file:rounded-md file:border-0 file:bg-brand-700 file:px-3 file:py-2 file:text-sm file:font-medium file:text-white hover:file:bg-brand-600 dark:text-zinc-400\"><p class=\"form-hint\">The JSON from the drill's <span class=\"font-medium\">Signature</span> link.</p></div><button type=\"submit\" class=\"btn-primary w-full\">Verify report</button></form><p class=\"mt-6 text-center text-xs text-zinc-500\">Prefer to verify offline? The open-source <code>dokaz-verify</code> CLI does the same check on your own machine against the published key — nothing leaves your computer.</p></div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "<div><label class=\"label\" for=\"pdf\">Evidence PDF</label> <input id=\"pdf\" name=\"pdf\" type=\"file\" accept=\"application/pdf,.pdf\" required class=\"block w-full text-sm text-steel-300 file:mr-3 file:rounded-md file:border-0 file:bg-brand-600 file:px-3 file:py-2 file:text-sm file:font-medium file:text-white hover:file:bg-brand-500\"><p class=\"form-hint\">The PDF from the drill's <span class=\"font-medium\">Evidence</span> link.</p></div><div><label class=\"label\" for=\"signature\">Signature JSON</label> <input id=\"signature\" name=\"signature\" type=\"file\" accept=\"application/json,.json\" required class=\"block w-full text-sm text-steel-300 file:mr-3 file:rounded-md file:border-0 file:bg-brand-600 file:px-3 file:py-2 file:text-sm file:font-medium file:text-white hover:file:bg-brand-500\"><p class=\"form-hint\">The JSON from the drill's <span class=\"font-medium\">Signature</span> link.</p></div><button type=\"submit\" class=\"btn-primary w-full\">Verify report</button></form><p class=\"mt-6 text-center text-xs text-steel-500\">Prefer to verify offline? The open-source <code class=\"font-mono text-steel-300\">dokaz-verify</code> CLI does the same check on your own machine against the published key — nothing leaves your computer.</p></div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -171,7 +137,11 @@ func VerifyEvidence(lc LayoutCtx, result *VerifyResult) templ.Component {
 	})
 }
 
-func verifyRow(label, value string) templ.Component {
+// verifyReceipt mirrors the in-app SignatureReceipt component: dashed-divider
+// header, mono rows, inset signature well. The visual grammar is the same in
+// the app and in the auditor-facing verifier by design — a report holder
+// should recognise the receipt they were handed.
+func verifyReceipt(r *VerifyResult) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -187,38 +157,75 @@ func verifyRow(label, value string) templ.Component {
 			}()
 		}
 		ctx = templ.InitializeContext(ctx)
-		templ_7745c5c3_Var7 := templ.GetChildren(ctx)
-		if templ_7745c5c3_Var7 == nil {
-			templ_7745c5c3_Var7 = templ.NopComponent
+		templ_7745c5c3_Var6 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var6 == nil {
+			templ_7745c5c3_Var6 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "<div class=\"flex justify-between gap-4\"><dt class=\"text-emerald-700 dark:text-emerald-400\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "<div class=\"card mb-6\"><div class=\"mb-3 flex items-center justify-between border-b border-dashed border-steel-700 pb-3\"><div class=\"flex items-center gap-2\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = shieldCheck().Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "<span class=\"font-semibold text-steel-100\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var7 string
+		templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinStringErrs(branding.ProductName)
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/templates/verify.templ`, Line: 78, Col: 69}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var7))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, " · Verification receipt</span></div><span class=\"inline-flex items-center gap-1.5 rounded-full bg-teal-400/15 px-2.5 py-0.5 text-xs font-medium text-teal-300\"><span class=\"h-1.5 w-1.5 rounded-full bg-teal-400\"></span>verified</span></div><p class=\"mb-3 text-sm text-steel-300\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var8 string
-		templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(label)
+		templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(r.Message)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/templates/verify.templ`, Line: 81, Col: 60}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/templates/verify.templ`, Line: 84, Col: 52}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var8))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "</dt><dd class=\"break-all text-right font-mono text-emerald-900 dark:text-emerald-200\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "</p><div class=\"space-y-2 font-mono text-xs\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = receiptRow("signed at", r.SignedAt, "").Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = receiptRow("signing key", r.KeyID, "trusted").Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = receiptRow("pdf sha-256", r.PDFSHA256, "matches").Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "</div><p class=\"mt-4 border-t border-dashed border-steel-700 pt-3 text-[11px] text-steel-500\">This report was produced by the ")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var9 string
-		templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs(value)
+		templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs(branding.ProductName)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/templates/verify.templ`, Line: 82, Col: 91}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/templates/verify.templ`, Line: 91, Col: 57}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var9))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "</dd></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, " signing key above and has not been altered since it was signed. The signature can be re-checked on any machine with <code class=\"font-mono text-steel-400\">dokaz-verify</code>.</p></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

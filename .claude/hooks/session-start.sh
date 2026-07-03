@@ -35,12 +35,23 @@ sudo -u postgres psql -tAc \
   "SELECT 1 FROM pg_database WHERE datname='restoredrill'" | grep -q 1 \
   || sudo -u postgres createdb -O restoredrill restoredrill
 
-# Persist DATABASE_URL for the whole session.
-echo "export DATABASE_URL=\"$DSN\"" >> "$CLAUDE_ENV_FILE"
+# Persist DATABASE_URL for the whole session. CLAUDE_ENV_FILE is guaranteed by
+# the harness in practice, but under `set -u` a missing var would kill the hook
+# right after createdb — leaving the session with a running cluster and no
+# exported DSN. Skip the write rather than crash.
+if [ -n "${CLAUDE_ENV_FILE:-}" ]; then
+  echo "export DATABASE_URL=\"$DSN\"" >> "$CLAUDE_ENV_FILE"
+fi
 
 # Warm the Go module cache and apply migrations so the schema is ready.
-cd "$CLAUDE_PROJECT_DIR"
-go mod download
-DATABASE_URL="$DSN" go run ./cmd/migrate up
+# CLAUDE_PROJECT_DIR is normally set; fall back to the script's own project
+# root so a stray unset never causes us to skip the migration step and leave
+# a fresh session with no schema.
+PROJECT_DIR="${CLAUDE_PROJECT_DIR:-$(cd "$(dirname "$0")/../.." && pwd)}"
+cd "$PROJECT_DIR"
+go mod download || true
+DATABASE_URL="$DSN" go run ./cmd/migrate up || {
+  echo "session-start: migrations failed — scripts/e2e.sh will retry them." >&2
+}
 
 echo "session-start: Postgres up (role 'restoredrill', matching CI), migrations applied"
