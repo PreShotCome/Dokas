@@ -1,0 +1,189 @@
+package templates
+
+import (
+	"time"
+
+	"github.com/preshotcome/dokaz/internal/branding"
+	"github.com/preshotcome/dokaz/internal/drill"
+	"github.com/preshotcome/dokaz/internal/evidence"
+	"github.com/preshotcome/dokaz/internal/sharelink"
+)
+
+// SharePage is the auditor-facing public view of a single drill. Read-only,
+// no nav chrome. Mirrors the in-app drill detail's information hierarchy so
+// what an operator sees and what they send are the same artefact.
+templ SharePage(lc LayoutCtx, d drill.Drill, t drill.Target, steps []drill.Step, ars []drill.AssertionResult, verify evidence.VerifyResult, label string, expiresAt time.Time, token string) {
+	@LayoutWith("Proof of Recovery", lc) {
+		<div class="mx-auto max-w-3xl">
+			<div class="mb-4 flex flex-wrap items-center justify-between gap-3">
+				<div class="flex items-center gap-2 text-xs uppercase tracking-widest text-steel-400">
+					<span>Shared { branding.ProductName } drill</span>
+					if label != "" {
+						<span class="text-steel-600">·</span>
+						<span class="text-steel-300">{ label }</span>
+					}
+				</div>
+				<span class="text-xs text-steel-500">Link expires { expiresAt.UTC().Format("2006-01-02") }</span>
+			</div>
+
+			<div class="mb-6">
+				<div class="flex flex-wrap items-center gap-3">
+					<h1 class="text-2xl font-semibold tracking-tight text-steel-100">{ t.Name }</h1>
+					@StatusBadge(d.Status)
+				</div>
+				<p class="mt-1 font-mono text-xs text-steel-400">
+					drill_{ shortID(d.ID.String()) } · { d.CreatedAt.UTC().Format("2006-01-02 15:04 UTC") } · { t.SourceURI }
+				</p>
+			</div>
+
+			<div class="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
+				@statTile("Restore time", evidenceDuration(d.StartedAt, d.CompletedAt))
+				@statTile("Rows verified", rowCountFromAssertions(ars))
+				@statTile("Assertions", assertionScore(ars))
+				@statTile("Evidence", evidenceLabel(d, verify))
+			</div>
+
+			// Pipeline.
+			<p class="mb-2 text-[11px] font-semibold uppercase tracking-widest text-steel-400">Pipeline</p>
+			<div class="mb-6 flex flex-wrap gap-2">
+				for _, s := range steps {
+					@StepChip(s)
+				}
+			</div>
+
+			// Assertions.
+			if len(ars) > 0 {
+				<p class="mb-2 text-[11px] font-semibold uppercase tracking-widest text-steel-400">Assertions — expected vs. actual</p>
+				<div class="card mb-6 p-2">
+					for i, a := range ars {
+						@AssertionRow(a, i == len(ars)-1)
+					}
+				</div>
+			}
+
+			// Signature receipt + download.
+			if verify.Signed {
+				@SignatureReceipt(verify)
+			}
+
+			<div class="mt-6 flex flex-wrap items-center gap-3">
+				if d.EvidencePath != nil && *d.EvidencePath != "" {
+					<a href={ templ.SafeURL("/s/" + token + "/evidence.pdf") } class="btn-primary">Download signed PDF</a>
+				}
+				<a href="/verify" class="btn-ghost">Verify a report independently</a>
+			</div>
+
+			<p class="mt-8 border-t border-steel-700 pt-4 text-xs text-steel-500">
+				This report was produced by { branding.ProductName }. The signature above can be
+				independently checked with the open-source <code class="font-mono text-steel-400">dokaz-verify</code>
+				CLI against the <a href="/.well-known/evidence-signing-keys.pem" class="underline hover:text-steel-300">published signing keys</a> —
+				trust in the report does not require trust in { branding.ProductName }.
+			</p>
+		</div>
+	}
+}
+
+// ShareGone renders when a share token is unknown, expired, or revoked. The
+// message is deliberately identical for all three cases — no side-channel.
+templ ShareGone(lc LayoutCtx) {
+	@LayoutWith("Share link unavailable", lc) {
+		<div class="mx-auto max-w-md text-center">
+			<div class="card">
+				<h1 class="text-xl font-semibold text-steel-100">This share link is no longer valid.</h1>
+				<p class="mt-3 text-sm text-steel-300">
+					The link may have expired, been revoked by the account owner, or
+					never existed. Ask the person who sent it to mint a fresh one.
+				</p>
+				<p class="mt-4 text-xs text-steel-500">
+					If you were handed a signed PDF directly, you can still
+					<a href="/verify" class="underline hover:text-steel-300">verify it here</a>.
+				</p>
+			</div>
+		</div>
+	}
+}
+
+// ShareCreated is the confirmation shown after minting. Displays the URL
+// once — it can't be recovered from the app later (only the hash is stored).
+templ ShareCreated(lc LayoutCtx, d drill.Drill, l sharelink.Link, shareURL string) {
+	@LayoutWith("Share link created", lc) {
+		<div class="mx-auto max-w-xl">
+			<a href={ templ.SafeURL("/drills/" + d.ID.String()) } class="text-sm text-steel-300 hover:text-steel-100">← Back to drill</a>
+			<h1 class="mt-4 text-2xl font-semibold tracking-tight">Share link created</h1>
+			<p class="mt-2 text-sm text-steel-300">
+				Send this URL to anyone who needs to verify the drill. They'll see
+				the signed report and the receipt — no { branding.ProductName } account required.
+			</p>
+			<div class="mt-6 card">
+				<label class="label" for="share-url">Share URL</label>
+				<input id="share-url" type="text" readonly value={ shareURL } class="form-input font-mono text-xs" onclick="this.select()"/>
+				<p class="form-hint mt-2">
+					Expires { l.ExpiresAt.UTC().Format("2006-01-02 15:04 UTC") }. You can
+					revoke this link at any time from the drill's Share section.
+				</p>
+			</div>
+			<div class="mt-6 flex gap-3">
+				<a href={ templ.SafeURL("/drills/" + d.ID.String()) } class="btn-primary">Back to drill</a>
+			</div>
+		</div>
+	}
+}
+
+// ShareSection renders the "Share this drill" card on the drill detail page —
+// mint form + list of active links with a Revoke button per row.
+templ ShareSection(lc LayoutCtx, d drill.Drill, links []sharelink.Link) {
+	<section class="card mt-6">
+		<div class="mb-4 flex items-baseline justify-between">
+			<div>
+				<h2 class="text-base font-semibold text-steel-100">Share with an auditor</h2>
+				<p class="mt-1 text-xs text-steel-400">
+					Tokenized read-only URL — the recipient sees this drill's receipt
+					+ signed PDF without needing a { branding.ProductName } account.
+				</p>
+			</div>
+		</div>
+		<form method="POST" action={ templ.SafeURL("/drills/" + d.ID.String() + "/share") } class="grid gap-3 sm:grid-cols-[1fr_120px_auto]">
+			@CSRFField()
+			<input name="label" type="text" placeholder="Optional label (e.g. 'Q3 SOC 2 · K. Patel')" class="form-input"/>
+			<input name="ttl_days" type="number" min="1" max="90" value="30" class="form-input" title="Expires in N days (1–90)"/>
+			<button type="submit" class="btn-primary">Create share link</button>
+		</form>
+		if len(links) > 0 {
+			<div class="mt-4 divide-y divide-steel-700 border-t border-steel-700 pt-3">
+				for _, l := range links {
+					<div class="flex flex-wrap items-center justify-between gap-3 py-3 text-xs">
+						<div>
+							<p class="font-mono text-steel-200">
+								{ l.TokenPrefix }…
+								if l.Label != "" {
+									<span class="ml-2 font-sans text-steel-400">· { l.Label }</span>
+								}
+							</p>
+							<p class="mt-0.5 text-steel-500">
+								{ shareStatusLabel(l) } · views: { itoa(l.ViewCount) }
+							</p>
+						</div>
+						if l.RevokedAt == nil && l.Active(nowUTC()) {
+							<form method="POST" action={ templ.SafeURL("/drills/" + d.ID.String() + "/share/" + l.ID.String() + "/revoke") }>
+								@CSRFField()
+								<button type="submit" class="text-xs text-danger hover:underline">Revoke</button>
+							</form>
+						}
+					</div>
+				}
+			</div>
+		}
+	</section>
+}
+
+func shareStatusLabel(l sharelink.Link) string {
+	if l.RevokedAt != nil {
+		return "revoked " + l.RevokedAt.UTC().Format("2006-01-02")
+	}
+	if !l.Active(nowUTC()) {
+		return "expired " + l.ExpiresAt.UTC().Format("2006-01-02")
+	}
+	return "active · expires " + l.ExpiresAt.UTC().Format("2006-01-02")
+}
+
+func nowUTC() time.Time { return time.Now().UTC() }

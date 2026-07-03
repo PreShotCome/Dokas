@@ -56,6 +56,15 @@ func sampleData(operator string) Data {
 			SourceKind: "postgres_dump_local",
 			SourceURI:  "prod.dump",
 		},
+		// One passing assertion so the verdict reads as an auditor-grade
+		// PASSED. A restore-only drill (zero assertions) now correctly
+		// renders as "RESTORED (no assertions configured)".
+		Assertions: []drill.AssertionResult{{
+			Kind:     "table_exists",
+			Expected: []byte("events"),
+			Actual:   []byte("present"),
+			Passed:   true,
+		}},
 		Operator:    operator,
 		GeneratedAt: now,
 	}
@@ -111,4 +120,27 @@ func mustContain(t *testing.T, haystack []byte, needle string) {
 	if !bytes.Contains(haystack, []byte(needle)) {
 		t.Errorf("rendered PDF missing %q", needle)
 	}
+}
+
+// TestZeroAssertionVerdict guards against auditor-grade "PASSED" reports for
+// drills that ran zero assertions. A restore-only drill is real evidence the
+// dump can be opened, but not that the data survived — the report must say so
+// plainly rather than stamping "PASSED".
+func TestZeroAssertionVerdict(t *testing.T) {
+	data := sampleData("ops@example.com")
+	data.Assertions = nil // no assertions configured
+
+	var buf bytes.Buffer
+	if err := Render(&buf, data); err != nil {
+		t.Fatalf("render: %v", err)
+	}
+	text := inflate(buf.Bytes())
+
+	if bytes.Contains(text, []byte("Verdict: PASSED")) {
+		t.Errorf("zero-assertion drill must NOT stamp 'Verdict: PASSED'")
+	}
+	// FPDF escapes '(' and ')' in text-stream operators (they are PDF
+	// string delimiters), so we search for the unparenthesised substrings.
+	mustContain(t, text, "Verdict: RESTORED")
+	mustContain(t, text, "no assertions configured")
 }

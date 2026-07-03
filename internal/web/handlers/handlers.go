@@ -12,6 +12,7 @@ import (
 
 	"github.com/preshotcome/dokaz/internal/account"
 	"github.com/preshotcome/dokaz/internal/alerting"
+	"github.com/preshotcome/dokaz/internal/sharelink"
 	"github.com/preshotcome/dokaz/internal/analytics"
 	"github.com/preshotcome/dokaz/internal/apikey"
 	"github.com/preshotcome/dokaz/internal/audit"
@@ -48,6 +49,7 @@ type Handlers struct {
 	webhooks        *webhooks.Store
 	webhookDispatch *webhooks.Dispatcher
 	alerts          *alerting.Store
+	share           *sharelink.Store
 	csrf            *csrf.Protector
 	authLimiter     *ratelimit.Limiter
 	appLimiter      *ratelimit.Limiter
@@ -92,6 +94,7 @@ type Deps struct {
 	Webhooks        *webhooks.Store
 	WebhookDispatch *webhooks.Dispatcher
 	Alerts          *alerting.Store
+	Share           *sharelink.Store
 	CSRF            *csrf.Protector
 	AuthLimiter     *ratelimit.Limiter
 	AppLimiter      *ratelimit.Limiter
@@ -140,6 +143,7 @@ func New(d Deps) *Handlers {
 		throttle:        d.Throttle,
 		webhooks:        d.Webhooks,
 		alerts:          d.Alerts,
+		share:           d.Share,
 		webhookDispatch: d.WebhookDispatch,
 		csrf:            d.CSRF,
 		authLimiter:     d.AuthLimiter,
@@ -283,6 +287,11 @@ func (h *Handlers) Router(staticFS http.FileSystem) http.Handler {
 	// it is genuine and unaltered here, no account required.
 	r.Get("/verify", h.verifyEvidencePage)
 	r.Post("/verify", h.verifyEvidence)
+
+	// Public auditor share page — no account required, bearer-token
+	// authorization via the URL. See internal/sharelink.
+	r.Get("/s/{token}", h.sharePage)
+	r.Get("/s/{token}/evidence.pdf", h.shareDownload)
 
 	// Public status page — live component health for trust + transparency.
 	r.Get("/status", h.statusPage)
@@ -435,6 +444,10 @@ func (h *Handlers) Router(staticFS http.FileSystem) http.Handler {
 			// The free demo: run a drill against the built-in sample dataset.
 			// Allowed on every plan (it's the sample, not a real backup).
 			r.Post("/databases/sample-drill", h.runSampleDrill)
+			// Auditor share links (mint + revoke). Same RBAC as running a
+			// drill — if you can drill it, you can share the result.
+			r.Post("/drills/{id}/share", h.shareCreate)
+			r.Post("/drills/{id}/share/{link_id}/revoke", h.shareRevoke)
 		})
 		r.Group(func(r chi.Router) {
 			r.Use(auth.RequireAction(auth.ActionHeartbeatWrite))
