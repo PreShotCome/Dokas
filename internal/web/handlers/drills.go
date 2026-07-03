@@ -121,7 +121,7 @@ func (h *Handlers) targetCreate(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	if h.enforceLimit(w, r, lc, "databases", real,
-		account.LimitsFor(acct.Plan).Databases) {
+		account.EffectiveLimits(*acct).Databases) {
 		return
 	}
 
@@ -201,7 +201,7 @@ func (h *Handlers) targetScheduleUpdate(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 	cadence := strings.TrimSpace(r.PostFormValue("cadence"))
-	if !account.CadenceAllowed(lc.Account.Plan, cadence) {
+	if !account.CadenceAllowedForAccount(*lc.Account, cadence) {
 		asserts, _ := h.drills.ListTargetAssertions(r.Context(), t.ID)
 		w.WriteHeader(http.StatusForbidden)
 		render(w, r, templates.TargetDetail(lc, t, asserts,
@@ -377,7 +377,7 @@ func (h *Handlers) drillCreate(w http.ResponseWriter, r *http.Request) {
 	// Dump-size cap: stat the source now so a 500 GB dump doesn't burn the
 	// 30-min restore timeout and get retried by River.
 	if !target.IsSample {
-		if err := enforceDumpSize(target.SourceKind, target.SourceURI, acct.Plan); err != nil {
+		if err := enforceDumpSize(target.SourceKind, target.SourceURI, acct); err != nil {
 			if de, ok := asDumpTooLargeError(err); ok {
 				http.Error(w, de.Error()+".", http.StatusRequestEntityTooLarge)
 				return
@@ -393,7 +393,7 @@ func (h *Handlers) drillCreate(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if !reused {
-		if err := h.orch.EnqueueDrill(r.Context(), drillID, drillInsertOpts(acct.Plan)); err != nil {
+		if err := h.orch.EnqueueDrill(r.Context(), drillID, drillInsertOpts(acct)); err != nil {
 			http.Error(w, "enqueue: "+err.Error(), http.StatusInternalServerError)
 			return
 		}

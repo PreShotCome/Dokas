@@ -37,7 +37,7 @@ func (h *Handlers) inviteCreate(w http.ResponseWriter, r *http.Request) {
 	members, _ := h.accounts.ListMembers(r.Context(), acct.ID)
 	pending, _ := h.accounts.ListPendingInvitations(r.Context(), acct.ID)
 	if h.enforceLimit(w, r, lc, "seats", len(members)+len(pending),
-		account.LimitsFor(acct.Plan).Seats) {
+		account.EffectiveLimits(*acct).Seats) {
 		return
 	}
 

@@ -28,7 +28,7 @@ func (h *Handlers) webhookCreate(w http.ResponseWriter, r *http.Request) {
 
 	existing, _ := h.webhooks.ListEndpoints(r.Context(), lc.Account.ID)
 	if h.enforceLimit(w, r, lc, "webhooks", len(existing),
-		account.LimitsFor(lc.Account.Plan).Webhooks) {
+		account.EffectiveLimits(*lc.Account).Webhooks) {
 		return
 	}
 

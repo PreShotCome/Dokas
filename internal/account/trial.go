@@ -11,16 +11,22 @@ const TrialDuration = 14 * 24 * time.Hour
 // full-access window. A trial account with no end date is now treated as
 // lapsed (fail-closed) — the trial backfill migration always sets a date,
 // so a missing value is a bug we'd rather catch as a paywall than silently
-// extend access forever.
+// extend access forever. Unlimited accounts never have a trial to speak of.
 func TrialActive(a Account) bool {
+	if a.Unlimited {
+		return false
+	}
 	return a.Plan == PlanTrial && a.TrialEndsAt != nil && time.Now().Before(*a.TrialEndsAt)
 }
 
 // TrialLapsed reports whether a trial account's window has closed without it
 // subscribing. Writes should be blocked for a lapsed account. A trial
 // account with NO end date counts as lapsed for the same fail-closed
-// reason.
+// reason. Unlimited accounts are never treated as lapsed.
 func TrialLapsed(a Account) bool {
+	if a.Unlimited {
+		return false
+	}
 	if a.Plan != PlanTrial {
 		return false
 	}

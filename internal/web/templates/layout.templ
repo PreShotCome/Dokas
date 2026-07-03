@@ -136,8 +136,9 @@ templ LayoutWith(title string, lc LayoutCtx) {
 			// of the current plan column. Takes priority over the trial banner
 			// because it's actionable and time-sensitive: a paying customer's card
 			// failed and Stripe is retrying — they need to fix it before the
-			// subscription is canceled.
-			if lc.Account != nil && paymentIssue(lc.Account) {
+			// subscription is canceled. Unlimited (founder/staff) accounts see
+			// neither banner — they operate the product outside its billing gates.
+			if lc.Account != nil && !lc.Account.Unlimited && paymentIssue(lc.Account) {
 				<div class="bg-amber-500 px-4 py-2 text-center text-sm font-medium text-amber-950 dark:bg-amber-600 dark:text-amber-50">
 					<span>Payment issue on your subscription — { paymentIssueText(lc.Account) } Update your card to keep signed reports flowing.</span>
 					<form method="POST" action="/account/billing/portal" class="ml-1 inline">
@@ -145,7 +146,7 @@ templ LayoutWith(title string, lc LayoutCtx) {
 						<button type="submit" class="font-medium underline">Manage billing</button>
 					</form>
 				</div>
-			} else if lc.Account != nil && lc.Account.Plan == account.PlanTrial {
+			} else if lc.Account != nil && !lc.Account.Unlimited && lc.Account.Plan == account.PlanTrial {
 				if account.TrialLapsed(*lc.Account) {
 					<div class="bg-rose-100 px-4 py-2 text-center text-sm text-rose-900 dark:bg-rose-900/40 dark:text-rose-200">
 						<span>{ trialEndedText(lc.Account) }</span>

@@ -17,6 +17,12 @@ on:
           - scale-count-1
           - kill-release-machines
           - set-evidence-keys
+          - set-unlimited
+          - clear-unlimited
+      email:
+        description: "Owner email (only used for set-unlimited / clear-unlimited)"
+        required: false
+        default: ""
 
 jobs:
   run:
@@ -58,5 +64,16 @@ jobs:
                   EVIDENCE_SIGNING_KEY="$SIGN" >/dev/null
                 echo "evidence keys generated and set (values not printed)"
               fi ;;
+            set-unlimited)
+              # Flip the founder/staff Unlimited flag ON for the account owned
+              # by <email>. All resource caps, cadence gates, trial paywalls,
+              # drill quotas, dump-size checks and dunning/trial banners are
+              # bypassed for that account.
+              if [ -z "${{ inputs.email }}" ]; then echo "email input is required"; exit 2; fi
+              flyctl ssh console -a dokaz -C "/app/set-unlimited --email ${{ inputs.email }}" ;;
+            clear-unlimited)
+              # Flip the Unlimited flag OFF for the account owned by <email>.
+              if [ -z "${{ inputs.email }}" ]; then echo "email input is required"; exit 2; fi
+              flyctl ssh console -a dokaz -C "/app/set-unlimited --email ${{ inputs.email }} --off" ;;
             *) echo "unknown command"; exit 1 ;;
           esac

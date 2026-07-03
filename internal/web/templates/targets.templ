@@ -218,7 +218,7 @@ templ scheduleCard(lc LayoutCtx, t drill.Target) {
 				<div>
 					<label class="mb-1 block text-xs font-medium" for="cadence">Cadence</label>
 					<select id="cadence" name="cadence" class="form-input">
-						for _, c := range account.AllowedCadences(lc.Account.Plan) {
+						for _, c := range account.AllowedCadencesForAccount(*lc.Account) {
 							if c == cadenceValue(t.DrillCadence) {
 								<option value={ c } selected>{ cadenceLabel(c) }</option>
 							} else {
@@ -229,7 +229,7 @@ templ scheduleCard(lc LayoutCtx, t drill.Target) {
 				</div>
 				<button type="submit" class="btn-primary text-sm">Save schedule</button>
 			</form>
-			if lc.Account != nil && !account.CadenceAllowed(lc.Account.Plan, "hourly") {
+			if lc.Account != nil && !account.CadenceAllowedForAccount(*lc.Account, "hourly") {
 				<p class="mt-2 text-xs text-zinc-500">
 					More frequent drills are available on higher plans — <a class="underline" href="/pricing">see pricing</a>.
 				</p>

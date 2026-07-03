@@ -24,7 +24,7 @@ func (h *Handlers) heartbeatsList(w http.ResponseWriter, r *http.Request) {
 		render(w, r, templates.HeartbeatsError(lc, "Could not load check-ins."))
 		return
 	}
-	atCap := account.AtLimit(len(hbs), account.LimitsFor(lc.Account.Plan).Heartbeats)
+	atCap := account.AtLimit(len(hbs), account.EffectiveLimits(*lc.Account).Heartbeats)
 	render(w, r, templates.HeartbeatsPage(lc, hbs, h.baseURL, atCap))
 }
 
@@ -39,7 +39,7 @@ func (h *Handlers) heartbeatCreate(w http.ResponseWriter, r *http.Request) {
 	// generous allowance; Pro is uncapped.
 	existing, _ := h.heartbeats.List(r.Context(), lc.Account.ID)
 	if h.enforceLimit(w, r, lc, "check-ins", len(existing),
-		account.LimitsFor(lc.Account.Plan).Heartbeats) {
+		account.EffectiveLimits(*lc.Account).Heartbeats) {
 		return
 	}
 
