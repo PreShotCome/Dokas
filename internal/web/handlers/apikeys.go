@@ -31,7 +31,7 @@ func (h *Handlers) apiKeyCreate(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	if h.enforceLimit(w, r, lc, "API keys", active,
-		account.LimitsFor(lc.Account.Plan).APIKeys) {
+		account.EffectiveLimits(*lc.Account).APIKeys) {
 		return
 	}
 

@@ -96,3 +96,53 @@ func TopCadence(p Plan) string {
 func AtLimit(count, limit int) bool {
 	return limit != Unlimited && count >= limit
 }
+
+// --- Account-aware wrappers ---
+//
+// The functions below take an Account and short-circuit on the Unlimited
+// flag before falling through to their plan-only equivalents. Every call
+// site that gates a customer-visible action should prefer these — the plan-
+// only versions still exist for pricing pages, tests, and other places that
+// legitimately reason about the plan alone.
+
+// EffectiveLimits returns the caps for this account. Unlimited returns a
+// zero-value Limits{} (all Unlimited) so every AtLimit check passes through.
+func EffectiveLimits(a Account) Limits {
+	if a.Unlimited {
+		return Limits{}
+	}
+	return LimitsFor(a.Plan)
+}
+
+// IsPaidAccount reports whether an account behaves like a paid subscriber.
+// True on paid plans; also true on the Unlimited founder/staff flag.
+func IsPaidAccount(a Account) bool {
+	return a.Unlimited || IsPaid(a.Plan)
+}
+
+// CadenceAllowedForAccount reports whether an account may schedule at a
+// cadence. Unlimited unlocks every cadence, including hourly.
+func CadenceAllowedForAccount(a Account, cadence string) bool {
+	if a.Unlimited {
+		return cadence == "off" || cadence == "monthly" || cadence == "weekly" || cadence == "daily" || cadence == "hourly"
+	}
+	return CadenceAllowed(a.Plan, cadence)
+}
+
+// AllowedCadencesForAccount is the cadence-picker input list. Unlimited gets
+// the full ladder including hourly.
+func AllowedCadencesForAccount(a Account) []string {
+	if a.Unlimited {
+		return []string{"off", "monthly", "weekly", "daily", "hourly"}
+	}
+	return AllowedCadences(a.Plan)
+}
+
+// TopCadenceForAccount is the most frequent cadence an account may use — the
+// display headline. Unlimited tops at hourly.
+func TopCadenceForAccount(a Account) string {
+	if a.Unlimited {
+		return "hourly"
+	}
+	return TopCadence(a.Plan)
+}

@@ -169,7 +169,7 @@ func (h *Handlers) runSampleDrill(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if !reused {
-		if err := h.orch.EnqueueDrill(r.Context(), drillID, drillInsertOpts(lc.Account.Plan)); err != nil {
+		if err := h.orch.EnqueueDrill(r.Context(), drillID, drillInsertOpts(lc.Account)); err != nil {
 			http.Error(w, "enqueue: "+err.Error(), http.StatusInternalServerError)
 			return
 		}
@@ -186,10 +186,13 @@ func (h *Handlers) runSampleDrill(w http.ResponseWriter, r *http.Request) {
 // own real backup. Paid plans always can; an *active* trial can — the
 // LimitsFor(PlanTrial).Databases cap (1) is what stops them stacking a
 // production fleet on the trial. A lapsed trial cannot: the trial window is
-// over, they need to subscribe.
+// over, they need to subscribe. Unlimited (founder/staff) short-circuits.
 func canDrillReal(a *account.Account) bool {
 	if a == nil {
 		return false
+	}
+	if a.Unlimited {
+		return true
 	}
 	if account.IsPaid(a.Plan) {
 		return true

@@ -179,7 +179,7 @@ func (h *Handlers) v1CreateDrill(w http.ResponseWriter, r *http.Request) {
 	}
 	// Dump-size cap. Real dumps only; sample skips.
 	if !target.IsSample {
-		if err := enforceDumpSize(target.SourceKind, target.SourceURI, acct.Plan); err != nil {
+		if err := enforceDumpSize(target.SourceKind, target.SourceURI, acct); err != nil {
 			if de, ok := asDumpTooLargeError(err); ok {
 				writeAPIError(w, http.StatusRequestEntityTooLarge, "dump_too_large", de.Error())
 				return
@@ -198,7 +198,7 @@ func (h *Handlers) v1CreateDrill(w http.ResponseWriter, r *http.Request) {
 		writeAPIError(w, http.StatusInternalServerError, "internal", "could not create drill")
 		return
 	}
-	if err := h.orch.EnqueueDrill(r.Context(), drillID, drillInsertOpts(acct.Plan)); err != nil {
+	if err := h.orch.EnqueueDrill(r.Context(), drillID, drillInsertOpts(acct)); err != nil {
 		writeAPIError(w, http.StatusInternalServerError, "internal", "could not enqueue drill")
 		return
 	}

@@ -76,6 +76,12 @@ type Account struct {
 	// customer whose card just failed (past_due) from a never-paid trial, so
 	// the payment-issue banner and the trial-ended banner don't overlap.
 	SubscriptionStatus *string
+	// Unlimited short-circuits every resource cap, cadence gate, trial
+	// paywall, drill quota, dump-size check, and dunning/trial banner. The
+	// founder/staff-owned account flips this so operating the product does
+	// not fight its own guardrails. Default false; flipped via fly-admin
+	// set-unlimited.
+	Unlimited bool
 }
 
 type Membership struct {
@@ -134,9 +140,9 @@ func (s *Store) CreatePersonalAccount(ctx context.Context, userID uuid.UUID, ema
 	err = tx.QueryRow(ctx, `
 		INSERT INTO accounts (name, slug, trial_ends_at)
 		VALUES ($1, $2, now() + interval '14 days')
-		RETURNING id, name, slug, stripe_customer_id, plan, created_at, trial_ends_at, subscription_status
+		RETURNING id, name, slug, stripe_customer_id, plan, created_at, trial_ends_at, subscription_status, is_unlimited
 	`, name, slug).Scan(&acct.ID, &acct.Name, &acct.Slug, &acct.StripeCustomerID, &acct.Plan,
-		&acct.CreatedAt, &acct.TrialEndsAt, &acct.SubscriptionStatus)
+		&acct.CreatedAt, &acct.TrialEndsAt, &acct.SubscriptionStatus, &acct.Unlimited)
 	if err != nil {
 		if isUniqueViolation(err) {
 			return Account{}, ErrSlugUnavailable
@@ -161,9 +167,9 @@ func (s *Store) CreatePersonalAccount(ctx context.Context, userID uuid.UUID, ema
 func (s *Store) GetAccount(ctx context.Context, accountID uuid.UUID) (Account, error) {
 	var a Account
 	err := s.pool.QueryRow(ctx, `
-		SELECT id, name, slug, stripe_customer_id, plan, created_at, trial_ends_at, subscription_status
+		SELECT id, name, slug, stripe_customer_id, plan, created_at, trial_ends_at, subscription_status, is_unlimited
 		  FROM accounts WHERE id = $1 AND deleted_at IS NULL
-	`, accountID).Scan(&a.ID, &a.Name, &a.Slug, &a.StripeCustomerID, &a.Plan, &a.CreatedAt, &a.TrialEndsAt, &a.SubscriptionStatus)
+	`, accountID).Scan(&a.ID, &a.Name, &a.Slug, &a.StripeCustomerID, &a.Plan, &a.CreatedAt, &a.TrialEndsAt, &a.SubscriptionStatus, &a.Unlimited)
 	if errors.Is(err, pgx.ErrNoRows) {
 		return Account{}, ErrNotFound
 	}
@@ -176,6 +182,54 @@ func (s *Store) GetAccount(ctx context.Context, accountID uuid.UUID) (Account, e
 func (s *Store) SetStripeCustomerID(ctx context.Context, accountID uuid.UUID, customerID string) error {
 	_, err := s.pool.Exec(ctx, `UPDATE accounts SET stripe_customer_id = $2 WHERE id = $1`, accountID, customerID)
 	return err
+}
+
+// SetUnlimited flips the founder/staff "no caps, no paywalls" flag on an
+// account. Not exposed through any customer-facing surface — set from ops
+// (fly-admin set-unlimited) only.
+func (s *Store) SetUnlimited(ctx context.Context, accountID uuid.UUID, unlimited bool) error {
+	_, err := s.pool.Exec(ctx, `UPDATE accounts SET is_unlimited = $2 WHERE id = $1`, accountID, unlimited)
+	return err
+}
+
+// SetUnlimitedByOwnerEmail resolves the account that `email` owns (RoleOwner)
+// and flips is_unlimited. Returns the affected account ID for logging. Errors
+// if the email owns nothing or owns multiple accounts (safer to be explicit
+// with the accountID in that case).
+func (s *Store) SetUnlimitedByOwnerEmail(ctx context.Context, email string, unlimited bool) (uuid.UUID, error) {
+	rows, err := s.pool.Query(ctx, `
+		SELECT a.id
+		  FROM accounts a
+		  JOIN memberships m ON m.account_id = a.id AND m.role = 'owner'
+		  JOIN users u ON u.id = m.user_id
+		 WHERE lower(u.email) = lower($1) AND a.deleted_at IS NULL
+	`, email)
+	if err != nil {
+		return uuid.Nil, err
+	}
+	defer rows.Close()
+	var ids []uuid.UUID
+	for rows.Next() {
+		var id uuid.UUID
+		if err := rows.Scan(&id); err != nil {
+			return uuid.Nil, err
+		}
+		ids = append(ids, id)
+	}
+	if err := rows.Err(); err != nil {
+		return uuid.Nil, err
+	}
+	switch len(ids) {
+	case 0:
+		return uuid.Nil, errors.New("account: no account owned by that email")
+	case 1:
+		if err := s.SetUnlimited(ctx, ids[0], unlimited); err != nil {
+			return uuid.Nil, err
+		}
+		return ids[0], nil
+	default:
+		return uuid.Nil, errors.New("account: email owns multiple accounts — set by ID")
+	}
 }
 
 // SyncSubscription updates an account's plan and subscription state from a

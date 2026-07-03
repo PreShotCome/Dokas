@@ -802,7 +802,7 @@ func scheduleCard(lc LayoutCtx, t drill.Target) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			for _, c := range account.AllowedCadences(lc.Account.Plan) {
+			for _, c := range account.AllowedCadencesForAccount(*lc.Account) {
 				if c == cadenceValue(t.DrillCadence) {
 					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 62, "<option value=\"")
 					if templ_7745c5c3_Err != nil {
@@ -871,7 +871,7 @@ func scheduleCard(lc LayoutCtx, t drill.Target) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			if lc.Account != nil && !account.CadenceAllowed(lc.Account.Plan, "hourly") {
+			if lc.Account != nil && !account.CadenceAllowedForAccount(*lc.Account, "hourly") {
 				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 69, "<p class=\"mt-2 text-xs text-zinc-500\">More frequent drills are available on higher plans — <a class=\"underline\" href=\"/pricing\">see pricing</a>.</p>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err

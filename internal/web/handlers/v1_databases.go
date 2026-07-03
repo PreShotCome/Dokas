@@ -166,7 +166,7 @@ func (h *Handlers) v1CreateDatabase(w http.ResponseWriter, r *http.Request) {
 	}
 
 	existing, _ := h.drills.ListTargets(r.Context(), acct.ID)
-	if limit := account.LimitsFor(acct.Plan); account.AtLimit(len(existing), limit.Databases) {
+	if limit := account.EffectiveLimits(*acct); account.AtLimit(len(existing), limit.Databases) {
 		writeAPIError(w, http.StatusForbidden, "plan_limit",
 			fmt.Sprintf("the %s plan is limited to %d databases — upgrade to add more",
 				acct.Plan, limit.Databases))

@@ -37,6 +37,9 @@ func enforceDrillQuota(ctx context.Context, drills *drill.Store, acct *account.A
 	if acct == nil {
 		return nil // no auth context — upstream handler will 401
 	}
+	if acct.Unlimited {
+		return nil // founder / staff — no drill cap
+	}
 	limits := account.LimitsFor(acct.Plan)
 	if limits.DrillsPerDay == account.Unlimited {
 		return nil
@@ -85,12 +88,15 @@ func (e *dumpTooLargeError) Error() string {
 // plan's MaxDumpBytes. Called at create time — before enqueue — so an
 // oversized dump never burns the 30-minute restore timeout and then gets
 // retried by River. postgres_dump_local sources are always local files; other
-// source kinds skip this check today.
-func enforceDumpSize(sourceKind, sourceURI string, plan account.Plan) error {
+// source kinds skip this check today. Unlimited accounts short-circuit.
+func enforceDumpSize(sourceKind, sourceURI string, acct *account.Account) error {
 	if sourceKind != "postgres_dump_local" || sourceURI == "" {
 		return nil
 	}
-	limits := account.LimitsFor(plan)
+	if acct == nil || acct.Unlimited {
+		return nil
+	}
+	limits := account.LimitsFor(acct.Plan)
 	if limits.MaxDumpBytes <= 0 {
 		return nil
 	}
@@ -112,7 +118,7 @@ func enforceDumpSize(sourceKind, sourceURI string, plan account.Plan) error {
 		}
 	}
 	if total > limits.MaxDumpBytes {
-		return &dumpTooLargeError{Plan: string(plan), ActualBytes: total, AllowedBytes: limits.MaxDumpBytes}
+		return &dumpTooLargeError{Plan: string(acct.Plan), ActualBytes: total, AllowedBytes: limits.MaxDumpBytes}
 	}
 	return nil
 }
@@ -150,20 +156,25 @@ func humanBytes(n int64) string {
 // drillInsertOpts returns River insert options for a drill's jobs, priority
 // keyed off the account's plan: paid plans preempt trial jobs when workers
 // are scarce. Without this, one trial account hammering /databases/sample-drill
-// can starve every paying customer on the shared 8-worker queue.
-func drillInsertOpts(plan account.Plan) *river.InsertOpts {
+// can starve every paying customer on the shared 8-worker queue. Unlimited
+// (founder/staff) also gets top priority.
+func drillInsertOpts(acct *account.Account) *river.InsertOpts {
 	// River priorities are 1 (highest) through 4 (lowest); the scheduler
 	// picks lower priority numbers first from the queue.
 	priority := 2
-	switch plan {
-	case account.PlanScale:
-		priority = 1
-	case account.PlanPro:
-		priority = 1
-	case account.PlanStarter:
-		priority = 2
-	case account.PlanTrial:
-		priority = 4
+	if acct != nil {
+		if acct.Unlimited {
+			priority = 1
+		} else {
+			switch acct.Plan {
+			case account.PlanScale, account.PlanPro:
+				priority = 1
+			case account.PlanStarter:
+				priority = 2
+			case account.PlanTrial:
+				priority = 4
+			}
+		}
 	}
 	return &river.InsertOpts{Priority: priority}
 }

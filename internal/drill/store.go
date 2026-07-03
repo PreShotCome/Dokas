@@ -311,14 +311,15 @@ func (s *Store) SetTargetSchedule(ctx context.Context, accountID, targetID uuid.
 // re-check its cadence against — a Scale→Starter downgrade must stop daily
 // drills at the next fire, not just at the next schedule edit.
 type DueSchedule struct {
-	Target Target
-	Plan   string
+	Target    Target
+	Plan      string
+	Unlimited bool
 }
 
 func (s *Store) DueTargets(ctx context.Context) ([]DueSchedule, error) {
 	rows, err := s.pool.Query(ctx, `
 		SELECT t.id, t.account_id, t.created_by_user_id, t.name, t.source_kind, t.source_uri,
-		       t.created_at, t.drill_cadence, t.next_drill_at, a.plan
+		       t.created_at, t.drill_cadence, t.next_drill_at, a.plan, a.is_unlimited
 		  FROM database_targets t
 		  JOIN accounts a ON a.id = t.account_id
 		 WHERE t.deleted_at IS NULL
@@ -328,12 +329,13 @@ func (s *Store) DueTargets(ctx context.Context) ([]DueSchedule, error) {
 		   AND t.next_drill_at <= now()
 		   -- The sample (demo) target is never auto-scheduled.
 		   AND t.is_sample = false
-		   -- Only paid plans get scheduled drills of their own backups; a
-		   -- downgraded (now-trial) account stops being drilled automatically.
-		   -- The scheduler additionally re-checks the plan's allowed cadences
-		   -- for each fire — a Scale→Starter downgrade must not keep firing
-		   -- daily drills against a plan that only allows weekly.
-		   AND a.plan IN ('starter', 'pro', 'scale')
+		   -- Only paid plans (or the founder/staff Unlimited flag) get
+		   -- scheduled drills; a downgraded (now-trial) account stops being
+		   -- drilled automatically. The scheduler additionally re-checks the
+		   -- plan's allowed cadences for each fire — a Scale→Starter
+		   -- downgrade must not keep firing daily drills against a plan that
+		   -- only allows weekly.
+		   AND (a.plan IN ('starter', 'pro', 'scale') OR a.is_unlimited)
 		 FOR UPDATE OF t SKIP LOCKED
 	`)
 	if err != nil {
@@ -345,7 +347,7 @@ func (s *Store) DueTargets(ctx context.Context) ([]DueSchedule, error) {
 		var d DueSchedule
 		if err := rows.Scan(&d.Target.ID, &d.Target.AccountID, &d.Target.CreatedByUserID,
 			&d.Target.Name, &d.Target.SourceKind, &d.Target.SourceURI,
-			&d.Target.CreatedAt, &d.Target.DrillCadence, &d.Target.NextDrillAt, &d.Plan); err != nil {
+			&d.Target.CreatedAt, &d.Target.DrillCadence, &d.Target.NextDrillAt, &d.Plan, &d.Unlimited); err != nil {
 			return nil, err
 		}
 		out = append(out, d)

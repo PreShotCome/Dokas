@@ -62,7 +62,9 @@ func (w *SchedulerWorker) Work(ctx context.Context, _ *river.Job[SchedulerArgs])
 		// plan that only allows weekly. When disallowed, we don't just skip
 		// the fire — we downshift the stored cadence to the plan's
 		// highest-allowed so the account isn't wedged in a broken state.
-		if !account.CadenceAllowed(account.Plan(ds.Plan), t.DrillCadence) {
+		// Unlimited accounts bypass the check entirely — they can pick any
+		// cadence including hourly.
+		if !ds.Unlimited && !account.CadenceAllowed(account.Plan(ds.Plan), t.DrillCadence) {
 			fallback := account.TopCadence(account.Plan(ds.Plan))
 			if w.Logger != nil {
 				w.Logger.Warn("scheduler: cadence disallowed for plan; downshifting",
@@ -93,8 +95,13 @@ func (w *SchedulerWorker) Work(ctx context.Context, _ *river.Job[SchedulerArgs])
 		}
 		if !reused {
 			// Priority off the account plan: paid tiers (1) preempt trial
-			// (4) on the shared queue when the backlog builds.
-			if err := w.Orch.EnqueueDrill(ctx, drillID, priorityForPlan(ds.Plan)); err != nil {
+			// (4) on the shared queue when the backlog builds. Unlimited
+			// accounts get top priority too.
+			opts := priorityForPlan(ds.Plan)
+			if ds.Unlimited {
+				opts = &river.InsertOpts{Priority: 1}
+			}
+			if err := w.Orch.EnqueueDrill(ctx, drillID, opts); err != nil {
 				w.logErr("enqueue scheduled drill", t.ID, err)
 				continue
 			}
