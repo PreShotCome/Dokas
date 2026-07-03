@@ -74,7 +74,11 @@ func (o *Orchestrator) Client() RiverInserter { return o.client }
 // records a drill.created audit event, and inserts the first River job.
 // Idempotent on the step rows; the audit event will fire each call, so
 // callers must not invoke it for an existing reused drill.
-func (o *Orchestrator) EnqueueDrill(ctx context.Context, drillID uuid.UUID) error {
+//
+// opts is applied to the Provision insert so callers can carry a queue
+// priority derived from the account's plan — that's how paid tiers preempt
+// trial jobs on the shared 8-worker queue. Nil is fine (River defaults).
+func (o *Orchestrator) EnqueueDrill(ctx context.Context, drillID uuid.UUID, opts *river.InsertOpts) error {
 	for i, name := range AllSteps {
 		idem := fmt.Sprintf("%s.%s", drillID, name)
 		if _, err := o.store.CreateStepIfMissing(ctx, drillID, name, i, idem); err != nil {
@@ -101,7 +105,17 @@ func (o *Orchestrator) EnqueueDrill(ctx context.Context, drillID uuid.UUID) erro
 	// so every step's span stitches into one trace.
 	spanCtx, endSpan := obs.StartSpan(ctx, "drill", map[string]string{"drill.id": drillID.String()})
 	defer endSpan()
-	if _, err := o.client.Insert(ctx, ProvisionArgs{DrillID: drillID}, TraceOpts(spanCtx)); err != nil {
+	insertOpts := TraceOpts(spanCtx)
+	if opts != nil && opts.Priority > 0 {
+		// Priority 1 (highest) through 4 (lowest). Merge onto the trace opts
+		// so paid tiers preempt trial jobs at the queue. TraceOpts may return
+		// nil when there's no active trace, so lift it before setting.
+		if insertOpts == nil {
+			insertOpts = &river.InsertOpts{}
+		}
+		insertOpts.Priority = opts.Priority
+	}
+	if _, err := o.client.Insert(ctx, ProvisionArgs{DrillID: drillID}, insertOpts); err != nil {
 		return fmt.Errorf("enqueue provision: %w", err)
 	}
 	return nil

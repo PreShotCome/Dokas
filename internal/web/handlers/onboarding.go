@@ -144,6 +144,17 @@ func (h *Handlers) ensureSampleTarget(ctx context.Context, accountID, userID uui
 // risk and needs no paid plan.
 func (h *Handlers) runSampleDrill(w http.ResponseWriter, r *http.Request) {
 	lc := h.layoutCtx(r)
+	// Sample drills count against the per-day drill quota — otherwise a
+	// trial account can hammer the sample endpoint in a loop and starve the
+	// shared queue for every paying customer. The cap is intentionally
+	// generous on paid plans; it's abuse-facing.
+	if err := enforceDrillQuota(r.Context(), h.drills, lc.Account); err != nil {
+		if qe, ok := asDrillQuotaError(err); ok {
+			http.Error(w, qe.Error()+". Try again tomorrow or upgrade for a higher cap.", http.StatusTooManyRequests)
+			return
+		}
+		h.logger().Warn("drill quota check failed — allowing", "err", err)
+	}
 	t, err := h.ensureSampleTarget(r.Context(), lc.Account.ID, lc.User.ID)
 	if err != nil {
 		h.logger().Error("ensure sample target", "account_id", lc.Account.ID, "err", err)
@@ -158,7 +169,7 @@ func (h *Handlers) runSampleDrill(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if !reused {
-		if err := h.orch.EnqueueDrill(r.Context(), drillID); err != nil {
+		if err := h.orch.EnqueueDrill(r.Context(), drillID, drillInsertOpts(lc.Account.Plan)); err != nil {
 			http.Error(w, "enqueue: "+err.Error(), http.StatusInternalServerError)
 			return
 		}

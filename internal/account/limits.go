@@ -12,6 +12,15 @@ type Limits struct {
 	APIKeys    int // active (non-revoked) keys
 	Webhooks   int
 	Heartbeats int // backup check-in monitors
+	// DrillsPerDay caps drills created (any origin: sample, web, API, schedule)
+	// per account per rolling 24h. Prevents a single tenant from monopolising
+	// the shared River queue and racking up the marginal drill cost.
+	DrillsPerDay int
+	// MaxDumpBytes caps the on-disk size of a dump accepted for restore. We
+	// stat the source at create time and reject before a large drill burns
+	// the 30-minute restore timeout and River retries the whole fetch+restore.
+	// int64 so tables can express TB without overflow.
+	MaxDumpBytes int64
 }
 
 // LimitsFor returns the resource caps for a plan tier. Scale is the
@@ -20,22 +29,31 @@ type Limits struct {
 // during their first month. Unknown plans fall to the most restrictive
 // caps so a bad value can never widen access.
 func LimitsFor(p Plan) Limits {
+	const gb = int64(1) << 30
 	switch p {
 	case PlanScale:
-		return Limits{} // all Unlimited — self-serve top tier
+		// Scale is unlimited on Databases/Seats/etc, but drills and dumps
+		// still carry hard ceilings — protects the shared queue and prevents
+		// unbounded-cost restore runs from a single tenant.
+		return Limits{DrillsPerDay: 500, MaxDumpBytes: 1024 * gb}
 	case PlanPro:
-		return Limits{Databases: 25, Seats: 10, APIKeys: 10, Webhooks: 10, Heartbeats: 25}
+		return Limits{Databases: 25, Seats: 10, APIKeys: 10, Webhooks: 10, Heartbeats: 25,
+			DrillsPerDay: 100, MaxDumpBytes: 200 * gb}
 	case PlanStarter:
-		return Limits{Databases: 5, Seats: 3, APIKeys: 3, Webhooks: 3, Heartbeats: 10}
+		return Limits{Databases: 5, Seats: 3, APIKeys: 3, Webhooks: 3, Heartbeats: 10,
+			DrillsPerDay: 20, MaxDumpBytes: 20 * gb}
 	case PlanTrial:
 		// Active trials get ONE real database at weekly cadence — the
 		// product's whole thesis is "prove it, don't promise it", so a card
 		// wall before someone can drill their own dump is self-refuting. Two
 		// seats let a small evaluating team walk the flow together; the
-		// paywall re-arms once the trial lapses.
-		return Limits{Databases: 1, Seats: 2, APIKeys: 2, Webhooks: 2, Heartbeats: 3}
+		// paywall re-arms once the trial lapses. Drills/day is tight: enough
+		// to iterate on assertions for one DB, not enough to hammer the queue.
+		return Limits{Databases: 1, Seats: 2, APIKeys: 2, Webhooks: 2, Heartbeats: 3,
+			DrillsPerDay: 5, MaxDumpBytes: 5 * gb}
 	default:
-		return Limits{Databases: 1, Seats: 2, APIKeys: 1, Webhooks: 1, Heartbeats: 1}
+		return Limits{Databases: 1, Seats: 2, APIKeys: 1, Webhooks: 1, Heartbeats: 1,
+			DrillsPerDay: 2, MaxDumpBytes: 1 * gb}
 	}
 }
 

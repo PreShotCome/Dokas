@@ -135,7 +135,7 @@ func TestDrillEndToEnd(t *testing.T) {
 	if reused {
 		t.Fatalf("brand-new key reported as reused")
 	}
-	if err := orch.EnqueueDrill(ctx, drillID); err != nil {
+	if err := orch.EnqueueDrill(ctx, drillID, nil); err != nil {
 		t.Fatalf("enqueue: %v", err)
 	}
 

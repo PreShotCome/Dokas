@@ -359,9 +359,31 @@ func (h *Handlers) drillCreate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Drilling a real backup needs a paid plan; the sample is always allowed.
+	// Drilling a real backup needs a paid plan (or an active trial); the
+	// sample is always allowed.
 	if !target.IsSample && h.blockFreeRealWeb(w, r) {
 		return
+	}
+	// Enforce the per-day drill cap. All origins go through this — sample,
+	// web, API, scheduler — so a trial hitting /drills in a loop cannot
+	// starve a paying customer's scheduled drills.
+	if err := enforceDrillQuota(r.Context(), h.drills, acct); err != nil {
+		if qe, ok := asDrillQuotaError(err); ok {
+			http.Error(w, qe.Error()+". Try again tomorrow or upgrade for a higher cap.", http.StatusTooManyRequests)
+			return
+		}
+		h.logger().Warn("drill quota check failed — allowing", "err", err)
+	}
+	// Dump-size cap: stat the source now so a 500 GB dump doesn't burn the
+	// 30-min restore timeout and get retried by River.
+	if !target.IsSample {
+		if err := enforceDumpSize(target.SourceKind, target.SourceURI, acct.Plan); err != nil {
+			if de, ok := asDumpTooLargeError(err); ok {
+				http.Error(w, de.Error()+".", http.StatusRequestEntityTooLarge)
+				return
+			}
+			h.logger().Warn("dump size check failed — allowing", "err", err)
+		}
 	}
 
 	drillID, reused, err := h.drills.CreateDrillIdempotent(r.Context(), acct.ID, u.ID, target.ID, idem)
@@ -371,7 +393,7 @@ func (h *Handlers) drillCreate(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if !reused {
-		if err := h.orch.EnqueueDrill(r.Context(), drillID); err != nil {
+		if err := h.orch.EnqueueDrill(r.Context(), drillID, drillInsertOpts(acct.Plan)); err != nil {
 			http.Error(w, "enqueue: "+err.Error(), http.StatusInternalServerError)
 			return
 		}

@@ -92,7 +92,9 @@ func (w *SchedulerWorker) Work(ctx context.Context, _ *river.Job[SchedulerArgs])
 			continue
 		}
 		if !reused {
-			if err := w.Orch.EnqueueDrill(ctx, drillID); err != nil {
+			// Priority off the account plan: paid tiers (1) preempt trial
+			// (4) on the shared queue when the backlog builds.
+			if err := w.Orch.EnqueueDrill(ctx, drillID, priorityForPlan(ds.Plan)); err != nil {
 				w.logErr("enqueue scheduled drill", t.ID, err)
 				continue
 			}
@@ -122,6 +124,22 @@ func (w *SchedulerWorker) logErr(msg string, targetID uuid.UUID, err error) {
 
 func (w *SchedulerWorker) Timeout(*river.Job[SchedulerArgs]) time.Duration {
 	return 5 * time.Minute
+}
+
+// priorityForPlan maps an account plan to a River insert priority so paid
+// tiers preempt trial jobs on the shared queue. Keep in sync with the web
+// handlers' drillInsertOpts.
+func priorityForPlan(plan string) *river.InsertOpts {
+	priority := 2
+	switch account.Plan(plan) {
+	case account.PlanScale, account.PlanPro:
+		priority = 1
+	case account.PlanStarter:
+		priority = 2
+	case account.PlanTrial:
+		priority = 4
+	}
+	return &river.InsertOpts{Priority: priority}
 }
 
 // SchedulerPeriodicJob runs the scheduler every 5 minutes — frequent enough

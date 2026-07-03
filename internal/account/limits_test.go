@@ -30,7 +30,7 @@ func TestTrialState(t *testing.T) {
 }
 
 func TestLimitsFor(t *testing.T) {
-	growth := Limits{Databases: 25, Seats: 10, APIKeys: 10, Webhooks: 10, Heartbeats: 25}
+	const gb = int64(1) << 30
 	tests := []struct {
 		plan Plan
 		want Limits
@@ -38,11 +38,17 @@ func TestLimitsFor(t *testing.T) {
 		// Active trials get ONE real database + a small team footprint. The
 		// point of the trial is to prove the product on the user's own dump
 		// before they subscribe, not to host a production fleet for free.
-		{PlanTrial, Limits{Databases: 1, Seats: 2, APIKeys: 2, Webhooks: 2, Heartbeats: 3}},
-		{PlanStarter, Limits{Databases: 5, Seats: 3, APIKeys: 3, Webhooks: 3, Heartbeats: 10}},
-		{PlanPro, growth},
-		{PlanScale, Limits{}}, // uncapped — self-serve top tier
-		{Plan("garbage"), Limits{Databases: 1, Seats: 2, APIKeys: 1, Webhooks: 1, Heartbeats: 1}},
+		{PlanTrial, Limits{Databases: 1, Seats: 2, APIKeys: 2, Webhooks: 2, Heartbeats: 3,
+			DrillsPerDay: 5, MaxDumpBytes: 5 * gb}},
+		{PlanStarter, Limits{Databases: 5, Seats: 3, APIKeys: 3, Webhooks: 3, Heartbeats: 10,
+			DrillsPerDay: 20, MaxDumpBytes: 20 * gb}},
+		{PlanPro, Limits{Databases: 25, Seats: 10, APIKeys: 10, Webhooks: 10, Heartbeats: 25,
+			DrillsPerDay: 100, MaxDumpBytes: 200 * gb}},
+		// Scale is uncapped on Databases/Seats/etc but drills and dumps still
+		// carry hard ceilings — protects the shared queue.
+		{PlanScale, Limits{DrillsPerDay: 500, MaxDumpBytes: 1024 * gb}},
+		{Plan("garbage"), Limits{Databases: 1, Seats: 2, APIKeys: 1, Webhooks: 1, Heartbeats: 1,
+			DrillsPerDay: 2, MaxDumpBytes: 1 * gb}},
 	}
 	for _, tc := range tests {
 		if got := LimitsFor(tc.plan); got != tc.want {
