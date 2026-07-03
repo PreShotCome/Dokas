@@ -428,7 +428,10 @@ func (h *Handlers) drillDetail(w http.ResponseWriter, r *http.Request) {
 	if dr.EvidencePath != nil && *dr.EvidencePath != "" {
 		verify, _ = h.evidence.Verify(r.Context(), dr.ID, dr.AccountID, *dr.EvidencePath)
 	}
-	render(w, r, templates.DrillDetail(lc, dr, target, steps, ars, verify))
+	// Active + expired share links to render the "Share with an auditor"
+	// section. A soft failure surfaces an empty list, not an error page.
+	shareLinks, _ := h.share.ListForDrill(r.Context(), dr.ID)
+	render(w, r, templates.DrillDetail(lc, dr, target, steps, ars, verify, shareLinks))
 }
 
 func (h *Handlers) drillStepsPartial(w http.ResponseWriter, r *http.Request) {

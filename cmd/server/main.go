@@ -18,6 +18,7 @@ import (
 
 	"github.com/preshotcome/dokaz/internal/account"
 	"github.com/preshotcome/dokaz/internal/alerting"
+	"github.com/preshotcome/dokaz/internal/sharelink"
 	"github.com/preshotcome/dokaz/internal/analytics"
 	"github.com/preshotcome/dokaz/internal/apikey"
 	"github.com/preshotcome/dokaz/internal/audit"
@@ -166,6 +167,7 @@ func main() {
 	}
 	// Per-account Slack + PagerDuty alerts, alongside email and mobile push.
 	alertStore := alerting.NewStore(pool)
+	shareStore := sharelink.NewStore(pool)
 	alertNotifier := alerting.New(alertStore, logger)
 	heartbeatNotifier := heartbeat.MultiNotifier{
 		heartbeatnotify.New(mailer, accountStore, cfg.BaseURL, logger),
@@ -175,6 +177,11 @@ func main() {
 	drillNotifier := drill.MultiNotifier{
 		push.NewDrillNotifier(pushDevices, pushSender, logger),
 		alertNotifier,
+		// Email the account owner on every terminal drill outcome — closes
+		// the loop on the welcome email's "we'll email you a signed PDF"
+		// promise, and pulls the customer back to the drill detail (where
+		// the new failure-explainer / signed-receipt lives).
+		email.NewDrillNotifier(mailer, accountStore, drillStore, cfg.BaseURL, logger),
 	}
 	analyticsClient := analytics.New(cfg.PostHogAPIKey, cfg.PostHogHost, logger)
 	featureFlags := flags.New(cfg.PostHogAPIKey, cfg.PostHogHost, logger)
@@ -292,6 +299,7 @@ func main() {
 		Webhooks:        webhookStore,
 		WebhookDispatch: webhookDispatch,
 		Alerts:          alertStore,
+		Share:           shareStore,
 		CSRF:            csrf.New(cfg.IsProduction(), "/webhooks/", "/v1/", "/ping/", "/mobile/"),
 		AuthLimiter:     authLimiter,
 		AppLimiter:      appLimiter,

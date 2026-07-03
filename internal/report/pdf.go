@@ -45,6 +45,13 @@ func Render(out io.Writer, d Data) error {
 	switch d.Drill.Status {
 	case drill.StatusSucceeded:
 		verdict = "PASSED"
+		// Guard against an "auditor-grade PASSED" that means "restored and
+		// checked nothing." A restore-only drill is real evidence that the
+		// dump can be opened, but it is NOT evidence that the data survived
+		// — say so plainly on the report so no reviewer misreads it.
+		if len(d.Assertions) == 0 {
+			verdict = "RESTORED (no assertions configured)"
+		}
 	case drill.StatusSkipped:
 		// A skipped drill (e.g. a scheduled run blocked by a lapsed trial)
 		// is neither pass nor fail — flagging it FAILED in the evidence

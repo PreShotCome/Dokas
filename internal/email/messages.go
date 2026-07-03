@@ -154,3 +154,24 @@ reports stay available throughout — no drills stop.
 `, p, accountName, p, portalLink, p),
 	}
 }
+
+// DrillCompletedMessage builds the email sent when a drill finishes. It
+// carries the outcome verdict, the database name, and a link back to the
+// signed report — closing the loop on the welcome email's promise that "we'll
+// email you a signed PDF."
+func DrillCompletedMessage(to, targetName, verdict, drillLink string) Message {
+	p := branding.ProductName
+	return Message{
+		To:      to,
+		Subject: fmt.Sprintf("%s drill %s: %s", p, verdict, targetName),
+		TextBody: fmt.Sprintf(`Your latest %s drill on "%s" finished with verdict: %s.
+
+Open the drill for the signed Proof-of-Recovery PDF, the assertion
+receipts, and (if it failed) the captured restore log:
+
+%s
+
+— %s
+`, p, targetName, verdict, drillLink, p),
+	}
+}
