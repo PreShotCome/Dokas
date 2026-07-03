@@ -23,10 +23,17 @@ func LimitsFor(p Plan) Limits {
 	switch p {
 	case PlanScale:
 		return Limits{} // all Unlimited — self-serve top tier
-	case PlanPro, PlanTrial:
+	case PlanPro:
 		return Limits{Databases: 25, Seats: 10, APIKeys: 10, Webhooks: 10, Heartbeats: 25}
 	case PlanStarter:
 		return Limits{Databases: 5, Seats: 3, APIKeys: 3, Webhooks: 3, Heartbeats: 10}
+	case PlanTrial:
+		// Active trials get ONE real database at weekly cadence — the
+		// product's whole thesis is "prove it, don't promise it", so a card
+		// wall before someone can drill their own dump is self-refuting. Two
+		// seats let a small evaluating team walk the flow together; the
+		// paywall re-arms once the trial lapses.
+		return Limits{Databases: 1, Seats: 2, APIKeys: 2, Webhooks: 2, Heartbeats: 3}
 	default:
 		return Limits{Databases: 1, Seats: 2, APIKeys: 1, Webhooks: 1, Heartbeats: 1}
 	}

@@ -35,7 +35,10 @@ func TestLimitsFor(t *testing.T) {
 		plan Plan
 		want Limits
 	}{
-		{PlanTrial, growth}, // trial mirrors Growth during the first-month window
+		// Active trials get ONE real database + a small team footprint. The
+		// point of the trial is to prove the product on the user's own dump
+		// before they subscribe, not to host a production fleet for free.
+		{PlanTrial, Limits{Databases: 1, Seats: 2, APIKeys: 2, Webhooks: 2, Heartbeats: 3}},
 		{PlanStarter, Limits{Databases: 5, Seats: 3, APIKeys: 3, Webhooks: 3, Heartbeats: 10}},
 		{PlanPro, growth},
 		{PlanScale, Limits{}}, // uncapped — self-serve top tier

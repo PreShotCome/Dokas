@@ -70,6 +70,12 @@ type Account struct {
 	// TrialEndsAt is when a trial-plan account's full-access window closes.
 	// Nil on paid plans (and on trial accounts predating the trial window).
 	TrialEndsAt *time.Time
+	// SubscriptionStatus is the Stripe subscription state ("active", "trialing",
+	// "past_due", "unpaid", "canceled", "incomplete", "paused") — nil when the
+	// account has never had a subscription. Used to distinguish a paying
+	// customer whose card just failed (past_due) from a never-paid trial, so
+	// the payment-issue banner and the trial-ended banner don't overlap.
+	SubscriptionStatus *string
 }
 
 type Membership struct {
@@ -128,9 +134,9 @@ func (s *Store) CreatePersonalAccount(ctx context.Context, userID uuid.UUID, ema
 	err = tx.QueryRow(ctx, `
 		INSERT INTO accounts (name, slug, trial_ends_at)
 		VALUES ($1, $2, now() + interval '14 days')
-		RETURNING id, name, slug, stripe_customer_id, plan, created_at, trial_ends_at
+		RETURNING id, name, slug, stripe_customer_id, plan, created_at, trial_ends_at, subscription_status
 	`, name, slug).Scan(&acct.ID, &acct.Name, &acct.Slug, &acct.StripeCustomerID, &acct.Plan,
-		&acct.CreatedAt, &acct.TrialEndsAt)
+		&acct.CreatedAt, &acct.TrialEndsAt, &acct.SubscriptionStatus)
 	if err != nil {
 		if isUniqueViolation(err) {
 			return Account{}, ErrSlugUnavailable
@@ -155,9 +161,9 @@ func (s *Store) CreatePersonalAccount(ctx context.Context, userID uuid.UUID, ema
 func (s *Store) GetAccount(ctx context.Context, accountID uuid.UUID) (Account, error) {
 	var a Account
 	err := s.pool.QueryRow(ctx, `
-		SELECT id, name, slug, stripe_customer_id, plan, created_at, trial_ends_at
+		SELECT id, name, slug, stripe_customer_id, plan, created_at, trial_ends_at, subscription_status
 		  FROM accounts WHERE id = $1 AND deleted_at IS NULL
-	`, accountID).Scan(&a.ID, &a.Name, &a.Slug, &a.StripeCustomerID, &a.Plan, &a.CreatedAt, &a.TrialEndsAt)
+	`, accountID).Scan(&a.ID, &a.Name, &a.Slug, &a.StripeCustomerID, &a.Plan, &a.CreatedAt, &a.TrialEndsAt, &a.SubscriptionStatus)
 	if errors.Is(err, pgx.ErrNoRows) {
 		return Account{}, ErrNotFound
 	}
@@ -214,6 +220,30 @@ func (s *Store) HandleSubscriptionCanceled(ctx context.Context, customerID strin
 }
 
 // RecordStripeEvent inserts a Stripe event ID into the dedup table. Returns
+// OwnerContact is an account's owner's email + display name — used by the
+// billing webhook to send dunning / cancellation notices to the person who
+// signed up. Returns pgx.ErrNoRows when no owner or no matching customer.
+type OwnerContact struct {
+	AccountID   uuid.UUID
+	AccountName string
+	OwnerEmail  string
+}
+
+// OwnerByStripeCustomer resolves a Stripe customer ID back to the account's
+// owner. Used by the billing webhook to address dunning / cancellation email.
+func (s *Store) OwnerByStripeCustomer(ctx context.Context, customerID string) (OwnerContact, error) {
+	var o OwnerContact
+	err := s.pool.QueryRow(ctx, `
+		SELECT a.id, a.name, u.email
+		  FROM accounts a
+		  JOIN memberships m ON m.account_id = a.id AND m.role = 'owner'
+		  JOIN users u ON u.id = m.user_id
+		 WHERE a.stripe_customer_id = $1 AND a.deleted_at IS NULL
+		 LIMIT 1
+	`, customerID).Scan(&o.AccountID, &o.AccountName, &o.OwnerEmail)
+	return o, err
+}
+
 // true on first-seen, false on duplicate. Stripe retries 5xx for ~3 days and
 // may also replay older events; this is the gate that makes the webhook
 // handler idempotent.
