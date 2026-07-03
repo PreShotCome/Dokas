@@ -154,7 +154,8 @@ func (h *Handlers) adminDrillReplay(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "replay: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
-	if err := h.orch.EnqueueDrill(r.Context(), newID); err != nil {
+	// Staff re-runs use default priority — they're for diagnostics, not billed.
+	if err := h.orch.EnqueueDrill(r.Context(), newID, nil); err != nil {
 		http.Error(w, "enqueue: "+err.Error(), http.StatusInternalServerError)
 		return
 	}

@@ -757,6 +757,18 @@ func (s *Store) ListAssertions(ctx context.Context, drillID uuid.UUID) ([]Assert
 
 // CreateDrillIdempotent creates a new drill iff the (account, key) tuple has
 // not already been claimed. If it has, returns the previously created
+// CountDrillsSince returns the number of drills the account has *created*
+// since the given time. Counts every origin — sample, web, API, scheduler —
+// because a per-day drill cap is about protecting the shared queue and the
+// marginal drill cost, and origin doesn't matter to either.
+func (s *Store) CountDrillsSince(ctx context.Context, accountID uuid.UUID, since time.Time) (int, error) {
+	var n int
+	err := s.pool.QueryRow(ctx,
+		`SELECT count(*) FROM drills WHERE account_id = $1 AND created_at >= $2`,
+		accountID, since).Scan(&n)
+	return n, err
+}
+
 // drill_id and reused=true. Atomic via the unique index on idempotency_keys.
 // createdByUserID is recorded for audit but doesn't gate uniqueness — two
 // members of the same account hitting the same key form-submit dedupe.

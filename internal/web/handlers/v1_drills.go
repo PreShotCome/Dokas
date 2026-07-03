@@ -163,9 +163,29 @@ func (h *Handlers) v1CreateDrill(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Drilling a real backup needs a paid plan; the sample is always allowed.
+	// Drilling a real backup needs a paid plan (or an active trial); the
+	// sample is always allowed.
 	if !target.IsSample && h.v1BlockFreeReal(w, r) {
 		return
+	}
+	// Per-day drill cap — same policy as the web + sample paths, since a
+	// scripted API loop is the more common abuse vector.
+	if err := enforceDrillQuota(r.Context(), h.drills, acct); err != nil {
+		if qe, ok := asDrillQuotaError(err); ok {
+			writeAPIError(w, http.StatusTooManyRequests, "drill_quota_exceeded", qe.Error())
+			return
+		}
+		h.logger().Warn("drill quota check failed — allowing", "err", err)
+	}
+	// Dump-size cap. Real dumps only; sample skips.
+	if !target.IsSample {
+		if err := enforceDumpSize(target.SourceKind, target.SourceURI, acct.Plan); err != nil {
+			if de, ok := asDumpTooLargeError(err); ok {
+				writeAPIError(w, http.StatusRequestEntityTooLarge, "dump_too_large", de.Error())
+				return
+			}
+			h.logger().Warn("dump size check failed — allowing", "err", err)
+		}
 	}
 
 	// Use the request's Idempotency-Key as the drill idempotency key too,
@@ -178,7 +198,7 @@ func (h *Handlers) v1CreateDrill(w http.ResponseWriter, r *http.Request) {
 		writeAPIError(w, http.StatusInternalServerError, "internal", "could not create drill")
 		return
 	}
-	if err := h.orch.EnqueueDrill(r.Context(), drillID); err != nil {
+	if err := h.orch.EnqueueDrill(r.Context(), drillID, drillInsertOpts(acct.Plan)); err != nil {
 		writeAPIError(w, http.StatusInternalServerError, "internal", "could not enqueue drill")
 		return
 	}
