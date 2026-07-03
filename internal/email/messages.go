@@ -125,3 +125,32 @@ produce signed evidence that the backup is actually restorable.
 `, p, accountName, p),
 	}
 }
+
+// PaymentFailedMessage is the dunning email sent when Stripe reports
+// invoice.payment_failed on a subscription. It must not scold — a declined
+// card is usually a bank-side false-positive, not a customer problem — but
+// it must name the consequence of ignoring it (subscription cancellation,
+// then a 7-day grace, then purge).
+func PaymentFailedMessage(to, accountName, portalLink string) Message {
+	p := branding.ProductName
+	return Message{
+		To:      to,
+		Subject: fmt.Sprintf("Payment issue on your %s subscription", p),
+		TextBody: fmt.Sprintf(`We couldn't process the last payment on your %s subscription for "%s".
+
+Card declines usually clear themselves on the next retry — your bank may
+have flagged a routine charge — but we wanted to let you know so it
+doesn't slip past.
+
+Update your card here, and %s will re-attempt the payment automatically:
+
+%s
+
+If nothing changes after Stripe's retries, the subscription will be
+canceled and your workspace will drop into a 7-day grace window. Signed
+reports stay available throughout — no drills stop.
+
+— %s
+`, p, accountName, p, portalLink, p),
+	}
+}

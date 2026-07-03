@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"context"
+	"errors"
 	"io"
 	"net/http"
 	"strings"
@@ -10,6 +11,7 @@ import (
 	"github.com/preshotcome/dokaz/internal/account"
 	"github.com/preshotcome/dokaz/internal/audit"
 	"github.com/preshotcome/dokaz/internal/billing"
+	mail "github.com/preshotcome/dokaz/internal/email"
 	"github.com/preshotcome/dokaz/internal/web/templates"
 )
 
@@ -101,6 +103,33 @@ func (h *Handlers) billingPortal(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, url, http.StatusSeeOther)
 }
 
+// sendPaymentFailedEmail sends the dunning notice to the account owner
+// (resolved from the Stripe customer ID) when Stripe reports
+// invoice.payment_failed. Best-effort — a mail failure never blocks the
+// webhook 200; Stripe would retry it and we'd bounce every dunning attempt
+// forever.
+func (h *Handlers) sendPaymentFailedEmail(ctx context.Context, customerID string) {
+	if customerID == "" {
+		return
+	}
+	owner, err := h.accounts.OwnerByStripeCustomer(ctx, customerID)
+	if err != nil {
+		h.logger().Warn("dunning: lookup owner failed", "customer", customerID, "err", err)
+		return
+	}
+	// Portal link is the actionable "update card" surface — best-effort; if
+	// Stripe rejects the portal session we fall back to /account which links
+	// to it too.
+	portalLink, err := h.billing.Portal(ctx, customerID, h.baseURL+"/account")
+	if err != nil || portalLink == "" {
+		portalLink = h.baseURL + "/account"
+	}
+	if err := h.mailer.Send(ctx, mail.PaymentFailedMessage(owner.OwnerEmail, owner.AccountName, portalLink)); err != nil &&
+		!errors.Is(err, mail.ErrSuppressed) {
+		h.logger().Warn("dunning email failed", "to", owner.OwnerEmail, "err", err)
+	}
+}
+
 // ensureStripeCustomer returns the account's Stripe customer ID, creating one
 // on demand if the account doesn't have one yet.
 func (h *Handlers) ensureStripeCustomer(ctx context.Context, lc templates.LayoutCtx) (string, error) {
@@ -134,6 +163,26 @@ func (h *Handlers) stripeWebhook(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "bad payload", http.StatusBadRequest)
 		return
 	}
+	// invoice.payment_failed doesn't change plan state — that's
+	// customer.subscription.updated's job — but it does need to fire the
+	// dunning email exactly once per event. Dedup via the same table.
+	if ev.Type == "invoice.payment_failed" {
+		if ev.ID != "" {
+			fresh, err := h.accounts.RecordStripeEvent(r.Context(), ev.ID)
+			if err != nil {
+				http.Error(w, "dedup write failed", http.StatusInternalServerError)
+				return
+			}
+			if !fresh {
+				w.WriteHeader(http.StatusOK)
+				return
+			}
+		}
+		h.sendPaymentFailedEmail(r.Context(), ev.CustomerID)
+		w.WriteHeader(http.StatusOK)
+		return
+	}
+
 	if !billing.IsSubscriptionEvent(ev.Type) {
 		w.WriteHeader(http.StatusOK) // acknowledged, nothing to do
 		return
@@ -181,14 +230,15 @@ func (h *Handlers) stripeWebhook(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	// Status gate: anything that isn't actively-paying (past_due, unpaid,
-	// incomplete, paused, canceled) drops the account back to the trial tier
-	// regardless of the price on the subscription. Without this, a payment
-	// failure leaves the customer on Pro until Stripe eventually deletes the
-	// subscription ~23 days later.
-	if !billing.SubscriptionActive(ev.Status) {
-		plan = billing.PlanTrial
-	}
+	// Do NOT downgrade past_due / unpaid / incomplete accounts to the trial
+	// plan here. Stripe retries a failed invoice for ~23 days before firing
+	// customer.subscription.deleted, and during that window the customer is
+	// still ours — silently switching them to "trial" makes the layout tell
+	// a paying customer "your free trial has ended." We keep them on their
+	// paid plan and let SubscriptionStatus (SyncSubscription writes it) carry
+	// the "payment issue" signal to the banners / mailer. On
+	// subscription.deleted (the terminal cancel) HandleSubscriptionCanceled
+	// drops the plan and extends the grace window.
 
 	if err := h.accounts.SyncSubscription(r.Context(), ev.CustomerID, ev.SubscriptionID, ev.Status, plan, ev.Created); err != nil {
 		// 5xx so Stripe retries the delivery.

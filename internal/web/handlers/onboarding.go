@@ -171,25 +171,44 @@ func (h *Handlers) runSampleDrill(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/drills/"+drillID.String(), http.StatusSeeOther)
 }
 
-// blockFreeRealWeb renders the upgrade page and returns true when a browser
-// request from a free/trial account tries to add or drill a real backup.
-// The sample dataset is exempt — callers check IsSample before calling this.
-func (h *Handlers) blockFreeRealWeb(w http.ResponseWriter, r *http.Request) bool {
-	if acct, ok := auth.CurrentAccountFromContext(r.Context()); ok && !account.IsPaid(acct.Plan) {
-		w.WriteHeader(http.StatusPaymentRequired)
-		render(w, r, templates.PaidRequired(h.layoutCtx(r)))
+// canDrillReal reports whether an account may currently connect / drill its
+// own real backup. Paid plans always can; an *active* trial can — the
+// LimitsFor(PlanTrial).Databases cap (1) is what stops them stacking a
+// production fleet on the trial. A lapsed trial cannot: the trial window is
+// over, they need to subscribe.
+func canDrillReal(a *account.Account) bool {
+	if a == nil {
+		return false
+	}
+	if account.IsPaid(a.Plan) {
 		return true
 	}
-	return false
+	return account.TrialActive(*a)
+}
+
+// blockFreeRealWeb renders the upgrade page and returns true when a browser
+// request from a lapsed-trial or otherwise-ineligible account tries to add or
+// drill a real backup. Active trials pass through; the sample dataset is
+// always exempt (callers check IsSample before calling this).
+func (h *Handlers) blockFreeRealWeb(w http.ResponseWriter, r *http.Request) bool {
+	acct, ok := auth.CurrentAccountFromContext(r.Context())
+	if !ok || canDrillReal(acct) {
+		return false
+	}
+	w.WriteHeader(http.StatusPaymentRequired)
+	render(w, r, templates.PaidRequired(h.layoutCtx(r)))
+	return true
 }
 
 // v1BlockFreeReal writes a 402 plan_required and returns true when an API
-// request from a free/trial account tries to add or drill a real backup.
+// request from a lapsed-trial or otherwise-ineligible account tries to add or
+// drill a real backup.
 func (h *Handlers) v1BlockFreeReal(w http.ResponseWriter, r *http.Request) bool {
-	if acct, ok := auth.CurrentAccountFromContext(r.Context()); ok && !account.IsPaid(acct.Plan) {
-		writeAPIError(w, http.StatusPaymentRequired, "plan_required",
-			"free accounts can drill the sample dataset only; subscribe to drill your own backups")
-		return true
+	acct, ok := auth.CurrentAccountFromContext(r.Context())
+	if !ok || canDrillReal(acct) {
+		return false
 	}
-	return false
+	writeAPIError(w, http.StatusPaymentRequired, "plan_required",
+		"trial has ended; subscribe to drill your own backups")
+	return true
 }

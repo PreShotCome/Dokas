@@ -131,15 +131,29 @@ templ LayoutWith(title string, lc LayoutCtx) {
 					</form>
 				</div>
 			}
-			if lc.Account != nil && lc.Account.Plan == account.PlanTrial {
+			// Payment issue banner. Fires whenever the subscription is in a
+			// non-active dunning state (past_due / unpaid / incomplete), regardless
+			// of the current plan column. Takes priority over the trial banner
+			// because it's actionable and time-sensitive: a paying customer's card
+			// failed and Stripe is retrying — they need to fix it before the
+			// subscription is canceled.
+			if lc.Account != nil && paymentIssue(lc.Account) {
+				<div class="bg-amber-500 px-4 py-2 text-center text-sm font-medium text-amber-950 dark:bg-amber-600 dark:text-amber-50">
+					<span>Payment issue on your subscription — { paymentIssueText(lc.Account) } Update your card to keep signed reports flowing.</span>
+					<form method="POST" action="/account/billing/portal" class="ml-1 inline">
+						@CSRFField()
+						<button type="submit" class="font-medium underline">Manage billing</button>
+					</form>
+				</div>
+			} else if lc.Account != nil && lc.Account.Plan == account.PlanTrial {
 				if account.TrialLapsed(*lc.Account) {
 					<div class="bg-rose-100 px-4 py-2 text-center text-sm text-rose-900 dark:bg-rose-900/40 dark:text-rose-200">
-						<span>Your free trial has ended.</span>
+						<span>{ trialEndedText(lc.Account) }</span>
 						<a href="/pricing" class="ml-1 font-medium underline">Choose a plan</a>
 					</div>
 				} else {
 					<div class="bg-brand-100 px-4 py-2 text-center text-sm text-brand-900 dark:bg-brand-900/40 dark:text-brand-100">
-						<span>{ trialBannerText(lc.Account) }</span>
+						<span>{ trialBannerText(lc.Account) } Connect one database and get a signed report before it ends.</span>
 						<a href="/pricing" class="ml-1 font-medium underline">See plans</a>
 					</div>
 				}
@@ -358,6 +372,50 @@ func trialBannerText(a *account.Account) string {
 	default:
 		return strconv.Itoa(days) + " days left in your free trial."
 	}
+}
+
+// paymentIssue reports whether an account is currently in a Stripe dunning
+// state — the customer is a subscriber, their subscription is not "active" or
+// "trialing", and it is not the terminal canceled/deleted state either. This
+// is the moment the account needs a "update your card" banner rather than a
+// "trial ended" one.
+func paymentIssue(a *account.Account) bool {
+	if a == nil || a.SubscriptionStatus == nil {
+		return false
+	}
+	switch *a.SubscriptionStatus {
+	case "past_due", "unpaid", "incomplete", "incomplete_expired":
+		return true
+	}
+	return false
+}
+
+// paymentIssueText renders a short human-readable version of the dunning
+// state.
+func paymentIssueText(a *account.Account) string {
+	if a == nil || a.SubscriptionStatus == nil {
+		return "your last payment did not go through."
+	}
+	switch *a.SubscriptionStatus {
+	case "past_due":
+		return "your last payment did not go through."
+	case "unpaid":
+		return "your subscription has unpaid invoices."
+	case "incomplete", "incomplete_expired":
+		return "your subscription setup did not complete."
+	}
+	return "your subscription needs attention."
+}
+
+// trialEndedText is the trial-lapsed banner copy. If the account has ever had
+// a Stripe customer ID, the "trial" they are on is really a post-cancel grace
+// period — say that plainly rather than accuse a former paying customer of
+// being on an expired trial.
+func trialEndedText(a *account.Account) string {
+	if a != nil && a.StripeCustomerID != nil && *a.StripeCustomerID != "" {
+		return "Your subscription has ended and your data is in the 7-day grace window."
+	}
+	return "Your free trial has ended."
 }
 
 // userInitials renders 1-2 uppercase initials for the sidebar avatar chip.

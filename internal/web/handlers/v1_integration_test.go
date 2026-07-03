@@ -438,7 +438,7 @@ func TestV1DeleteAccount(t *testing.T) {
 	}
 }
 
-func TestV1FreePlanCannotDrillReal(t *testing.T) {
+func TestV1TrialAndLapsedRealDrill(t *testing.T) {
 	dsn := os.Getenv("DATABASE_URL")
 	if dsn == "" {
 		t.Skip("DATABASE_URL not set")
@@ -451,39 +451,68 @@ func TestV1FreePlanCannotDrillReal(t *testing.T) {
 	srv, key, accountID, userID, _ := v1TestServer(t, pool)
 	ctx := context.Background()
 
-	// Drop to a live (unlapsed) trial — the free tier.
+	// --- Active trial: allowed to add ONE real backup target and drill it.
+	// Product thesis is "prove it, don't promise it" — a paywall before the
+	// user can see their own dump restore would be self-refuting.
 	if _, err := pool.Exec(ctx,
 		`UPDATE accounts SET plan='trial', trial_ends_at = now() + interval '14 days' WHERE id=$1`,
 		accountID); err != nil {
-		t.Fatalf("set trial: %v", err)
+		t.Fatalf("set active trial: %v", err)
 	}
 
-	// A free account cannot add a real backup target.
 	body := `{"name":"prod","source_uri":"` + mustAbsTestdata(t) + `"}`
 	resp, env := v1Do(t, "POST", srv.URL+"/databases", key, uuid.NewString(), body)
-	if resp.StatusCode != 402 {
-		t.Fatalf("free create real database: got %d, want 402 (env=%v)", resp.StatusCode, env)
-	}
-	if first, _ := firstError(env); first != "plan_required" {
-		t.Fatalf("error code = %q, want plan_required", first)
+	if resp.StatusCode != 201 {
+		t.Fatalf("active trial create real database: got %d, want 201 (env=%v)", resp.StatusCode, env)
 	}
 
-	// Even with an existing real target (e.g. a downgraded account), a free
-	// account cannot drill it. Seed one directly.
+	// The trial DB cap is 1 — a second real target must be rejected as
+	// plan_limit (the AtLimit path), not plan_required (the paywall path).
+	body2 := `{"name":"prod2","source_uri":"` + mustAbsTestdata(t) + `"}`
+	resp, env = v1Do(t, "POST", srv.URL+"/databases", key, uuid.NewString(), body2)
+	if resp.StatusCode != 403 {
+		t.Fatalf("active trial second real database: got %d, want 403 (env=%v)", resp.StatusCode, env)
+	}
+	if first, _ := firstError(env); first != "plan_limit" {
+		t.Fatalf("second-target error code = %q, want plan_limit", first)
+	}
+
+	// --- Lapsed trial: paywall re-arms. The trial's window is over, so a
+	// real backup drill (or a new real target) must return plan_required.
+	if _, err := pool.Exec(ctx,
+		`UPDATE accounts SET trial_ends_at = now() - interval '1 hour' WHERE id=$1`,
+		accountID); err != nil {
+		t.Fatalf("set lapsed trial: %v", err)
+	}
+
+	body3 := `{"name":"lapsed","source_uri":"` + mustAbsTestdata(t) + `"}`
+	resp, env = v1Do(t, "POST", srv.URL+"/databases", key, uuid.NewString(), body3)
+	if resp.StatusCode != 402 {
+		t.Fatalf("lapsed trial create real database: got %d, want 402 (env=%v)", resp.StatusCode, env)
+	}
+	// The v1 lapsed-trial middleware fires first (trial_expired) before we
+	// reach v1BlockFreeReal (plan_required) — both signal the same thing to
+	// the caller ("subscribe"), and trial_expired is the more specific code.
+	if first, _ := firstError(env); first != "trial_expired" {
+		t.Fatalf("lapsed create error code = %q, want trial_expired", first)
+	}
+
+	// Even with an existing real target (typical: paid → lapsed downgrade), a
+	// lapsed account cannot drill it.
 	var realID uuid.UUID
 	if err := pool.QueryRow(ctx, `
 		INSERT INTO database_targets (account_id, created_by_user_id, name, source_kind, source_uri, is_sample)
-		VALUES ($1, $2, 'real', 'postgres_dump_local', '/tmp/whatever.dump', false)
+		VALUES ($1, $2, 'stale', 'postgres_dump_local', '/tmp/whatever.dump', false)
 		RETURNING id`, accountID, userID).Scan(&realID); err != nil {
 		t.Fatalf("seed real target: %v", err)
 	}
 	drillBody := `{"database_id":"` + realID.String() + `"}`
 	resp, env = v1Do(t, "POST", srv.URL+"/drills", key, uuid.NewString(), drillBody)
 	if resp.StatusCode != 402 {
-		t.Fatalf("free drill real target: got %d, want 402 (env=%v)", resp.StatusCode, env)
+		t.Fatalf("lapsed drill real target: got %d, want 402 (env=%v)", resp.StatusCode, env)
 	}
-	if first, _ := firstError(env); first != "plan_required" {
-		t.Fatalf("error code = %q, want plan_required", first)
+	if first, _ := firstError(env); first != "trial_expired" {
+		t.Fatalf("lapsed drill error code = %q, want trial_expired", first)
 	}
 }
 
