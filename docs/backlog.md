@@ -263,3 +263,63 @@ Layer-4 API:
   each endpoint on the scope it needs and returns `403 insufficient_scope`
   otherwise. Scopes are chosen with checkboxes on key creation — untick the
   write scopes for a read-only key.
+
+## Post-Fable-audit — carried forward (audit dated 2026-07-03)
+
+These items were called out in the 2026-07-03 Fable audit's punch list and
+consciously parked after Days 1-5 shipped every S/M item at the top. Each
+still has a live symptom; each is scoped to fit its own PR.
+
+- **Item 12 — one `StatusPill`; kill the six divergent implementations.**
+  `deferred`. "Healthy" renders as teal-with-dot in some places, emerald
+  without a dot in others, emerald with a dot in a third — teal is
+  supposed to mean *verified*. Rolls up the hard-coded `#10b981`/`#f43f5e`
+  chart tokens in `reports.templ:118-119` and the alert classes in
+  `input.css:88-97`. Callsites: `drills.templ:332,357`, `heartbeats.templ:255-260`,
+  `webhooks.templ:132-140`, `apikeys.templ:109-111`, `status.templ:42-50`,
+  `admin.templ:122-125`. Bag: one templ component + a `--tone` prop, delete
+  the drift.
+
+- **Item 13 — stop re-fetching the dump on drill resume.** `debt`.
+  `chainAlreadyFetched` in `internal/drill/steps/steps.go:305-322` re-downloads
+  the entire source to recover a local path. Contradicts the "resume without
+  re-restoring 80 GB" design and multiplies cost exactly when drills are
+  already failing. Fix: persist the fetched path (or a hash-keyed location)
+  on the drill row and skip refetch when it's still valid.
+
+- **Item 16 — plan-aware `/v1` rate limits.** `deferred`. `cmd/server/main.go:273`
+  ships a flat 60/min limiter across every plan. Day 3 shipped drill-per-day
+  caps + River priority, which handles the drill-abuse vector; the full API
+  rate ceiling is still uniform. Fix: add `Limits.APIRequestsPerMin`, wire
+  through the limiter middleware.
+
+- **Item 17 — downgrade policy for over-cap resources.** `deferred`.
+  Creates are blocked on plan-limit paths, but existing over-cap resources
+  (DBs, keys, webhooks) persist silently after a downgrade. Pick block-new
+  + banner (cheap) and say it on the pricing page. Files:
+  `internal/account/limits.go`, the webhook sync path in `handlers/billing.go`.
+
+- **Item 19 — off-token sweep on pricing + tables + dead `.card-receipt`.**
+  `debt`. Pricing plan cards are `bg-white dark:bg-zinc-900` (the one page
+  buyers stare at); some app tables use `zinc` not `steel`; `.card-receipt`
+  in `input.css` promises a dashed divider it doesn't render while every
+  receipt hand-rolls it. Sweep the classes to design-system tokens.
+
+- **Item 20 — surface restore-duration as RTO evidence.** `deferred`.
+  Per-step timings are already recorded; "last restore: 2m 14s, p95 over
+  90 days: 3m 02s" on the report/PDF answers the cyber-insurance RTO
+  question no competitor artefact does. Files: `internal/report/`, plus a
+  small store query over `drill_steps`.
+
+## Post-Fable-audit — MySQL support (deferred, feasible split)
+
+Not on the punch list but Fable analysed the coupling: `internal/drill/steps/steps.go:433`
+dials the sandbox with `pgx.Connect` (assertions are hard-wired to Postgres),
+`internal/runner/mock.go:144-190` sniffs `PGDMP/ustar` and invokes psql/pg_restore,
+`internal/runner/fly_machine.go:45,56` pins `postgres:16-alpine`. Clean seam:
+add `Engine` to `database_targets`, move restore-tooling + format detection
+behind per-engine runner strategies, replace the direct `pgx.Connect` with an
+engine-dialing querier (the `assertions.Querier` interface abstracts the
+right surface, and row_count/table_exists/no_nulls are `information_schema`-portable).
+Days, not weeks. The genuinely expensive part is the mysqldump/xtrabackup
+format matrix and its fixture corpus — v2 cost, not the interfaces.
