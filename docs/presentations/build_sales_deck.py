@@ -1,453 +1,463 @@
-"""Generate Dokaz_Sales_Deck.pptx — a 6-slide deck to send to a business
-prospect. Ends with a sign-up CTA. Same Dokaz brand palette as the
-investor deck (red + gold + lapis touches), different audience.
+"""Generate Dokaz_Sales_Deck.pptx — a 7-slide deck to send to a business
+prospect. Ends with a sign-up CTA. Same palette as the investor deck
+(steel + baby-royal-blue + pink + sea-teal), tuned for the buyer, not the VC.
+
+Voice: name the gap, close it with proof. Every slide leads with something
+concrete (the receipt, the shipped feature, the exact price) — nothing
+vague, no vision talk.
+
+Run: `python docs/presentations/build_sales_deck.py` — writes Dokaz_Sales_Deck.pptx.
 """
 
 from pptx import Presentation
-from pptx.util import Inches, Pt, Emu
+from pptx.util import Inches, Pt
 from pptx.dml.color import RGBColor
 from pptx.enum.shapes import MSO_SHAPE
 from pptx.enum.text import PP_ALIGN, MSO_ANCHOR
 from pathlib import Path
 
-BRAND_900 = RGBColor(0x7F, 0x1D, 0x1D)
-BRAND_800 = RGBColor(0x99, 0x1B, 0x1B)
-BRAND_700 = RGBColor(0xB9, 0x1C, 0x1C)
-BRAND_500 = RGBColor(0xEF, 0x44, 0x44)
-BRAND_300 = RGBColor(0xFC, 0xA5, 0xA5)
-BRAND_100 = RGBColor(0xFE, 0xE2, 0xE2)
-BRAND_50  = RGBColor(0xFE, 0xF2, 0xF2)
+# =============================================================================
+# Brand palette — mirrors branding/design-system/tokens/colors.css.
+# =============================================================================
+BRAND_900 = RGBColor(0x24, 0x3A, 0x78)
+BRAND_700 = RGBColor(0x3F, 0x63, 0xC4)
+BRAND_500 = RGBColor(0x5B, 0x8D, 0xEF)
+BRAND_400 = RGBColor(0x6E, 0x9B, 0xF0)
+BRAND_300 = RGBColor(0x8C, 0xB1, 0xF7)
 
-GOLD_700  = RGBColor(0xA1, 0x62, 0x07)
-GOLD_500  = RGBColor(0xEA, 0xB3, 0x08)
-GOLD_300  = RGBColor(0xFD, 0xE0, 0x47)
-GOLD_100  = RGBColor(0xFE, 0xF9, 0xC3)
+PINK_400  = RGBColor(0xF4, 0x8F, 0xB1)
+PINK_300  = RGBColor(0xF9, 0xA8, 0xD4)
+TEAL_500  = RGBColor(0x2B, 0xA8, 0x88)
+TEAL_400  = RGBColor(0x56, 0xC5, 0x96)
+TEAL_300  = RGBColor(0x5F, 0xCB, 0xAC)
+DANGER    = RGBColor(0xFF, 0x6B, 0x81)
 
-LAPIS_900 = RGBColor(0x1E, 0x3A, 0x8A)
-LAPIS_700 = RGBColor(0x1D, 0x4D, 0xD8)
+STEEL_950 = RGBColor(0x11, 0x15, 0x1A)
+STEEL_900 = RGBColor(0x1B, 0x20, 0x27)
+STEEL_800 = RGBColor(0x25, 0x2C, 0x35)
+STEEL_700 = RGBColor(0x33, 0x40, 0x5A)
+STEEL_500 = RGBColor(0x5D, 0x6C, 0x80)
+STEEL_400 = RGBColor(0x7A, 0x8A, 0x9C)
+STEEL_200 = RGBColor(0xC4, 0xCF, 0xDB)
 
-EMERALD     = RGBColor(0x10, 0xB9, 0x81)
-EMERALD_700 = RGBColor(0x04, 0x78, 0x57)
-EMERALD_50  = RGBColor(0xEC, 0xFD, 0xF5)
+WHITE     = RGBColor(0xFF, 0xFF, 0xFF)
+INK       = RGBColor(0xED, 0xF1, 0xF6)
+BODY      = RGBColor(0xD7, 0xDE, 0xE7)
+MUTED     = RGBColor(0x9A, 0xA7, 0xB6)
 
-ZINC_900 = RGBColor(0x18, 0x18, 0x1B)
-ZINC_700 = RGBColor(0x3F, 0x3F, 0x46)
-ZINC_500 = RGBColor(0x71, 0x71, 0x7A)
-ZINC_400 = RGBColor(0xA1, 0xA1, 0xAA)
-ZINC_200 = RGBColor(0xE4, 0xE4, 0xE7)
-ZINC_50  = RGBColor(0xFA, 0xFA, 0xFA)
+CARD_BG   = RGBColor(0x2E, 0x36, 0x40)
 
-RED_700 = RGBColor(0xB9, 0x1C, 0x1C)
-WHITE   = RGBColor(0xFF, 0xFF, 0xFF)
-
-
+# =============================================================================
 prs = Presentation()
 prs.slide_width  = Inches(13.333)
 prs.slide_height = Inches(7.5)
 BLANK = prs.slide_layouts[6]
 
+TOTAL = 7
+
 
 def add_slide():
-    return prs.slides.add_slide(BLANK)
+    s = prs.slides.add_slide(BLANK)
+    bg = s.shapes.add_shape(MSO_SHAPE.RECTANGLE, 0, 0, prs.slide_width, prs.slide_height)
+    bg.line.fill.background()
+    bg.fill.solid()
+    bg.fill.fore_color.rgb = STEEL_900
+    bg.shadow.inherit = False
+    return s
 
 
 def textbox(slide, left, top, width, height, text, *,
-            size=18, bold=False, color=ZINC_900, align=PP_ALIGN.LEFT,
+            size=18, bold=False, color=INK, align=PP_ALIGN.LEFT,
             anchor=MSO_ANCHOR.TOP, font='Calibri'):
     tb = slide.shapes.add_textbox(left, top, width, height)
     tf = tb.text_frame
     tf.word_wrap = True
+    tf.margin_left = tf.margin_right = 0
+    tf.margin_top = tf.margin_bottom = 0
     tf.vertical_anchor = anchor
-    tf.margin_left = tf.margin_right = tf.margin_top = tf.margin_bottom = 0
     p = tf.paragraphs[0]
     p.alignment = align
-    r = p.add_run()
-    r.text = text
-    r.font.size = Pt(size)
-    r.font.bold = bold
-    r.font.color.rgb = color
-    r.font.name = font
+    run = p.add_run()
+    run.text = text
+    run.font.size = Pt(size)
+    run.font.bold = bold
+    run.font.color.rgb = color
+    run.font.name = font
     return tb
 
 
 def rect(slide, left, top, width, height, fill, line=None):
-    shp = slide.shapes.add_shape(MSO_SHAPE.RECTANGLE, left, top, width, height)
-    shp.fill.solid()
-    shp.fill.fore_color.rgb = fill
+    shape = slide.shapes.add_shape(MSO_SHAPE.RECTANGLE, left, top, width, height)
+    shape.fill.solid()
+    shape.fill.fore_color.rgb = fill
     if line is None:
-        shp.line.fill.background()
+        shape.line.fill.background()
     else:
-        shp.line.color.rgb = line
-        shp.line.width = Pt(0.75)
-    shp.shadow.inherit = False
-    return shp
+        shape.line.color.rgb = line
+        shape.line.width = Pt(0.75)
+    shape.shadow.inherit = False
+    return shape
 
 
-def rounded(slide, left, top, width, height, fill, line=None, radius=0.05):
-    shp = slide.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, left, top, width, height)
-    shp.adjustments[0] = radius
-    shp.fill.solid()
-    shp.fill.fore_color.rgb = fill
+def rounded(slide, left, top, width, height, fill, line=None, line_w=Pt(0.75)):
+    shape = slide.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, left, top, width, height)
+    shape.adjustments[0] = 0.10
+    shape.fill.solid()
+    shape.fill.fore_color.rgb = fill
     if line is None:
-        shp.line.fill.background()
+        shape.line.fill.background()
     else:
-        shp.line.color.rgb = line
-        shp.line.width = Pt(0.75)
-    shp.shadow.inherit = False
-    return shp
+        shape.line.color.rgb = line
+        shape.line.width = line_w
+    shape.shadow.inherit = False
+    return shape
+
+
+def pill(slide, left, top, width, height, text, *, bg=BRAND_500, fg=WHITE, size=10):
+    shape = slide.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, left, top, width, height)
+    shape.adjustments[0] = 0.5
+    shape.fill.solid()
+    shape.fill.fore_color.rgb = bg
+    shape.line.fill.background()
+    shape.shadow.inherit = False
+    tb = shape.text_frame
+    tb.margin_left = tb.margin_right = Inches(0.05)
+    tb.margin_top = tb.margin_bottom = 0
+    tb.vertical_anchor = MSO_ANCHOR.MIDDLE
+    p = tb.paragraphs[0]
+    p.alignment = PP_ALIGN.CENTER
+    run = p.add_run()
+    run.text = text
+    run.font.size = Pt(size)
+    run.font.bold = True
+    run.font.color.rgb = fg
+    return shape
 
 
 def page_chrome(slide, eyebrow, title, slide_num, total):
-    rect(slide, Inches(0), Inches(0), prs.slide_width, Inches(0.08), BRAND_700)
-    textbox(slide, Inches(0.6), Inches(0.32), Inches(8), Inches(0.3),
-            eyebrow.upper(), size=10, bold=True, color=BRAND_700)
-    textbox(slide, Inches(0.6), Inches(0.58), Inches(12), Inches(0.7),
-            title, size=30, bold=True, color=ZINC_900)
-    textbox(slide, Inches(12.2), Inches(7.05), Inches(1), Inches(0.3),
-            f'{slide_num} / {total}', size=9, color=ZINC_400, align=PP_ALIGN.RIGHT)
-    textbox(slide, Inches(0.6), Inches(7.05), Inches(6), Inches(0.3),
-            'DOKAZ  ·  app.dokaz.net', size=9, color=ZINC_400)
+    textbox(slide, Inches(0.6), Inches(0.35), Inches(2), Inches(0.35),
+            'Dokaz', size=13, bold=True, color=INK)
+    textbox(slide, Inches(12.4), Inches(0.35), Inches(0.6), Inches(0.35),
+            f'{slide_num:02d} / {total:02d}',
+            size=9, color=STEEL_500, align=PP_ALIGN.RIGHT, font='Consolas')
+    textbox(slide, Inches(0.6), Inches(0.85), Inches(6), Inches(0.35),
+            eyebrow.upper(), size=10, bold=True, color=PINK_300)
+    textbox(slide, Inches(0.6), Inches(1.15), Inches(12), Inches(0.9),
+            title, size=30, bold=True, color=INK)
+    rect(slide, Inches(0.6), Inches(2.05), Inches(0.6), Inches(0.04), PINK_400)
 
 
-TOTAL = 6
-
-
-# =========================================================================
+# =============================================================================
 # Slide 1 — Cover
-# =========================================================================
+# =============================================================================
 s = add_slide()
-rect(s, Inches(0), Inches(0), prs.slide_width, prs.slide_height, BRAND_900)
-rect(s, Inches(4.5), Inches(0), prs.slide_width - Inches(4.5), prs.slide_height, BRAND_800)
 
-# S-mark
-rounded(s, Inches(0.9), Inches(0.9), Inches(0.6), Inches(0.6), GOLD_300, radius=0.25)
-textbox(s, Inches(0.95), Inches(0.96), Inches(0.5), Inches(0.5),
-        'S', size=22, bold=True, color=BRAND_900, align=PP_ALIGN.CENTER)
-textbox(s, Inches(1.65), Inches(1.0), Inches(5), Inches(0.4),
-        'DOKAZ', size=14, bold=True, color=WHITE)
+glow_l = rect(s, Inches(-2), Inches(-1), Inches(6), Inches(5), BRAND_900)
+glow_l.line.fill.background()
 
-# Status pill
-rounded(s, Inches(0.9), Inches(2.55), Inches(3.4), Inches(0.4), GOLD_500, radius=0.5)
-textbox(s, Inches(0.9), Inches(2.57), Inches(3.4), Inches(0.4),
-        'BACKUP VERIFICATION AS A SERVICE', size=10, bold=True, color=BRAND_900,
-        align=PP_ALIGN.CENTER, anchor=MSO_ANCHOR.MIDDLE)
+textbox(s, Inches(0.9), Inches(2.5), Inches(6), Inches(0.9),
+        'Dokaz', size=68, bold=True, color=WHITE)
+textbox(s, Inches(0.9), Inches(3.5), Inches(9), Inches(0.5),
+        'Prove your backups actually restore.',
+        size=22, color=PINK_300)
+textbox(s, Inches(0.9), Inches(4.1), Inches(11), Inches(0.9),
+        'A drill is a real restore in an isolated sandbox on a schedule you set. '
+        'Every run produces a signed Proof-of-Recovery PDF your auditor and insurer '
+        'accept — with an independent verifier so no one has to trust us.',
+        size=13, color=BODY)
 
-textbox(s, Inches(0.9), Inches(3.15), Inches(11.5), Inches(1.6),
-        'Backup verification\nyou can prove.', size=54, bold=True, color=WHITE)
-
-textbox(s, Inches(0.9), Inches(5.3), Inches(11), Inches(0.8),
-        'Stop finding out about broken backups during the outage.\nWe drill them every day and sign the result.',
-        size=18, color=BRAND_100)
-
-# CTA strip
-rounded(s, Inches(0.9), Inches(6.45), Inches(5.2), Inches(0.55), GOLD_500, radius=0.4)
-textbox(s, Inches(0.9), Inches(6.46), Inches(5.2), Inches(0.55),
-        '→  Start free at  app.dokaz.net/signup', size=14, bold=True,
-        color=BRAND_900, align=PP_ALIGN.CENTER, anchor=MSO_ANCHOR.MIDDLE)
+textbox(s, Inches(0.9), Inches(5.4), Inches(6), Inches(0.3),
+        'dokaz.net', size=12, color=BRAND_300, font='Consolas', bold=True)
+textbox(s, Inches(0.9), Inches(5.75), Inches(9), Inches(0.3),
+        'SOC 2 · ISO 27001 · HIPAA · cyber-insurance renewals',
+        size=10, color=MUTED)
 
 
-# =========================================================================
+# =============================================================================
 # Slide 2 — The risk
-# =========================================================================
+# =============================================================================
 s = add_slide()
 page_chrome(s, 'The risk',
             'Your backups are untested until something restores them.', 2, TOTAL)
 
-# Big stat card
-rounded(s, Inches(0.6), Inches(1.7), Inches(5.6), Inches(3.6),
-        BRAND_50, line=BRAND_300, radius=0.06)
-rect(s, Inches(0.6), Inches(1.7), Inches(0.08), Inches(3.6), BRAND_700)
-textbox(s, Inches(0.95), Inches(2.0), Inches(5), Inches(0.3),
-        'INDUSTRY BENCHMARK', size=11, bold=True, color=BRAND_700)
-textbox(s, Inches(0.95), Inches(2.4), Inches(5), Inches(1.6),
-        '1 in 3', size=88, bold=True, color=BRAND_800)
-textbox(s, Inches(0.95), Inches(4.25), Inches(5.0), Inches(0.6),
-        'restore attempts fail on the first try.', size=16, color=ZINC_700)
-textbox(s, Inches(0.95), Inches(4.7), Inches(5.0), Inches(0.4),
-        'Industry survey average across mid-market teams.',
-        size=10, color=ZINC_500)
 
-# Right column: 3 bullet rows
-def risk_row(slide, top, head, body):
-    rounded(slide, Inches(6.6), top, Inches(6.2), Inches(1.05),
-            WHITE, line=ZINC_200, radius=0.05)
-    rect(slide, Inches(6.6), top, Inches(0.06), Inches(1.05), GOLD_500)
-    textbox(slide, Inches(6.9), top + Inches(0.18), Inches(5.8), Inches(0.3),
-            head, size=13, bold=True, color=ZINC_900)
-    textbox(slide, Inches(6.9), top + Inches(0.5), Inches(5.8), Inches(0.55),
-            body, size=11, color=ZINC_700)
-
-risk_row(s, Inches(1.7),
-         'Backup software reports "success" too early.',
-         'It writes the bytes. It does not verify the bytes can be restored into a working database.')
-risk_row(s, Inches(2.95),
-         'Failure modes are invisible until the outage.',
-         'Schema drift, corrupted blocks, missing WAL segments, key rotation gone wrong — silent.')
-risk_row(s, Inches(4.2),
-         'Downtime costs $5,600 per minute.',
-         'Gartner industry average. By the time you discover the gap, you are already in the outage.')
-
-# Bottom callout
-rounded(s, Inches(0.6), Inches(5.55), Inches(12.2), Inches(1.2),
-        ZINC_50, line=ZINC_200, radius=0.05)
-rect(s, Inches(0.6), Inches(5.55), Inches(0.08), Inches(1.2), BRAND_700)
-textbox(s, Inches(0.9), Inches(5.75), Inches(11.8), Inches(0.35),
-        'THE QUESTION YOUR BOARD WILL ASK', size=11, bold=True, color=BRAND_700)
-textbox(s, Inches(0.9), Inches(6.1), Inches(11.8), Inches(0.6),
-        '"When was the last time someone actually restored from a backup, end to end, and proved it worked?"',
-        size=14, bold=True, color=ZINC_900)
+def bullet_card(slide, left, top, w, h, tag, headline, body, accent=BRAND_400):
+    rounded(slide, left, top, w, h, CARD_BG, line=STEEL_700)
+    rect(slide, left, top + Inches(0.25), Inches(0.06), h - Inches(0.5), accent)
+    textbox(slide, left + Inches(0.25), top + Inches(0.25), w - Inches(0.5), Inches(0.3),
+            tag.upper(), size=9, bold=True, color=accent)
+    textbox(slide, left + Inches(0.25), top + Inches(0.55), w - Inches(0.5), Inches(0.6),
+            headline, size=15, bold=True, color=INK)
+    textbox(slide, left + Inches(0.25), top + Inches(1.2), w - Inches(0.5), h - Inches(1.4),
+            body, size=11, color=BODY)
 
 
-# =========================================================================
-# Slide 3 — The fix: a drill
-# =========================================================================
+bullet_card(s, Inches(0.6), Inches(2.4), Inches(6.05), Inches(2.35),
+            'What you think you have',
+            'A backup job that "succeeded" last night.',
+            'A green tick on your S3 upload / cron job / RDS snapshot. '
+            'It measures that a file was written — not whether the file, on restore, '
+            'produces the data you actually expect.',
+            accent=BRAND_400)
+
+bullet_card(s, Inches(7.0), Inches(2.4), Inches(6.05), Inches(2.35),
+            'What you actually have',
+            'A dump you have never opened.',
+            'Backup format changed after a Postgres upgrade. A column got dropped. '
+            'An archive is truncated because the disk filled at 3am. You find out during the outage.',
+            accent=DANGER)
+
+bullet_card(s, Inches(0.6), Inches(4.95), Inches(6.05), Inches(2.15),
+            'What your auditor asks for',
+            'Restore-tested-in-the-last-12-months evidence.',
+            'SOC 2 CC7.4 / A1.3, ISO 27001 A.8.13, and every cyber-insurance '
+            'renewal from 2024 onward. Not the backup log — the restore result.',
+            accent=PINK_400)
+
+bullet_card(s, Inches(7.0), Inches(4.95), Inches(6.05), Inches(2.15),
+            'What most teams do',
+            'Screenshot a test restore, once a quarter.',
+            'A manual test-restore is a person\'s afternoon. It is not repeatable, not '
+            'signed, not verifiable. And it does not happen on the week the backup '
+            'actually breaks.',
+            accent=STEEL_500)
+
+
+# =============================================================================
+# Slide 3 — The fix
+# =============================================================================
 s = add_slide()
-page_chrome(s, 'The fix', 'We run a drill on your backup every day — and sign the result.', 3, TOTAL)
+page_chrome(s, 'The fix',
+            'A drill: a real restore, on a schedule, signed on the way out.',
+            3, TOTAL)
 
-# 5-step pipeline as numbered cards
-steps = [
-    ('1', 'Provision',
-     'Spin up an isolated\nPostgres sandbox.'),
-    ('2', 'Fetch',
-     'Pull the latest dump from\nyour storage (S3/GCS/R2).'),
-    ('3', 'Restore',
-     'Restore the dump cleanly\ninto the sandbox.'),
-    ('4', 'Assert',
-     'Run your SQL invariants:\nrow counts, FK integrity.'),
-    ('5', 'Sign',
-     'Produce an Ed25519-signed\nPDF evidence report.'),
-]
-card_w = Inches(2.36)
-card_h = Inches(2.7)
-card_top = Inches(1.95)
-gap = Inches(0.12)
+
+def step_chip(slide, left, top, w, h, ordinal, title, body):
+    rounded(slide, left, top, w, h, CARD_BG, line=STEEL_700)
+    pill(slide, left + Inches(0.25), top + Inches(0.2), Inches(0.5), Inches(0.32),
+         ordinal, bg=BRAND_500, fg=WHITE, size=11)
+    textbox(slide, left + Inches(0.9), top + Inches(0.18), w - Inches(1.2), Inches(0.4),
+            title, size=13, bold=True, color=INK)
+    textbox(slide, left + Inches(0.3), top + Inches(0.75), w - Inches(0.6), h - Inches(0.9),
+            body, size=10, color=BODY)
+
+
+row_top = Inches(2.4)
+row_h = Inches(1.7)
+step_w = Inches(1.95)
+step_gap = Inches(0.1)
 left = Inches(0.6)
+steps = [
+    ('01', 'Provision', 'Isolated sandbox database. Ephemeral. Torn down when the drill ends.'),
+    ('02', 'Fetch',     'Pull the dump you already produce. Hash it (SHA-256).'),
+    ('03', 'Restore',   'pg_restore into the sandbox. A broken archive fails here — before your outage.'),
+    ('04', 'Assert',    'Your data checks: row_count, table_exists, column_exists, no_nulls, SQL.'),
+    ('05', 'Report',    'Render the PDF. Sign it Ed25519. Store the signature.'),
+    ('06', 'Teardown',  'Destroy the sandbox and the working copy. Only the signed PDF survives.'),
+]
+for i, (ordinal, title, body) in enumerate(steps):
+    step_chip(s, left + i * (step_w + step_gap), row_top, step_w, row_h, ordinal, title, body)
 
-for i, (num, name, desc) in enumerate(steps):
-    rounded(s, left, card_top, card_w, card_h, WHITE, line=ZINC_200, radius=0.06)
-    rect(s, left, card_top, card_w, Inches(0.08), BRAND_700)
-    # Number circle
-    shp = s.shapes.add_shape(MSO_SHAPE.OVAL,
-                             left + Inches(0.28), card_top + Inches(0.3),
-                             Inches(0.55), Inches(0.55))
-    shp.fill.solid(); shp.fill.fore_color.rgb = BRAND_700; shp.line.fill.background()
-    shp.shadow.inherit = False
-    textbox(s, left + Inches(0.28), card_top + Inches(0.31),
-            Inches(0.55), Inches(0.55),
-            num, size=18, bold=True, color=WHITE,
-            align=PP_ALIGN.CENTER, anchor=MSO_ANCHOR.MIDDLE)
-    textbox(s, left + Inches(0.3), card_top + Inches(1.0),
-            card_w - Inches(0.4), Inches(0.4),
-            name, size=15, bold=True, color=ZINC_900)
-    textbox(s, left + Inches(0.3), card_top + Inches(1.45),
-            card_w - Inches(0.4), Inches(1.1),
-            desc, size=10, color=ZINC_700)
-    left += card_w + gap
+# Compact receipt mock underneath.
+rounded(s, Inches(0.6), Inches(4.55), Inches(12.1), Inches(2.5), CARD_BG, line=STEEL_700)
+textbox(s, Inches(0.9), Inches(4.75), Inches(6), Inches(0.4),
+        'PROOF-OF-RECOVERY EVIDENCE', size=10, bold=True, color=STEEL_400)
+pill(s, Inches(10.9), Inches(4.8), Inches(1.7), Inches(0.32), 'VERIFIED',
+     bg=TEAL_500, fg=STEEL_950, size=10)
 
-# Outcome strip — pass and fail
-rounded(s, Inches(0.6), Inches(5.0), Inches(6.0), Inches(1.5),
-        EMERALD_50, line=EMERALD, radius=0.06)
-rect(s, Inches(0.6), Inches(5.0), Inches(0.08), Inches(1.5), EMERALD_700)
-textbox(s, Inches(0.85), Inches(5.2), Inches(5.5), Inches(0.4),
-        '✓  PASS', size=14, bold=True, color=EMERALD_700)
-textbox(s, Inches(0.85), Inches(5.55), Inches(5.5), Inches(0.85),
-        'Signed PDF evidence in your dashboard.\nReady for SOC 2 auditors, board, and customers.',
-        size=12, color=ZINC_700)
+textbox(s, Inches(0.9), Inches(5.25), Inches(11), Inches(0.35),
+        'database           production-primary',
+        size=11, color=STEEL_200, font='Consolas')
+textbox(s, Inches(0.9), Inches(5.6), Inches(11), Inches(0.35),
+        'sha256(dump)       a1f9c2e4b7…d83f   matches',
+        size=11, color=STEEL_200, font='Consolas')
+textbox(s, Inches(0.9), Inches(5.95), Inches(11), Inches(0.35),
+        'signature          ed25519:9f2c4b…a17b   valid',
+        size=11, color=STEEL_200, font='Consolas')
+textbox(s, Inches(0.9), Inches(6.3), Inches(11), Inches(0.35),
+        'assertions passed  6 / 6      retain until 2033-05-22',
+        size=11, color=STEEL_200, font='Consolas')
 
-rounded(s, Inches(6.8), Inches(5.0), Inches(6.0), Inches(1.5),
-        BRAND_50, line=BRAND_700, radius=0.06)
-rect(s, Inches(6.8), Inches(5.0), Inches(0.08), Inches(1.5), BRAND_700)
-textbox(s, Inches(7.05), Inches(5.2), Inches(5.5), Inches(0.4),
-        '✗  FAIL', size=14, bold=True, color=BRAND_700)
-textbox(s, Inches(7.05), Inches(5.55), Inches(5.5), Inches(0.85),
-        'Paged engineer, Slack alert, root cause in\nthe report. You learn in minutes, not days.',
-        size=12, color=ZINC_700)
+textbox(s, Inches(0.6), Inches(7.1), Inches(12), Inches(0.3),
+        'Same six steps every drill. Same signed receipt every drill. Every signature verifies with the open-source dokaz-verify CLI — no one has to trust us.',
+        size=10, color=MUTED, align=PP_ALIGN.CENTER)
 
 
-# =========================================================================
-# Slide 4 — What you get
-# =========================================================================
+# =============================================================================
+# Slide 4 — What you get (product)
+# =============================================================================
 s = add_slide()
-page_chrome(s, 'What you get', 'Proof — not a green checkmark.', 4, TOTAL)
-
-def value_card(slide, left, top, w, h, head, body, tag=None):
-    rounded(slide, left, top, w, h, WHITE, line=ZINC_200, radius=0.06)
-    rect(slide, left, top, w, Inches(0.08), GOLD_500)
-    textbox(slide, left + Inches(0.35), top + Inches(0.4), w - Inches(0.7), Inches(0.5),
-            head, size=16, bold=True, color=ZINC_900)
-    textbox(slide, left + Inches(0.35), top + Inches(1.05), w - Inches(0.7), Inches(1.3),
-            body, size=11, color=ZINC_700)
-    if tag:
-        rounded(slide, left + Inches(0.35), top + h - Inches(0.6),
-                Inches(2.4), Inches(0.32), BRAND_50, radius=0.5)
-        textbox(slide, left + Inches(0.35), top + h - Inches(0.59),
-                Inches(2.4), Inches(0.32),
-                tag, size=9, bold=True, color=BRAND_700,
-                align=PP_ALIGN.CENTER, anchor=MSO_ANCHOR.MIDDLE)
-
-card_w = Inches(6.0)
-card_h = Inches(2.5)
-top1 = Inches(1.9)
-top2 = top1 + card_h + Inches(0.25)
-l1 = Inches(0.6)
-l2 = l1 + card_w + Inches(0.2)
-
-value_card(s, l1, top1, card_w, card_h,
-           'Signed PDF evidence',
-           'Every drill produces a tamper-evident PDF with an Ed25519 signature, '
-           '7-year retention, and an audit-ready hash chain. Hand it to your auditor.',
-           tag='FOR SOC 2 / COMPLIANCE')
-
-value_card(s, l2, top1, card_w, card_h,
-           'JSON API + signed webhooks',
-           'Pull drill results into your status page, your reliability dashboard, '
-           'your data-warehouse. Webhooks signed so downstream can verify origin.',
-           tag='FOR ENGINEERING')
-
-value_card(s, l1, top2, card_w, card_h,
-           'Plain-SQL invariants',
-           'Define checks in the language your team already writes — row counts, '
-           'FK integrity, freshness windows, anything queryable. No new DSL.',
-           tag='FOR YOUR DBAS')
-
-value_card(s, l2, top2, card_w, card_h,
-           'Slack / email alerts',
-           'Failures page the on-call. Successes get a one-line confirmation in '
-           'the team channel. No noisy dashboards, no missed failures.',
-           tag='FOR OPERATIONS')
-
-# Bottom footer note
-textbox(s, Inches(0.6), Inches(7.05), Inches(12), Inches(0.3),
-        'Postgres supported today  ·  MySQL and SQL Server next  ·  Self-hosted runners on Enterprise',
-        size=10, color=ZINC_500, align=PP_ALIGN.CENTER)
+page_chrome(s, 'What you get',
+            'Proof — not a green checkmark.', 4, TOTAL)
 
 
-# =========================================================================
+def feature_card(slide, left, top, w, h, title, body, accent=BRAND_400):
+    rounded(slide, left, top, w, h, CARD_BG, line=STEEL_700)
+    rect(slide, left, top + Inches(0.25), Inches(0.06), h - Inches(0.5), accent)
+    textbox(slide, left + Inches(0.25), top + Inches(0.25), w - Inches(0.5), Inches(0.35),
+            title, size=13, bold=True, color=INK)
+    textbox(slide, left + Inches(0.25), top + Inches(0.7), w - Inches(0.5), h - Inches(0.85),
+            body, size=10, color=BODY)
+
+
+grid_left = Inches(0.6)
+grid_top = Inches(2.4)
+fw, fh = Inches(6.05), Inches(1.5)
+fgap = Inches(0.15)
+
+features = [
+    ('Signed PDF evidence',       'Every drill produces an Ed25519-signed Proof-of-Recovery PDF, retained for 7 years by default. Independently verifiable — no need to trust us.', BRAND_400),
+    ('Auditor share links',       'One-click tokenised URL. Your auditor sees the receipt, downloads the PDF, verifies the signature. No Dokaz account required. Revocable anytime.', PINK_400),
+    ('Recovery-readiness score',  'Per-database A-F grade. Freshness of last passing drill × recent pass rate × latest outcome. The single glanceable answer to "how confident should I be?"', TEAL_400),
+    ('Native alerting',           'Drill failed → Slack + PagerDuty + email + mobile push. Backup check-ins (heartbeats) fire the same paths when a scheduled job stops running.', BRAND_400),
+    ('Public /verify page',       'Send an auditor the signed PDF + signature JSON. They open dokaz.net/verify, upload both files, and see "verified" against our published public key.', PINK_400),
+    ('REST API + webhooks',       'Versioned /v1 with per-plan rate limits. Signed webhooks push drill.failed / heartbeat.down straight into your own systems.', TEAL_400),
+]
+for i, (title, body, accent) in enumerate(features):
+    r, c = divmod(i, 2)
+    feature_card(s, grid_left + c * (fw + fgap), grid_top + r * (fh + fgap), fw, fh, title, body, accent)
+
+
+# =============================================================================
 # Slide 5 — Pricing
-# =========================================================================
+# =============================================================================
 s = add_slide()
-page_chrome(s, 'Pricing', 'Pricing by how often you verify.', 5, TOTAL)
+page_chrome(s, 'Pricing',
+            '$99 to start. $1 first month, on your own dump.', 5, TOTAL)
+
 
 def pricing_card(slide, left, top, w, h, name, price, period, cadence_label,
                  cadence_value, features, popular=False):
-    border = GOLD_500 if popular else ZINC_200
-    border_w = Pt(2) if popular else Pt(0.75)
-    card = rounded(slide, left, top, w, h, WHITE, line=border, radius=0.04)
-    card.line.width = border_w
+    border = PINK_400 if popular else STEEL_700
+    line_w = Pt(2) if popular else Pt(0.75)
+    rounded(slide, left, top, w, h, CARD_BG, line=border, line_w=line_w)
     if popular:
-        rounded(slide, left + Inches(0.6), top - Inches(0.15),
-                Inches(2.0), Inches(0.3), GOLD_500, radius=0.5)
-        textbox(slide, left + Inches(0.6), top - Inches(0.13),
-                Inches(2.0), Inches(0.28),
-                'MOST POPULAR', size=8, bold=True, color=BRAND_900,
-                align=PP_ALIGN.CENTER, anchor=MSO_ANCHOR.MIDDLE)
-    textbox(slide, left + Inches(0.3), top + Inches(0.3), w - Inches(0.6), Inches(0.4),
-            name, size=16, bold=True, color=ZINC_900)
-    textbox(slide, left + Inches(0.3), top + Inches(0.75), w - Inches(0.6), Inches(0.6),
-            price, size=34, bold=True, color=ZINC_900)
-    if period:
-        textbox(slide, left + Inches(0.3) + Inches(1.4 if len(price) <= 4 else 2.0),
-                top + Inches(1.0), Inches(1.5), Inches(0.4),
-                period, size=11, color=ZINC_500)
-    rounded(slide, left + Inches(0.3), top + Inches(1.6),
-            w - Inches(0.6), Inches(0.65), BRAND_50, radius=0.08)
-    textbox(slide, left + Inches(0.3), top + Inches(1.65),
-            w - Inches(0.6), Inches(0.25),
-            cadence_label, size=9, bold=True, color=BRAND_700, align=PP_ALIGN.CENTER)
-    textbox(slide, left + Inches(0.3), top + Inches(1.88),
-            w - Inches(0.6), Inches(0.3),
-            cadence_value, size=14, bold=True, color=BRAND_800, align=PP_ALIGN.CENTER)
-    fy = top + Inches(2.45)
+        pill(slide, left + Inches(0.4), top - Inches(0.15), Inches(2), Inches(0.3),
+             'MOST POPULAR', bg=PINK_400, fg=STEEL_950, size=8)
+    textbox(slide, left + Inches(0.3), top + Inches(0.35), w - Inches(0.6), Inches(0.35),
+            name, size=14, bold=True, color=INK)
+    textbox(slide, left + Inches(0.3), top + Inches(0.75), w - Inches(0.6), Inches(0.7),
+            price, size=32, bold=True, color=BRAND_300)
+    textbox(slide, left + Inches(0.3), top + Inches(0.95), w - Inches(0.6), Inches(0.4),
+            period, size=11, color=STEEL_400)
+    rounded(slide, left + Inches(0.3), top + Inches(1.65), w - Inches(0.6), Inches(0.5),
+            STEEL_800, line=STEEL_700)
+    textbox(slide, left + Inches(0.3), top + Inches(1.68), w - Inches(0.6), Inches(0.22),
+            cadence_label.upper(), size=8, bold=True, color=STEEL_400, align=PP_ALIGN.CENTER)
+    textbox(slide, left + Inches(0.3), top + Inches(1.88), w - Inches(0.6), Inches(0.28),
+            cadence_value, size=12, bold=True, color=BRAND_300, align=PP_ALIGN.CENTER)
+    y = top + Inches(2.35)
     for f in features:
-        chk = slide.shapes.add_shape(MSO_SHAPE.OVAL,
-                                     left + Inches(0.3), fy + Inches(0.08),
-                                     Inches(0.1), Inches(0.1))
-        chk.fill.solid(); chk.fill.fore_color.rgb = EMERALD; chk.line.fill.background()
-        textbox(slide, left + Inches(0.5), fy, w - Inches(0.8), Inches(0.3),
-                f, size=10, color=ZINC_700)
-        fy += Inches(0.35)
+        textbox(slide, left + Inches(0.3), y, w - Inches(0.6), Inches(0.3),
+                '· ' + f, size=9.5, color=BODY)
+        y += Inches(0.32)
 
-card_top = Inches(2.0)
-card_h   = Inches(5.0)
-card_w   = Inches(4.0)
+
+card_w = Inches(3.0)
+card_h = Inches(4.7)
 card_gap = Inches(0.15)
-left0    = Inches(0.6)
+card_top = Inches(2.4)
+left0 = Inches(0.6)
 
 pricing_card(s, left0, card_top, card_w, card_h,
-             'Trial', 'Free', '', 'FREE FOR 14 DAYS', 'Daily drills, full access',
-             ['10 databases', '10 team seats', 'Signed PDF evidence',
-              '7-year retention', 'API & webhooks', 'Community support'])
+             'Starter', '$99', '/mo', 'Drill frequency', 'Weekly',
+             ['5 databases', '3 seats', 'Signed PDF · 7-year retention',
+              'Auditor share links', 'Slack + PagerDuty', 'Email support'])
 
-pricing_card(s, left0 + card_w + card_gap, card_top, card_w, card_h,
-             'Standard', '$99', '/mo', 'DRILL FREQUENCY', 'Weekly',
-             ['10 databases', '10 team seats', 'Signed PDF evidence',
-              '7-year retention', 'API & webhooks · Slack alerts', 'Email support'])
-
-pricing_card(s, left0 + (card_w + card_gap) * 2, card_top, card_w, card_h,
-             'VIP', '$299', '/mo', 'DRILL FREQUENCY', 'Daily',
-             ['Unlimited databases', 'Unlimited team seats', 'Signed PDF evidence',
-              '7-year retention', 'API & webhooks · Slack', 'SSO/SAML · Priority support · SLA'],
+pricing_card(s, left0 + (card_w + card_gap), card_top, card_w, card_h,
+             'Growth', '$299', '/mo', 'Drill frequency', 'Weekly',
+             ['25 databases', '10 seats', 'Everything in Starter',
+              'API access · signed webhooks', 'Priority support'],
              popular=True)
 
-textbox(s, Inches(0.6), Inches(7.05), Inches(12), Inches(0.3),
-        'Enterprise: SOC 2 docs, custom retention, self-hosted runners in your VPC — contact sales.',
-        size=10, color=ZINC_500, align=PP_ALIGN.CENTER)
+pricing_card(s, left0 + (card_w + card_gap) * 2, card_top, card_w, card_h,
+             'Scale', '$799', '/mo', 'Drill frequency', 'Daily',
+             ['Unlimited databases', 'Unlimited seats',
+              'Everything in Growth', 'Priority + dedicated channel', 'SSO (roadmap)'])
+
+pricing_card(s, left0 + (card_w + card_gap) * 3, card_top, card_w, card_h,
+             'Enterprise', 'From $1.5k', '/mo', 'Drill frequency', 'Custom',
+             ['Hourly + custom cadence', 'Auditor read-only accounts',
+              'BYO runner in your VPC', 'Longer retention · custom SLA',
+              'Named account manager'])
+
+textbox(s, Inches(0.6), Inches(7.2), Inches(12), Inches(0.3),
+        '$1 first month. One real database at weekly cadence during the trial. '
+        'Cancel any time from the billing portal.',
+        size=10, color=MUTED, align=PP_ALIGN.CENTER)
 
 
-# =========================================================================
-# Slide 6 — Get started
-# =========================================================================
+# =============================================================================
+# Slide 6 — Send us an auditor's test link right now
+# =============================================================================
 s = add_slide()
-rect(s, Inches(0), Inches(0), prs.slide_width, prs.slide_height, BRAND_900)
-rect(s, Inches(0), Inches(0), prs.slide_width, Inches(0.08), GOLD_500)
+page_chrome(s, 'Try it now',
+            'Verify a signed report before you sign up.', 6, TOTAL)
 
-# Eyebrow
-textbox(s, Inches(0.9), Inches(0.6), Inches(8), Inches(0.3),
-        'GET STARTED', size=11, bold=True, color=GOLD_300)
-textbox(s, Inches(0.9), Inches(1.0), Inches(12), Inches(1.4),
-        'Your first signed PDF\nin under 15 minutes.',
-        size=44, bold=True, color=WHITE)
+# Two-column CTA layout: (left) the /verify page URL big; (right) how it works.
+rounded(s, Inches(0.6), Inches(2.4), Inches(6.05), Inches(4.7),
+        CARD_BG, line=BRAND_400, line_w=Pt(2))
+textbox(s, Inches(0.9), Inches(2.7), Inches(5.4), Inches(0.35),
+        'STEP 1', size=9, bold=True, color=PINK_300)
+textbox(s, Inches(0.9), Inches(3.0), Inches(5.4), Inches(0.6),
+        'Download a real signed report.',
+        size=18, bold=True, color=INK)
+textbox(s, Inches(0.9), Inches(3.7), Inches(5.4), Inches(1.5),
+        'We keep a sample Proof-of-Recovery PDF and its signature at:\n\n'
+        'dokaz.net/docs (Evidence · sample)\n\n'
+        'The PDF is a real drill run against our sample fixture. The signature JSON '
+        'is our production Ed25519 signing key.',
+        size=11, color=BODY)
+pill(s, Inches(0.9), Inches(6.35), Inches(3), Inches(0.5),
+     'dokaz.net/docs', bg=BRAND_500, fg=WHITE, size=12)
 
-# Three-step strip
-def step_chip(slide, left, top, num, head, body):
-    rounded(slide, left, top, Inches(3.8), Inches(2.4),
-            BRAND_800, line=BRAND_700, radius=0.06)
-    shp = slide.shapes.add_shape(MSO_SHAPE.OVAL,
-                                 left + Inches(0.3), top + Inches(0.3),
-                                 Inches(0.55), Inches(0.55))
-    shp.fill.solid(); shp.fill.fore_color.rgb = GOLD_500; shp.line.fill.background()
-    shp.shadow.inherit = False
-    textbox(slide, left + Inches(0.3), top + Inches(0.31),
-            Inches(0.55), Inches(0.55),
-            num, size=18, bold=True, color=BRAND_900,
-            align=PP_ALIGN.CENTER, anchor=MSO_ANCHOR.MIDDLE)
-    textbox(slide, left + Inches(0.3), top + Inches(1.0),
-            Inches(3.2), Inches(0.4),
-            head, size=14, bold=True, color=WHITE)
-    textbox(slide, left + Inches(0.3), top + Inches(1.4),
-            Inches(3.2), Inches(0.95),
-            body, size=11, color=BRAND_100)
-
-step_chip(s, Inches(0.6),  Inches(3.4), '1',
-          'Sign up',
-          'Email + password. No card. 14-day free trial.')
-step_chip(s, Inches(4.7),  Inches(3.4), '2',
-          'Connect storage',
-          'Point us at your S3 / GCS / R2 dump location.\nRead-only access is enough.')
-step_chip(s, Inches(8.8),  Inches(3.4), '3',
-          'See the PDF',
-          'Run your first drill on demand. Download the\nsigned evidence in minutes.')
-
-# Big CTA
-rounded(s, Inches(0.9), Inches(6.2), Inches(7.0), Inches(0.7), GOLD_500, radius=0.35)
-textbox(s, Inches(0.9), Inches(6.21), Inches(7.0), Inches(0.7),
-        '→  app.dokaz.net/signup', size=20, bold=True,
-        color=BRAND_900, align=PP_ALIGN.CENTER, anchor=MSO_ANCHOR.MIDDLE)
-
-textbox(s, Inches(8.2), Inches(6.32), Inches(4.8), Inches(0.5),
-        'Questions?  hello@dokaz.net', size=12, color=BRAND_100)
+rounded(s, Inches(7.0), Inches(2.4), Inches(6.05), Inches(4.7),
+        CARD_BG, line=TEAL_400, line_w=Pt(2))
+textbox(s, Inches(7.3), Inches(2.7), Inches(5.4), Inches(0.35),
+        'STEP 2', size=9, bold=True, color=TEAL_300)
+textbox(s, Inches(7.3), Inches(3.0), Inches(5.4), Inches(0.6),
+        'Verify it in your browser.',
+        size=18, bold=True, color=INK)
+textbox(s, Inches(7.3), Inches(3.7), Inches(5.4), Inches(1.5),
+        'Open dokaz.net/verify. Upload the PDF + signature JSON. The page checks '
+        'the signature against our published public key and returns a receipt.\n\n'
+        'No account, no cookies, no data stored. If it says verified, the report is '
+        'authentic and unaltered.',
+        size=11, color=BODY)
+pill(s, Inches(7.3), Inches(6.35), Inches(3), Inches(0.5),
+     'dokaz.net/verify', bg=TEAL_500, fg=STEEL_950, size=12)
 
 
+# =============================================================================
+# Slide 7 — Sign up
+# =============================================================================
+s = add_slide()
+
+glow = rect(s, Inches(9), Inches(-2), Inches(6), Inches(6), BRAND_900)
+glow.line.fill.background()
+
+textbox(s, Inches(0.9), Inches(2.4), Inches(11), Inches(0.9),
+        'You already write backups.', size=42, bold=True, color=INK)
+textbox(s, Inches(0.9), Inches(3.15), Inches(11), Inches(0.9),
+        'Let\'s prove they restore.', size=42, bold=True, color=PINK_300)
+
+textbox(s, Inches(0.9), Inches(4.5), Inches(11), Inches(1.6),
+        'Sign up at dokaz.net. $1 first month. Run a drill against our sample dataset in 30 seconds — '
+        'you\'ll see the exact signed PDF your auditor will see. Then connect your own '
+        'pg_dump and prove it on your real backup, still inside the trial.',
+        size=15, color=BODY)
+
+pill(s, Inches(0.9), Inches(6.2), Inches(3.5), Inches(0.6),
+     'dokaz.net/signup', bg=BRAND_500, fg=WHITE, size=16)
+pill(s, Inches(4.7), Inches(6.2), Inches(3.5), Inches(0.6),
+     'Book a 20-min demo', bg=STEEL_800, fg=INK, size=13)
+
+textbox(s, Inches(0.9), Inches(7.05), Inches(11), Inches(0.35),
+        'Questions: sales@dokaz.net · Verify a report: dokaz.net/verify · Status: dokaz.net/status',
+        size=10, color=MUTED)
+
+
+# ---- save ----
 out = Path(__file__).parent / 'Dokaz_Sales_Deck.pptx'
 prs.save(str(out))
-print(f"Wrote {out}")
+print(f'Wrote {out}')
