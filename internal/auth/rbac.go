@@ -74,6 +74,32 @@ var roleMatrix = map[account.Role]map[Action]bool{
 		ActionHeartbeatRead: true, ActionHeartbeatWrite: false,
 		ActionEvidenceRead: true,
 	},
+	// Exec: internal executive. Same read surface as Viewer — labelled
+	// "Exec" so a CFO/CTO reading the members page sees themselves listed
+	// under a role that matches their function. Write-anywhere is denied.
+	account.RoleExec: {
+		ActionAccountRead: true, ActionAccountWrite: false,
+		ActionMemberRead: true, ActionMemberWrite: false,
+		ActionBillingRead: true, ActionBillingWrite: false,
+		ActionTargetRead: true, ActionTargetWrite: false,
+		ActionDrillRead: true, ActionDrillWrite: false,
+		ActionHeartbeatRead: true, ActionHeartbeatWrite: false,
+		ActionEvidenceRead: true,
+	},
+	// Auditor: external compliance reviewer with a real account (not a
+	// public share link). Sees drills, evidence, targets, and heartbeat
+	// status — the surface a SOC 2 / ISO 27001 audit actually reviews.
+	// Cannot see billing (private financials) or the member roster
+	// (privacy), and cannot write anywhere.
+	account.RoleAuditor: {
+		ActionAccountRead: true, ActionAccountWrite: false,
+		ActionMemberRead: false, ActionMemberWrite: false,
+		ActionBillingRead: false, ActionBillingWrite: false,
+		ActionTargetRead: true, ActionTargetWrite: false,
+		ActionDrillRead: true, ActionDrillWrite: false,
+		ActionHeartbeatRead: true, ActionHeartbeatWrite: false,
+		ActionEvidenceRead: true,
+	},
 }
 
 // Allowed reports whether the role permits the action. Unknown roles are

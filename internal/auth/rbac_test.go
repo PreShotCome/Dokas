@@ -40,6 +40,32 @@ func TestRoleMatrix(t *testing.T) {
 		{account.RoleViewer, ActionTargetWrite, false},
 		{account.RoleViewer, ActionMemberWrite, false},
 
+		// Exec: same read surface as viewer (billing + member roster
+		// visible for exec dashboards); no writes anywhere.
+		{account.RoleExec, ActionAccountRead, true},
+		{account.RoleExec, ActionMemberRead, true},
+		{account.RoleExec, ActionBillingRead, true},
+		{account.RoleExec, ActionDrillRead, true},
+		{account.RoleExec, ActionEvidenceRead, true},
+		{account.RoleExec, ActionAccountWrite, false},
+		{account.RoleExec, ActionBillingWrite, false},
+		{account.RoleExec, ActionTargetWrite, false},
+		{account.RoleExec, ActionDrillWrite, false},
+
+		// Auditor: compliance surface only. Reads drills, evidence,
+		// targets, heartbeat status. Cannot see billing or the member
+		// roster — external auditors don't need either, and hiding them
+		// is a real privacy control.
+		{account.RoleAuditor, ActionAccountRead, true},
+		{account.RoleAuditor, ActionDrillRead, true},
+		{account.RoleAuditor, ActionEvidenceRead, true},
+		{account.RoleAuditor, ActionTargetRead, true},
+		{account.RoleAuditor, ActionHeartbeatRead, true},
+		{account.RoleAuditor, ActionMemberRead, false},
+		{account.RoleAuditor, ActionBillingRead, false},
+		{account.RoleAuditor, ActionDrillWrite, false},
+		{account.RoleAuditor, ActionTargetWrite, false},
+
 		// Unknown role: deny everything.
 		{account.Role("intern"), ActionDrillRead, false},
 	}
@@ -56,6 +82,7 @@ func TestEveryRoleCanRead(t *testing.T) {
 	// unusable otherwise.
 	for _, role := range []account.Role{
 		account.RoleOwner, account.RoleAdmin, account.RoleMember, account.RoleViewer,
+		account.RoleExec, account.RoleAuditor,
 	} {
 		if !Allowed(role, ActionDrillRead) {
 			t.Errorf("role %s cannot read drills", role)

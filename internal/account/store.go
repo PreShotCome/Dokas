@@ -24,26 +24,29 @@ import (
 type Role string
 
 const (
-	RoleOwner  Role = "owner"
-	RoleAdmin  Role = "admin"
-	RoleMember Role = "member"
-	RoleViewer Role = "viewer"
+	RoleOwner   Role = "owner"
+	RoleAdmin   Role = "admin"
+	RoleMember  Role = "member"
+	RoleViewer  Role = "viewer"
+	RoleExec    Role = "exec"    // internal executive dashboard access (read-only)
+	RoleAuditor Role = "auditor" // external auditor: drills/evidence only, no billing or roster
 )
 
-// Valid reports whether r is one of the four known roles. Used at the form
+// Valid reports whether r is one of the known roles. Used at the form
 // boundary so we don't trust client-submitted role strings.
 func (r Role) Valid() bool {
 	switch r {
-	case RoleOwner, RoleAdmin, RoleMember, RoleViewer:
+	case RoleOwner, RoleAdmin, RoleMember, RoleViewer, RoleExec, RoleAuditor:
 		return true
 	}
 	return false
 }
 
 // ValidInviteRole rejects RoleOwner — there's exactly one owner per account
-// (the creator), and ownership transfers are out of scope for Phase 3.
+// (the creator); ownership transfers happen through TransferOwnership only.
 func (r Role) ValidInviteRole() bool {
-	return r == RoleAdmin || r == RoleMember || r == RoleViewer
+	return r == RoleAdmin || r == RoleMember || r == RoleViewer ||
+		r == RoleExec || r == RoleAuditor
 }
 
 type Plan string

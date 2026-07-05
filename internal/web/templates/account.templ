@@ -224,6 +224,8 @@ templ AccountSettings(lc LayoutCtx, members []account.MembershipWithUser, pendin
 							<option value="member">member</option>
 							<option value="admin">admin</option>
 							<option value="viewer">viewer</option>
+							<option value="exec">exec</option>
+							<option value="auditor">auditor</option>
 						</select>
 					</div>
 					<button type="submit" class="btn-primary">Send invite</button>
@@ -306,6 +308,8 @@ templ memberRow(mem account.MembershipWithUser, viewerIsOwner bool) {
 				@roleOption("admin", mem.Role)
 				@roleOption("member", mem.Role)
 				@roleOption("viewer", mem.Role)
+				@roleOption("exec", mem.Role)
+				@roleOption("auditor", mem.Role)
 			</select>
 			<button type="submit" class="btn-ghost text-xs">Save</button>
 		</form>
