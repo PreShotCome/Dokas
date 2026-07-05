@@ -1,29 +1,26 @@
 name: deploy
 
-# Deploy to Fly.io — MANUAL ONLY pre-launch.
+# Deploy to Fly.io.
 #
-# The workflow_run auto-deploy trigger is commented out below to keep
-# the Actions tab quiet (every push to main was firing a skipped
-# deploy run, which still counts as a workflow run in the UI). With
-# only workflow_dispatch enabled, this workflow runs only when you
-# manually click "Run workflow" in the Actions tab.
-#
-# When you're ready to flip on auto-deploy on launch day:
-#   1) fly apps create soteria  (+ fly volumes create ..., per docs/runbooks/go-live.md)
-#      (Fly app name retained as "soteria" post-rebrand; product brand is Dokaz.)
-#   2) fly tokens create deploy → paste as repo secret FLY_API_TOKEN
-#      (Settings → Secrets and variables → Actions → Secrets tab)
-#   3) Uncomment the workflow_run block below; comment workflow_dispatch out.
+# Auto-deploy: fires when CI completes on `main`. The `if:` guard drops
+# the run if CI failed (or was cancelled), so a red build never ships.
+# workflow_dispatch is also kept so you can manually re-run a deploy
+# from the Actions UI without pushing a new commit — useful for a
+# rollback (dispatch on an older SHA) or a secrets-only redeploy.
 on:
   workflow_dispatch:
-  # workflow_run:
-  #   workflows: ["ci"]
-  #   types: [completed]
-  #   branches: [main]
+  workflow_run:
+    workflows: ["ci"]
+    types: [completed]
+    branches: [main]
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    # workflow_run fires on any conclusion (success, failure, cancelled) —
+    # only ship when CI actually passed. workflow_dispatch has no
+    # `workflow_run` object, so the second clause lets manual runs through.
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
     # Never let two deploys overlap; let an in-flight one finish.
     concurrency:
       group: deploy-production
