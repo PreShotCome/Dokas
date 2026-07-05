@@ -289,8 +289,9 @@ func (h *Handlers) dashboard(w http.ResponseWriter, r *http.Request) {
 	lc := h.layoutCtx(r)
 	dv := templates.DashboardView{Ctx: lc, BaseURL: h.baseURL}
 	if lc.Account != nil {
-		dv.Targets, _ = h.drills.ListTargets(r.Context(), lc.Account.ID)
-		dv.Drills, _ = h.drills.ListDrills(r.Context(), lc.Account.ID, 10)
+		scope := h.databaseScope(r, lc)
+		dv.Targets, _ = h.drills.ListTargets(r.Context(), lc.Account.ID, scope)
+		dv.Drills, _ = h.drills.ListDrills(r.Context(), lc.Account.ID, scope, 10)
 		dv.Heartbeats, _ = h.heartbeats.List(r.Context(), lc.Account.ID)
 		dv.Scores = h.readinessScores(r, lc.Account.ID, dv.Targets)
 	}

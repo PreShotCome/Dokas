@@ -50,6 +50,30 @@ func (s Status) Terminal() bool {
 	return s == StatusSucceeded || s == StatusFailed || s == StatusSkipped
 }
 
+// Scope narrows a database listing to what a viewer may see (issue #29,
+// teams-within-org). All (owner/admin) skips the team filter entirely;
+// otherwise a database is visible when it is unassigned (team_id IS NULL) or
+// its team is in TeamIDs. Passing a scope is mandatory on every user-facing
+// list/get so a call site cannot silently forget to apply it — system paths
+// (scheduler, worker, notifications, share links, API keys) pass ScopeAll.
+type Scope struct {
+	All     bool
+	TeamIDs []uuid.UUID
+}
+
+// ScopeAll is the unrestricted scope for account-wide-authorized paths.
+func ScopeAll() Scope { return Scope{All: true} }
+
+// teamArgs returns the (all, teamIDs) pair a scoped query binds. The team
+// slice is never nil so `= ANY($n)` matches an empty set rather than NULL.
+func (s Scope) teamArgs() (bool, []uuid.UUID) {
+	ids := s.TeamIDs
+	if ids == nil {
+		ids = []uuid.UUID{}
+	}
+	return s.All, ids
+}
+
 type Target struct {
 	ID              uuid.UUID
 	AccountID       uuid.UUID
@@ -57,7 +81,10 @@ type Target struct {
 	Name            string
 	SourceKind      string
 	SourceURI       string
-	CreatedAt       time.Time
+	// TeamID is the team a database is assigned to, or nil when unassigned
+	// (account-wide). See docs/runbooks/teams.md.
+	TeamID    *uuid.UUID
+	CreatedAt time.Time
 	// DrillCadence is "off", "weekly", "daily", or "hourly". NextDrillAt is
 	// when the scheduler should next enqueue a drill (nil when cadence is off).
 	DrillCadence string
@@ -156,32 +183,54 @@ func (s *Store) CreateTarget(ctx context.Context, t Target) (Target, error) {
 	return t, err
 }
 
+// SetTargetTeam assigns a database to a team (or unassigns it when teamID is
+// nil). The team, when set, must belong to the same account — a team from
+// another account affects zero rows and returns ErrNotFound, so a forged
+// team_id can't leak a database across the tenant boundary. See #29.
+func (s *Store) SetTargetTeam(ctx context.Context, accountID, targetID uuid.UUID, teamID *uuid.UUID) error {
+	tag, err := s.pool.Exec(ctx, `
+		UPDATE database_targets SET team_id = $3
+		 WHERE id = $1 AND account_id = $2 AND deleted_at IS NULL
+		   AND ($3::uuid IS NULL OR EXISTS (
+		         SELECT 1 FROM teams WHERE id = $3 AND account_id = $2 AND deleted_at IS NULL))
+	`, targetID, accountID, teamID)
+	if err != nil {
+		return err
+	}
+	if tag.RowsAffected() == 0 {
+		return ErrNotFound
+	}
+	return nil
+}
+
 // GetSampleTarget returns the account's built-in sample target, or ErrNotFound
 // if it hasn't been created yet.
 func (s *Store) GetSampleTarget(ctx context.Context, accountID uuid.UUID) (Target, error) {
 	var t Target
 	err := s.pool.QueryRow(ctx, `
-		SELECT id, account_id, created_by_user_id, name, source_kind, source_uri, created_at,
+		SELECT id, account_id, created_by_user_id, name, source_kind, source_uri, team_id, created_at,
 		       drill_cadence, next_drill_at, is_sample
 		  FROM database_targets
 		 WHERE account_id = $1 AND is_sample = true AND deleted_at IS NULL
 		 LIMIT 1
 	`, accountID).Scan(&t.ID, &t.AccountID, &t.CreatedByUserID, &t.Name, &t.SourceKind, &t.SourceURI,
-		&t.CreatedAt, &t.DrillCadence, &t.NextDrillAt, &t.IsSample)
+		&t.TeamID, &t.CreatedAt, &t.DrillCadence, &t.NextDrillAt, &t.IsSample)
 	if errors.Is(err, pgx.ErrNoRows) {
 		return Target{}, ErrNotFound
 	}
 	return t, err
 }
 
-func (s *Store) ListTargets(ctx context.Context, accountID uuid.UUID) ([]Target, error) {
+func (s *Store) ListTargets(ctx context.Context, accountID uuid.UUID, scope Scope) ([]Target, error) {
+	all, teamIDs := scope.teamArgs()
 	rows, err := s.pool.Query(ctx, `
-		SELECT id, account_id, created_by_user_id, name, source_kind, source_uri, created_at,
+		SELECT id, account_id, created_by_user_id, name, source_kind, source_uri, team_id, created_at,
 		       drill_cadence, next_drill_at, is_sample
 		  FROM database_targets
 		 WHERE account_id = $1 AND deleted_at IS NULL
+		   AND ($2 OR team_id IS NULL OR team_id = ANY($3::uuid[]))
 		 ORDER BY created_at DESC
-	`, accountID)
+	`, accountID, all, teamIDs)
 	if err != nil {
 		return nil, err
 	}
@@ -190,7 +239,7 @@ func (s *Store) ListTargets(ctx context.Context, accountID uuid.UUID) ([]Target,
 	for rows.Next() {
 		var t Target
 		if err := rows.Scan(&t.ID, &t.AccountID, &t.CreatedByUserID, &t.Name, &t.SourceKind, &t.SourceURI,
-			&t.CreatedAt, &t.DrillCadence, &t.NextDrillAt, &t.IsSample); err != nil {
+			&t.TeamID, &t.CreatedAt, &t.DrillCadence, &t.NextDrillAt, &t.IsSample); err != nil {
 			return nil, err
 		}
 		out = append(out, t)
@@ -200,15 +249,17 @@ func (s *Store) ListTargets(ctx context.Context, accountID uuid.UUID) ([]Target,
 
 // ListTargetsPage is the keyset-paginated target list for the /v1 API.
 // Pass a nil cursor for the first page; rows order (created_at, id) DESC.
-func (s *Store) ListTargetsPage(ctx context.Context, accountID uuid.UUID, afterAt *time.Time, afterID *uuid.UUID, limit int) ([]Target, error) {
+func (s *Store) ListTargetsPage(ctx context.Context, accountID uuid.UUID, scope Scope, afterAt *time.Time, afterID *uuid.UUID, limit int) ([]Target, error) {
+	all, teamIDs := scope.teamArgs()
 	rows, err := s.pool.Query(ctx, `
-		SELECT id, account_id, created_by_user_id, name, source_kind, source_uri, created_at, is_sample
+		SELECT id, account_id, created_by_user_id, name, source_kind, source_uri, team_id, created_at, is_sample
 		  FROM database_targets
 		 WHERE account_id = $1 AND deleted_at IS NULL
+		   AND ($5 OR team_id IS NULL OR team_id = ANY($6::uuid[]))
 		   AND ($2::timestamptz IS NULL OR (created_at, id) < ($2, $3))
 		 ORDER BY created_at DESC, id DESC
 		 LIMIT $4
-	`, accountID, afterAt, afterID, limit)
+	`, accountID, afterAt, afterID, limit, all, teamIDs)
 	if err != nil {
 		return nil, err
 	}
@@ -217,7 +268,7 @@ func (s *Store) ListTargetsPage(ctx context.Context, accountID uuid.UUID, afterA
 	for rows.Next() {
 		var t Target
 		if err := rows.Scan(&t.ID, &t.AccountID, &t.CreatedByUserID, &t.Name, &t.SourceKind, &t.SourceURI,
-			&t.CreatedAt, &t.IsSample); err != nil {
+			&t.TeamID, &t.CreatedAt, &t.IsSample); err != nil {
 			return nil, err
 		}
 		out = append(out, t)
@@ -226,16 +277,21 @@ func (s *Store) ListTargetsPage(ctx context.Context, accountID uuid.UUID, afterA
 }
 
 // ListDrillsPage is the keyset-paginated drill list for the /v1 API.
-func (s *Store) ListDrillsPage(ctx context.Context, accountID uuid.UUID, afterAt *time.Time, afterID *uuid.UUID, limit int) ([]Drill, error) {
+func (s *Store) ListDrillsPage(ctx context.Context, accountID uuid.UUID, scope Scope, afterAt *time.Time, afterID *uuid.UUID, limit int) ([]Drill, error) {
+	all, teamIDs := scope.teamArgs()
 	rows, err := s.pool.Query(ctx, `
 		SELECT id, target_id, account_id, created_by_user_id, status, started_at, completed_at,
 		       error, evidence_path, sandbox_db, source_hash, created_at
-		  FROM drills
+		  FROM drills d
 		 WHERE account_id = $1
+		   AND ($5 OR EXISTS (
+		         SELECT 1 FROM database_targets t
+		          WHERE t.id = d.target_id
+		            AND (t.team_id IS NULL OR t.team_id = ANY($6::uuid[]))))
 		   AND ($2::timestamptz IS NULL OR (created_at, id) < ($2, $3))
 		 ORDER BY created_at DESC, id DESC
 		 LIMIT $4
-	`, accountID, afterAt, afterID, limit)
+	`, accountID, afterAt, afterID, limit, all, teamIDs)
 	if err != nil {
 		return nil, err
 	}
@@ -252,15 +308,17 @@ func (s *Store) ListDrillsPage(ctx context.Context, accountID uuid.UUID, afterAt
 	return out, rows.Err()
 }
 
-func (s *Store) GetTarget(ctx context.Context, accountID, targetID uuid.UUID) (Target, error) {
+func (s *Store) GetTarget(ctx context.Context, accountID, targetID uuid.UUID, scope Scope) (Target, error) {
+	all, teamIDs := scope.teamArgs()
 	var t Target
 	err := s.pool.QueryRow(ctx, `
-		SELECT id, account_id, created_by_user_id, name, source_kind, source_uri, created_at,
+		SELECT id, account_id, created_by_user_id, name, source_kind, source_uri, team_id, created_at,
 		       drill_cadence, next_drill_at, is_sample
 		  FROM database_targets
 		 WHERE id = $1 AND account_id = $2 AND deleted_at IS NULL
-	`, targetID, accountID).Scan(&t.ID, &t.AccountID, &t.CreatedByUserID, &t.Name, &t.SourceKind, &t.SourceURI,
-		&t.CreatedAt, &t.DrillCadence, &t.NextDrillAt, &t.IsSample)
+		   AND ($3 OR team_id IS NULL OR team_id = ANY($4::uuid[]))
+	`, targetID, accountID, all, teamIDs).Scan(&t.ID, &t.AccountID, &t.CreatedByUserID, &t.Name, &t.SourceKind, &t.SourceURI,
+		&t.TeamID, &t.CreatedAt, &t.DrillCadence, &t.NextDrillAt, &t.IsSample)
 	if errors.Is(err, pgx.ErrNoRows) {
 		return Target{}, ErrNotFound
 	}
@@ -365,14 +423,19 @@ func (s *Store) AdvanceTargetSchedule(ctx context.Context, targetID uuid.UUID, n
 
 // --- drills ---
 
-func (s *Store) GetDrill(ctx context.Context, accountID, drillID uuid.UUID) (Drill, error) {
+func (s *Store) GetDrill(ctx context.Context, accountID, drillID uuid.UUID, scope Scope) (Drill, error) {
+	all, teamIDs := scope.teamArgs()
 	var d Drill
 	err := s.pool.QueryRow(ctx, `
 		SELECT id, target_id, account_id, created_by_user_id, status, started_at, completed_at,
 		       error, evidence_path, sandbox_db, source_hash, created_at
-		  FROM drills
+		  FROM drills d
 		 WHERE id = $1 AND account_id = $2
-	`, drillID, accountID).Scan(&d.ID, &d.TargetID, &d.AccountID, &d.CreatedByUserID, &d.Status,
+		   AND ($3 OR EXISTS (
+		         SELECT 1 FROM database_targets t
+		          WHERE t.id = d.target_id
+		            AND (t.team_id IS NULL OR t.team_id = ANY($4::uuid[]))))
+	`, drillID, accountID, all, teamIDs).Scan(&d.ID, &d.TargetID, &d.AccountID, &d.CreatedByUserID, &d.Status,
 		&d.StartedAt, &d.CompletedAt, &d.Error, &d.EvidencePath, &d.SandboxDB, &d.SourceHash, &d.CreatedAt)
 	if errors.Is(err, pgx.ErrNoRows) {
 		return Drill{}, ErrNotFound
@@ -515,15 +578,20 @@ func (s *Store) ListDrillsByCreator(ctx context.Context, userID uuid.UUID, limit
 	return out, rows.Err()
 }
 
-func (s *Store) ListDrills(ctx context.Context, accountID uuid.UUID, limit int) ([]Drill, error) {
+func (s *Store) ListDrills(ctx context.Context, accountID uuid.UUID, scope Scope, limit int) ([]Drill, error) {
+	all, teamIDs := scope.teamArgs()
 	rows, err := s.pool.Query(ctx, `
 		SELECT id, target_id, account_id, created_by_user_id, status, started_at, completed_at,
 		       error, evidence_path, sandbox_db, source_hash, created_at
-		  FROM drills
+		  FROM drills d
 		 WHERE account_id = $1
+		   AND ($3 OR EXISTS (
+		         SELECT 1 FROM database_targets t
+		          WHERE t.id = d.target_id
+		            AND (t.team_id IS NULL OR t.team_id = ANY($4::uuid[]))))
 		 ORDER BY created_at DESC
 		 LIMIT $2
-	`, accountID, limit)
+	`, accountID, limit, all, teamIDs)
 	if err != nil {
 		return nil, err
 	}

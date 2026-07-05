@@ -53,7 +53,8 @@ func (n *DrillNotifier) NotifyDrill(ctx context.Context, dr drill.Drill, event, 
 		return nil
 	}
 
-	target, err := n.drills.GetTarget(ctx, dr.AccountID, dr.TargetID)
+	// System notification path — authorized account-wide, not team-scoped.
+	target, err := n.drills.GetTarget(ctx, dr.AccountID, dr.TargetID, drill.ScopeAll())
 	if err != nil {
 		n.warn("email drill notify: get target", "err", err)
 		return nil

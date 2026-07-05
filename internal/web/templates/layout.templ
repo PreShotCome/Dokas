@@ -197,6 +197,9 @@ templ AppShell(title string, lc LayoutCtx) {
 			<nav class="flex-1 space-y-1 px-3">
 				@sideNav(lc.Path, "/dashboard", "Dashboard", "M3 12l9-9 9 9v9a2 2 0 01-2 2h-4v-7H10v7H6a2 2 0 01-2-2v-9z")
 				@sideNav(lc.Path, "/databases", "Databases", "M4 6c0-1.5 3.6-3 8-3s8 1.5 8 3-3.6 3-8 3-8-1.5-8-3zM4 6v12c0 1.5 3.6 3 8 3s8-1.5 8-3V6")
+				if lc.Membership != nil && auth.Allowed(lc.Membership.Role, auth.ActionTeamRead) {
+					@sideNav(lc.Path, "/account/teams", "Teams", "M17 20h5v-2a4 4 0 00-3-3.87M9 20H4v-2a4 4 0 013-3.87m6-1.13a4 4 0 10-4-4 4 4 0 004 4z")
+				}
 				@sideNav(lc.Path, "/drills", "Drills", "M4 6h16M4 12h16M4 18h10")
 				@sideNav(lc.Path, "/heartbeats", "Check-ins", "M3 12h4l2 6 4-14 2 8h6")
 				@sideNav(lc.Path, "/reports", "Reports", "M9 12l2 2 4-4m-3-7l7 4v6c0 4-3 7-7 8-4-1-7-4-7-8V7z")

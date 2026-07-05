@@ -48,7 +48,10 @@ func (h *Handlers) evidenceBundle(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Could not assemble the bundle — please try again.", http.StatusInternalServerError)
 		return
 	}
-	targets, _ := h.drills.ListTargets(r.Context(), lc.Account.ID)
+	// Scope the bundle to databases this member may see (issue #29): names
+	// doubles as the visibility set — a drill whose target is absent is
+	// excluded below, so the bundle never leaks another team's evidence.
+	targets, _ := h.drills.ListTargets(r.Context(), lc.Account.ID, h.databaseScope(r, lc))
 	names := make(map[string]string, len(targets))
 	for _, t := range targets {
 		names[t.ID.String()] = t.Name
@@ -75,9 +78,9 @@ func (h *Handlers) evidenceBundle(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			continue // shredded or unreadable — skip rather than fail the whole bundle
 		}
-		db := names[d.TargetID.String()]
-		if db == "" {
-			db = d.TargetID.String()
+		db, visible := names[d.TargetID.String()]
+		if !visible {
+			continue // database outside this member's team scope — exclude
 		}
 		date := ""
 		if d.CompletedAt != nil {

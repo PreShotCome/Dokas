@@ -247,14 +247,14 @@ func TestCrossAccountIsolation(t *testing.T) {
 	}
 
 	// Account B sees nothing of A's.
-	bTargets, err := drillStore.ListTargets(ctx, accountB)
+	bTargets, err := drillStore.ListTargets(ctx, accountB, drill.ScopeAll())
 	if err != nil {
 		t.Fatalf("list targets B: %v", err)
 	}
 	if len(bTargets) != 0 {
 		t.Fatalf("account B sees %d targets, expected 0", len(bTargets))
 	}
-	bDrills, err := drillStore.ListDrills(ctx, accountB, 100)
+	bDrills, err := drillStore.ListDrills(ctx, accountB, drill.ScopeAll(), 100)
 	if err != nil {
 		t.Fatalf("list drills B: %v", err)
 	}
@@ -263,15 +263,15 @@ func TestCrossAccountIsolation(t *testing.T) {
 	}
 
 	// Direct account-scoped gets from B must fail with ErrNotFound.
-	if _, err := drillStore.GetTarget(ctx, accountB, targetA.ID); err != drill.ErrNotFound {
+	if _, err := drillStore.GetTarget(ctx, accountB, targetA.ID, drill.ScopeAll()); err != drill.ErrNotFound {
 		t.Fatalf("B GetTarget(A's target): expected ErrNotFound, got %v", err)
 	}
-	if _, err := drillStore.GetDrill(ctx, accountB, drillA); err != drill.ErrNotFound {
+	if _, err := drillStore.GetDrill(ctx, accountB, drillA, drill.ScopeAll()); err != drill.ErrNotFound {
 		t.Fatalf("B GetDrill(A's drill): expected ErrNotFound, got %v", err)
 	}
 
 	// A still sees its own.
-	aTargets, _ := drillStore.ListTargets(ctx, accountA)
+	aTargets, _ := drillStore.ListTargets(ctx, accountA, drill.ScopeAll())
 	if len(aTargets) != 1 {
 		t.Fatalf("account A sees %d targets, expected 1", len(aTargets))
 	}
