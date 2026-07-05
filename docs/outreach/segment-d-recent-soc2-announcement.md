@@ -29,7 +29,7 @@ for 7 years, verifiable independently with an open-source CLI. When your
 auditor asks for restore evidence next year, you hand them a share link
 and they verify it themselves. Zero re-prep.
 
-$99/mo for weekly drills on up to 5 databases. Would 15 minutes next week
+$100/mo for daily drills on up to 5 databases, unlimited seats. Would 15 minutes next week
 be useful to see the demo?
 
 Ian

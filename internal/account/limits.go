@@ -32,24 +32,31 @@ func LimitsFor(p Plan) Limits {
 	const gb = int64(1) << 30
 	switch p {
 	case PlanScale:
-		// Scale is unlimited on Databases/Seats/etc, but drills and dumps
-		// still carry hard ceilings — protects the shared queue and prevents
-		// unbounded-cost restore runs from a single tenant.
-		return Limits{DrillsPerDay: 500, MaxDumpBytes: 1024 * gb}
+		// Grounded (DB value 'scale' — kept for schema compatibility with
+		// existing subscriptions). Top self-serve tier: 100 databases, teams
+		// unlimited, everything else unlimited. Daily drills.
+		return Limits{Databases: 100, Seats: Unlimited, APIKeys: Unlimited,
+			Webhooks: Unlimited, Heartbeats: Unlimited,
+			DrillsPerDay: 500, MaxDumpBytes: 2 * 1024 * gb}
 	case PlanPro:
-		return Limits{Databases: 25, Seats: 10, APIKeys: 10, Webhooks: 10, Heartbeats: 25,
-			DrillsPerDay: 100, MaxDumpBytes: 200 * gb}
+		// Growth. 25 databases, unlimited seats — seats are the distribution
+		// surface (auditors, teammates, execs) and should not be taxed.
+		return Limits{Databases: 25, Seats: Unlimited, APIKeys: Unlimited,
+			Webhooks: Unlimited, Heartbeats: 50,
+			DrillsPerDay: 150, MaxDumpBytes: 500 * gb}
 	case PlanStarter:
-		return Limits{Databases: 5, Seats: 3, APIKeys: 3, Webhooks: 3, Heartbeats: 10,
-			DrillsPerDay: 20, MaxDumpBytes: 20 * gb}
+		// 5 databases, unlimited seats.
+		return Limits{Databases: 5, Seats: Unlimited, APIKeys: 10, Webhooks: 10, Heartbeats: 25,
+			DrillsPerDay: 30, MaxDumpBytes: 50 * gb}
 	case PlanTrial:
-		// Active trials get ONE real database at weekly cadence — the
-		// product's whole thesis is "prove it, don't promise it", so a card
-		// wall before someone can drill their own dump is self-refuting. Two
-		// seats let a small evaluating team walk the flow together; the
-		// paywall re-arms once the trial lapses. Drills/day is tight: enough
-		// to iterate on assertions for one DB, not enough to hammer the queue.
-		return Limits{Databases: 1, Seats: 2, APIKeys: 2, Webhooks: 2, Heartbeats: 3,
+		// Active trials get ONE real database — the product's thesis is
+		// "prove it, don't promise it", so a card wall before someone can
+		// drill their own dump is self-refuting. Unlimited seats so a small
+		// evaluating team can walk the flow together; the paywall re-arms
+		// once the trial lapses. Drills/day is tight: enough to iterate on
+		// assertions for one DB, not enough to hammer the queue. Trial
+		// stays weekly — daily is what they upgrade for.
+		return Limits{Databases: 1, Seats: Unlimited, APIKeys: 2, Webhooks: 2, Heartbeats: 3,
 			DrillsPerDay: 5, MaxDumpBytes: 5 * gb}
 	default:
 		return Limits{Databases: 1, Seats: 2, APIKeys: 1, Webhooks: 1, Heartbeats: 1,
@@ -58,15 +65,16 @@ func LimitsFor(p Plan) Limits {
 }
 
 // AllowedCadences returns the drill cadences a plan may select, from least
-// to most frequent. Starter and Growth both top out at weekly — they
-// differ on database/drill volume, not frequency. Daily is the headline
-// reason to move up to Scale. Trial mirrors Growth (weekly). Hourly /
-// sub-daily is an Enterprise (custom) arrangement, not a self-serve option.
+// to most frequent. Every paid tier now gets daily as the baseline — the
+// old "weekly-except-Scale" ladder created a pressure point every prospect
+// felt during discovery ("why would I pay for weekly?"). Trial stays at
+// weekly (daily is the headline reason to convert). Hourly / sub-daily is
+// an Enterprise (custom) arrangement, not a self-serve option.
 func AllowedCadences(p Plan) []string {
 	switch p {
-	case PlanScale:
+	case PlanScale, PlanPro, PlanStarter:
 		return []string{"off", "monthly", "weekly", "daily"}
-	case PlanStarter, PlanPro, PlanTrial:
+	case PlanTrial:
 		return []string{"off", "monthly", "weekly"}
 	default:
 		return []string{"off", "monthly", "weekly"}

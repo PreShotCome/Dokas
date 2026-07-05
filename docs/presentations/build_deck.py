@@ -4,7 +4,7 @@ Palette matches the shipped Dokaz brand (steel + baby-royal-blue + pink +
 sea-teal — see tailwind.config.js and branding/design-system/). Voice matches
 the marketing site: direct, technical, unflinching. Content reflects what
 dokaz.net actually is today (Ed25519-signed evidence, auditor share links,
-readiness score, Slack/PagerDuty alerts, /verify, $99/$299/$799/Enterprise).
+readiness score, Slack/PagerDuty alerts, /verify, $100/$300/$600/Enterprise).
 
 Run: `python docs/presentations/build_deck.py` — writes Dokaz_Investor_Deck.pptx.
 """
@@ -327,8 +327,8 @@ onboarding_steps = [
      'aha moment — before they connect anything.'),
     ('3', 'Connect a database',
      'Point Dokaz at a pg_dump. We fetch, restore in an isolated sandbox, '
-     'assert row counts / table exists / no nulls, and sign the result. Weekly on '
-     'Starter and Growth, daily on Scale.'),
+     'assert row counts / table exists / no nulls, and sign the result. Daily '
+     'drills baseline on every paid tier.'),
     ('4', 'Share the evidence',
      'One tokenised URL for the auditor. Read-only, no Dokaz account, expires in 30 days. '
      'Signature verifies against the same public key the CLI uses.'),
@@ -554,30 +554,35 @@ card_top = Inches(2.4)
 left0 = Inches(0.6)
 
 pricing_card(s, left0, card_top, card_w, card_h,
-             'Starter', '$99', '/mo', 'Drill frequency', 'Weekly',
-             ['5 databases', '3 seats', 'Signed PDF · 7-year retention',
+             'Starter', '$100', '/mo', 'Capacity', '5 databases',
+             ['Daily drills · signed PDF · 7-year retention',
+              'Unlimited seats', '25 backup check-ins',
               'Auditor share links', 'Slack + PagerDuty', 'Email support'])
 
 pricing_card(s, left0 + (card_w + card_gap), card_top, card_w, card_h,
-             'Growth', '$299', '/mo', 'Drill frequency', 'Weekly',
-             ['25 databases', '10 seats', 'Everything in Starter',
-              'API access · signed webhooks', 'Priority support'],
+             'Growth', '$300', '/mo', 'Capacity', '25 databases',
+             ['Daily drills · everything in Starter',
+              '50 backup check-ins',
+              'Unlimited API keys · signed webhooks',
+              'Priority support'],
              popular=True)
 
 pricing_card(s, left0 + (card_w + card_gap) * 2, card_top, card_w, card_h,
-             'Scale', '$799', '/mo', 'Drill frequency', 'Daily',
-             ['Unlimited databases', 'Unlimited seats',
-              'Everything in Growth', 'Priority + dedicated channel', 'SSO (roadmap)'])
+             'Grounded', '$600', '/mo', 'Capacity', '100 databases',
+             ['Daily drills · everything in Growth',
+              'Unlimited backup check-ins',
+              'Priority + dedicated channel', 'SSO (roadmap)'])
 
 pricing_card(s, left0 + (card_w + card_gap) * 3, card_top, card_w, card_h,
-             'Enterprise', 'From $1.5k', '/mo', 'Drill frequency', 'Custom',
-             ['Hourly + custom cadence', 'Auditor read-only accounts',
-              'BYO runner in your VPC', 'Longer retention · custom SLA',
-              'Named account manager'])
+             'Enterprise', 'Custom', '', 'Regulated / hands-on', 'Sales-led',
+             ['BYO runner in your VPC · SSO/SAML',
+              'BAA / DPA · hourly cadence',
+              'Auditor read-only accounts',
+              'Custom SLA · named account manager'])
 
 textbox(s, Inches(0.6), Inches(7.2), Inches(12), Inches(0.3),
-        'Trial: $1 first month, one real database at weekly cadence — the buyer '
-        'proves the product on their own dump before the paywall re-arms.',
+        'Every tier: daily drills, signed PDF evidence, 7-year retention, '
+        'unlimited seats. Trial: $1 first month, one real database.',
         size=10, color=MUTED, align=PP_ALIGN.CENTER)
 
 
@@ -665,7 +670,7 @@ timeline_card(s, left0, card_top, card_w, card_h,
                   '3-5 cold-email variants keyed on segment',
                   'Enrichment: SOC 2 badge, hiring signal, insurance renewal window',
                   'Weekly demo cadence on Loom, sub-3-minute',
-                  'Goal: 10 paid pilots at $299 (Growth)',
+                  'Goal: 10 paid pilots at $300 (Growth)',
               ], BRAND_400)
 timeline_card(s, left0 + (card_w + card_gap), card_top, card_w, card_h,
               'Days 30-60', 'MySQL + auditor UX', [
