@@ -454,7 +454,8 @@ func pricingFeatures(plan string, limits account.Limits) []string {
 	case "starter":
 		return []string{
 			limitText(limits.Heartbeats, "backup check-in"),
-			fmt.Sprintf("Up to %d drills per day", limits.DrillsPerDay),
+			drillBudgetLine(limits.DrillsPerDay, limits.Databases,
+				"migrations and re-drills"),
 			"Restore dumps up to " + dumpSizeLabel(limits.MaxDumpBytes),
 			fmt.Sprintf("%d API keys · %d webhooks", limits.APIKeys, limits.Webhooks),
 			"Standard drill queue",
@@ -464,7 +465,8 @@ func pricingFeatures(plan string, limits account.Limits) []string {
 	case "pro":
 		return []string{
 			limitText(limits.Heartbeats, "backup check-in"),
-			fmt.Sprintf("Up to %d drills per day (5× Starter)", limits.DrillsPerDay),
+			drillBudgetLine(limits.DrillsPerDay, limits.Databases,
+				"CI-triggered drills and incident replays"),
 			"Restore dumps up to " + dumpSizeLabel(limits.MaxDumpBytes) + " (10× Starter)",
 			"Unlimited API keys & webhooks",
 			"Priority drill queue — jumps Starter jobs",
@@ -474,7 +476,8 @@ func pricingFeatures(plan string, limits account.Limits) []string {
 	case "scale":
 		return []string{
 			"Unlimited backup check-ins",
-			fmt.Sprintf("Up to %d drills per day (fleet-scale)", limits.DrillsPerDay),
+			drillBudgetLine(limits.DrillsPerDay, limits.Databases,
+				"migrations, incident replays, and CI-triggered drills at fleet scale"),
 			"Restore dumps up to " + dumpSizeLabel(limits.MaxDumpBytes),
 			"Unlimited API keys & webhooks",
 			"Top-priority drill queue — never waits behind smaller tiers",
@@ -500,6 +503,25 @@ func limitText(n int, singular string) string {
 	default:
 		return strconv.Itoa(n) + " " + singular + "s"
 	}
+}
+
+// drillBudgetLine frames the drills-per-day cap in workload terms. One
+// drill verifies one dump at one point in time — so the useful mental
+// model is "how many independent verifications can I run", not a raw
+// number. Line reads as "N drills/day — daily verification of your D
+// databases plus H spare for <workload phrase>." Both figures come from
+// Limits so the copy never drifts from what LimitsFor actually enforces.
+func drillBudgetLine(drillsPerDay, dbCap int, headroomPhrase string) string {
+	if dbCap <= 0 {
+		return fmt.Sprintf("%d drills/day", drillsPerDay)
+	}
+	headroom := drillsPerDay - dbCap
+	if headroom <= 0 {
+		return fmt.Sprintf("%d drills/day — daily verification of %d databases",
+			drillsPerDay, dbCap)
+	}
+	return fmt.Sprintf("%d drills/day — daily verification of %d databases plus %d spare for %s",
+		drillsPerDay, dbCap, headroom, headroomPhrase)
 }
 
 // dumpSizeLabel formats a MaxDumpBytes cap in the largest round unit —
