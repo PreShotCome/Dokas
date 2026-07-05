@@ -484,6 +484,20 @@ func (h *Handlers) Router(staticFS http.FileSystem) http.Handler {
 			r.Post("/account/billing/checkout", h.billingCheckout)
 			r.Post("/account/billing/portal", h.billingPortal)
 		})
+		// Teams (issue #29): viewing is team.read, managing is team.write.
+		r.Group(func(r chi.Router) {
+			r.Use(auth.RequireAction(auth.ActionTeamRead))
+			r.Get("/account/teams", h.teamsPage)
+		})
+		r.Group(func(r chi.Router) {
+			r.Use(auth.RequireAction(auth.ActionTeamWrite))
+			r.Post("/account/teams", h.teamCreate)
+			r.Post("/account/teams/databases", h.teamDatabaseAssign)
+			r.Post("/account/teams/{id}/rename", h.teamRename)
+			r.Post("/account/teams/{id}/delete", h.teamDelete)
+			r.Post("/account/teams/{id}/members", h.teamMemberAdd)
+			r.Post("/account/teams/{id}/members/{user_id}/remove", h.teamMemberRemove)
+		})
 	})
 
 	return r

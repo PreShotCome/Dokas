@@ -33,13 +33,13 @@ func (h *Handlers) sharePage(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "share lookup failed", http.StatusInternalServerError)
 		return
 	}
-	dr, err := h.drills.GetDrill(r.Context(), link.AccountID, link.DrillID)
+	dr, err := h.drills.GetDrill(r.Context(), link.AccountID, link.DrillID, drill.ScopeAll())
 	if err != nil {
 		w.WriteHeader(http.StatusNotFound)
 		render(w, r, templates.ShareGone(h.layoutCtx(r)))
 		return
 	}
-	target, err := h.drills.GetTarget(r.Context(), link.AccountID, dr.TargetID)
+	target, err := h.drills.GetTarget(r.Context(), link.AccountID, dr.TargetID, drill.ScopeAll())
 	if err != nil {
 		http.Error(w, "share resolve failed", http.StatusInternalServerError)
 		return
@@ -64,7 +64,7 @@ func (h *Handlers) shareDownload(w http.ResponseWriter, r *http.Request) {
 		http.NotFound(w, r)
 		return
 	}
-	dr, err := h.drills.GetDrill(r.Context(), link.AccountID, link.DrillID)
+	dr, err := h.drills.GetDrill(r.Context(), link.AccountID, link.DrillID, drill.ScopeAll())
 	if err != nil || dr.EvidencePath == nil || *dr.EvidencePath == "" {
 		http.NotFound(w, r)
 		return
@@ -93,8 +93,10 @@ func (h *Handlers) shareCreate(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "invalid drill id", http.StatusBadRequest)
 		return
 	}
-	// Ownership check: the drill must belong to the current account.
-	dr, err := h.drills.GetDrill(r.Context(), acct.ID, drillID)
+	// Ownership check: the drill must belong to the current account AND be
+	// visible in the caller's team scope — a member must not mint a public
+	// share link for another team's evidence (issue #29).
+	dr, err := h.drills.GetDrill(r.Context(), acct.ID, drillID, h.databaseScopeCtx(r.Context(), acct.ID, u.ID))
 	if err != nil || dr.Status != drill.StatusSucceeded {
 		http.Error(w, "drill not shareable (only successful drills can be shared)", http.StatusBadRequest)
 		return
@@ -138,7 +140,7 @@ func (h *Handlers) shareRevoke(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "invalid drill id", http.StatusBadRequest)
 		return
 	}
-	if _, err := h.drills.GetDrill(r.Context(), acct.ID, drillID); err != nil {
+	if _, err := h.drills.GetDrill(r.Context(), acct.ID, drillID, h.databaseScopeCtx(r.Context(), acct.ID, u.ID)); err != nil {
 		http.NotFound(w, r)
 		return
 	}

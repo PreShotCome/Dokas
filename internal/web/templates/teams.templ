@@ -1,0 +1,210 @@
+package templates
+
+import (
+	"github.com/google/uuid"
+
+	"github.com/preshotcome/dokaz/internal/account"
+)
+
+// TeamMemberView is one person on a team.
+type TeamMemberView struct {
+	UserID uuid.UUID
+	Email  string
+}
+
+// TeamDatabaseView is one database, used both for a team's assigned list and
+// for the unassigned pool.
+type TeamDatabaseView struct {
+	ID   uuid.UUID
+	Name string
+}
+
+// TeamView is one team plus its members and databases.
+type TeamView struct {
+	ID        uuid.UUID
+	Name      string
+	Members   []TeamMemberView
+	Databases []TeamDatabaseView
+}
+
+// TeamsView is the whole team-management page. CanManage gates every write
+// control (owner/admin); everyone else sees a read-only roster.
+type TeamsView struct {
+	CanManage  bool
+	Teams      []TeamView
+	Members    []account.MembershipWithUser
+	Unassigned []TeamDatabaseView
+}
+
+templ TeamsPage(lc LayoutCtx, view TeamsView, errMsg string) {
+	@LayoutWith("Teams", lc) {
+		<article class="mx-auto max-w-3xl space-y-5">
+			<div>
+				<h1 class="text-2xl font-semibold tracking-tight">Teams</h1>
+				<p class="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
+					Group databases and people into teams. Members see only their
+					teams' databases plus any unassigned to a team — owners and
+					admins always see everything.
+				</p>
+			</div>
+
+			if errMsg != "" {
+				<div class="rounded-lg bg-rose-100 px-4 py-3 text-sm text-rose-900 dark:bg-rose-900/40 dark:text-rose-200">
+					{ errMsg }
+				</div>
+			}
+
+			if view.CanManage {
+				<form method="POST" action="/account/teams" class="card flex flex-wrap items-end gap-3 p-4">
+					@CSRFField()
+					<div class="flex-1">
+						<label for="team_name" class="block text-xs font-medium text-zinc-500">New team</label>
+						<input id="team_name" name="name" required maxlength="80" placeholder="Payments" class="form-input mt-1 w-full"/>
+					</div>
+					<button type="submit" class="btn-primary">Create team</button>
+				</form>
+			}
+
+			if len(view.Teams) == 0 {
+				<div class="card p-6 text-center text-sm text-zinc-500">
+					No teams yet.
+					if view.CanManage {
+						Create one above to start partitioning databases.
+					}
+				</div>
+			}
+
+			for _, t := range view.Teams {
+				@teamCard(view, t)
+			}
+
+			@unassignedDatabases(view)
+		</article>
+	}
+}
+
+templ teamCard(view TeamsView, t TeamView) {
+	<section class="card space-y-4 p-5">
+		<div class="flex flex-wrap items-center justify-between gap-2">
+			if view.CanManage {
+				<form method="POST" action={ templ.SafeURL("/account/teams/" + t.ID.String() + "/rename") } class="flex items-center gap-2">
+					@CSRFField()
+					<input name="name" value={ t.Name } maxlength="80" class="form-input py-1 text-sm font-semibold"/>
+					<button type="submit" class="btn-ghost text-xs">Rename</button>
+				</form>
+				<form method="POST" action={ templ.SafeURL("/account/teams/" + t.ID.String() + "/delete") } onsubmit="return confirm('Delete this team? Its databases become unassigned (account-wide).');">
+					@CSRFField()
+					<button type="submit" class="text-xs text-rose-600 underline dark:text-rose-400">Delete team</button>
+				</form>
+			} else {
+				<h2 class="text-lg font-semibold">{ t.Name }</h2>
+			}
+		</div>
+
+		<div class="grid gap-4 sm:grid-cols-2">
+			<div>
+				<h3 class="text-xs font-medium uppercase tracking-wide text-zinc-500">Members</h3>
+				<ul class="mt-2 space-y-1 text-sm">
+					if len(t.Members) == 0 {
+						<li class="text-zinc-400">No members yet</li>
+					}
+					for _, m := range t.Members {
+						<li class="flex items-center justify-between gap-2">
+							<span class="truncate">{ m.Email }</span>
+							if view.CanManage {
+								<form method="POST" action={ templ.SafeURL("/account/teams/" + t.ID.String() + "/members/" + m.UserID.String() + "/remove") }>
+									@CSRFField()
+									<button type="submit" class="text-xs text-rose-600 underline dark:text-rose-400">remove</button>
+								</form>
+							}
+						</li>
+					}
+				</ul>
+				if view.CanManage {
+					@addMemberForm(view, t)
+				}
+			</div>
+
+			<div>
+				<h3 class="text-xs font-medium uppercase tracking-wide text-zinc-500">Databases</h3>
+				<ul class="mt-2 space-y-1 text-sm">
+					if len(t.Databases) == 0 {
+						<li class="text-zinc-400">No databases assigned</li>
+					}
+					for _, d := range t.Databases {
+						<li class="flex items-center justify-between gap-2">
+							<span class="truncate font-mono text-xs">{ d.Name }</span>
+							if view.CanManage {
+								<form method="POST" action="/account/teams/databases">
+									@CSRFField()
+									<input type="hidden" name="database_id" value={ d.ID.String() }/>
+									<input type="hidden" name="team_id" value=""/>
+									<button type="submit" class="text-xs text-rose-600 underline dark:text-rose-400">unassign</button>
+								</form>
+							}
+						</li>
+					}
+				</ul>
+			</div>
+		</div>
+	</section>
+}
+
+// addMemberForm offers the account members not already on this team.
+templ addMemberForm(view TeamsView, t TeamView) {
+	<form method="POST" action={ templ.SafeURL("/account/teams/" + t.ID.String() + "/members") } class="mt-2 flex items-center gap-2">
+		@CSRFField()
+		<select name="user_id" required class="form-input py-1 text-xs">
+			<option value="">Add a member…</option>
+			for _, m := range view.Members {
+				if !memberOnTeam(t, m.UserID) {
+					<option value={ m.UserID.String() }>{ m.Email }</option>
+				}
+			}
+		</select>
+		<button type="submit" class="btn-ghost text-xs">Add</button>
+	</form>
+}
+
+// unassignedDatabases lists databases in no team, each with a control to move
+// it onto a team (owner/admin only).
+templ unassignedDatabases(view TeamsView) {
+	<section class="card space-y-3 p-5">
+		<h2 class="text-base font-semibold">Unassigned databases</h2>
+		<p class="text-xs text-zinc-500">These are visible to everyone in the account until assigned to a team.</p>
+		if len(view.Unassigned) == 0 {
+			<p class="text-sm text-zinc-400">Every database is assigned to a team.</p>
+		}
+		<ul class="space-y-1 text-sm">
+			for _, d := range view.Unassigned {
+				<li class="flex flex-wrap items-center justify-between gap-2">
+					<span class="truncate font-mono text-xs">{ d.Name }</span>
+					if view.CanManage && len(view.Teams) > 0 {
+						<form method="POST" action="/account/teams/databases" class="flex items-center gap-1">
+							@CSRFField()
+							<input type="hidden" name="database_id" value={ d.ID.String() }/>
+							<select name="team_id" required class="form-input py-1 text-xs">
+								<option value="">Assign to team…</option>
+								for _, t := range view.Teams {
+									<option value={ t.ID.String() }>{ t.Name }</option>
+								}
+							</select>
+							<button type="submit" class="btn-ghost text-xs">Assign</button>
+						</form>
+					}
+				</li>
+			}
+		</ul>
+	</section>
+}
+
+// memberOnTeam reports whether userID is already on team t (so the add-member
+// select omits them).
+func memberOnTeam(t TeamView, userID uuid.UUID) bool {
+	for _, m := range t.Members {
+		if m.UserID == userID {
+			return true
+		}
+	}
+	return false
+}

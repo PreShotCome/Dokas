@@ -28,7 +28,7 @@ import (
 
 func (h *Handlers) targetsList(w http.ResponseWriter, r *http.Request) {
 	lc := h.layoutCtx(r)
-	targets, err := h.drills.ListTargets(r.Context(), lc.Account.ID)
+	targets, err := h.drills.ListTargets(r.Context(), lc.Account.ID, h.databaseScope(r, lc))
 	if err != nil {
 		render(w, r, templates.TargetsError("Could not load databases."))
 		return
@@ -113,7 +113,9 @@ func (h *Handlers) targetCreate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	existing, _ := h.drills.ListTargets(r.Context(), acct.ID)
+	// Plan-limit counting spans the whole account regardless of team, so this
+	// list is deliberately unscoped.
+	existing, _ := h.drills.ListTargets(r.Context(), acct.ID, drill.ScopeAll())
 	real := 0
 	for _, t := range existing {
 		if !t.IsSample {
@@ -173,7 +175,7 @@ func (h *Handlers) targetDetail(w http.ResponseWriter, r *http.Request) {
 		http.NotFound(w, r)
 		return
 	}
-	t, err := h.drills.GetTarget(r.Context(), lc.Account.ID, id)
+	t, err := h.drills.GetTarget(r.Context(), lc.Account.ID, id, h.databaseScope(r, lc))
 	if err != nil {
 		http.NotFound(w, r)
 		return
@@ -191,7 +193,7 @@ func (h *Handlers) targetScheduleUpdate(w http.ResponseWriter, r *http.Request) 
 		http.NotFound(w, r)
 		return
 	}
-	t, err := h.drills.GetTarget(r.Context(), lc.Account.ID, id)
+	t, err := h.drills.GetTarget(r.Context(), lc.Account.ID, id, h.databaseScope(r, lc))
 	if err != nil {
 		http.NotFound(w, r)
 		return
@@ -233,7 +235,7 @@ func (h *Handlers) assertionCreate(w http.ResponseWriter, r *http.Request) {
 		http.NotFound(w, r)
 		return
 	}
-	t, err := h.drills.GetTarget(r.Context(), acct.ID, id)
+	t, err := h.drills.GetTarget(r.Context(), acct.ID, id, h.databaseScope(r, lc))
 	if err != nil {
 		http.NotFound(w, r)
 		return
@@ -279,6 +281,14 @@ func (h *Handlers) assertionDelete(w http.ResponseWriter, r *http.Request) {
 		http.NotFound(w, r)
 		return
 	}
+	// Gate the delete on the database being visible to this member's team
+	// scope, so a member can't strip assertions off another team's database.
+	if tid, perr := uuid.Parse(targetID); perr == nil {
+		if _, gerr := h.drills.GetTarget(r.Context(), acct.ID, tid, h.databaseScope(r, lc)); gerr != nil {
+			http.NotFound(w, r)
+			return
+		}
+	}
 	if err := h.drills.DeleteAssertion(r.Context(), acct.ID, assertionID); err != nil &&
 		!errors.Is(err, drill.ErrNotFound) {
 		http.Error(w, "delete assertion", http.StatusInternalServerError)
@@ -323,12 +333,13 @@ func buildAssertionConfig(kind, table, column, minRowsInput string) (map[string]
 
 func (h *Handlers) drillsList(w http.ResponseWriter, r *http.Request) {
 	lc := h.layoutCtx(r)
-	ds, err := h.drills.ListDrills(r.Context(), lc.Account.ID, 100)
+	scope := h.databaseScope(r, lc)
+	ds, err := h.drills.ListDrills(r.Context(), lc.Account.ID, scope, 100)
 	if err != nil {
 		render(w, r, templates.DrillsErrorPage(lc, "Could not load drills."))
 		return
 	}
-	targets, _ := h.drills.ListTargets(r.Context(), lc.Account.ID)
+	targets, _ := h.drills.ListTargets(r.Context(), lc.Account.ID, scope)
 	idemKey := uuid.NewString()
 	render(w, r, templates.DrillsPage(lc, ds, targets, idemKey))
 }
@@ -352,8 +363,10 @@ func (h *Handlers) drillCreate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Target must belong to the current account.
-	target, err := h.drills.GetTarget(r.Context(), acct.ID, targetID)
+	// Target must belong to the current account and be visible in the
+	// caller's team scope (a member can't drill another team's database).
+	target, err := h.drills.GetTarget(r.Context(), acct.ID, targetID,
+		h.databaseScopeCtx(r.Context(), acct.ID, u.ID))
 	if err != nil {
 		http.Error(w, "target not found", http.StatusNotFound)
 		return
@@ -409,7 +422,7 @@ func (h *Handlers) drillDetail(w http.ResponseWriter, r *http.Request) {
 		http.NotFound(w, r)
 		return
 	}
-	dr, err := h.drills.GetDrill(r.Context(), lc.Account.ID, drillID)
+	dr, err := h.drills.GetDrill(r.Context(), lc.Account.ID, drillID, h.databaseScope(r, lc))
 	if err != nil {
 		if errors.Is(err, drill.ErrNotFound) {
 			http.NotFound(w, r)
@@ -435,13 +448,14 @@ func (h *Handlers) drillDetail(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handlers) drillStepsPartial(w http.ResponseWriter, r *http.Request) {
+	u, _ := auth.FromContext(r.Context())
 	acct, _ := auth.CurrentAccountFromContext(r.Context())
 	drillID, err := uuid.Parse(chi.URLParam(r, "id"))
 	if err != nil {
 		http.NotFound(w, r)
 		return
 	}
-	dr, err := h.drills.GetDrill(r.Context(), acct.ID, drillID)
+	dr, err := h.drills.GetDrill(r.Context(), acct.ID, drillID, h.databaseScopeCtx(r.Context(), acct.ID, u.ID))
 	if err != nil {
 		http.NotFound(w, r)
 		return
@@ -463,7 +477,7 @@ func (h *Handlers) drillEvidence(w http.ResponseWriter, r *http.Request) {
 		http.NotFound(w, r)
 		return
 	}
-	dr, err := h.drills.GetDrill(r.Context(), acct.ID, drillID)
+	dr, err := h.drills.GetDrill(r.Context(), acct.ID, drillID, h.databaseScopeCtx(r.Context(), acct.ID, u.ID))
 	if err != nil {
 		http.NotFound(w, r)
 		return

@@ -17,12 +17,22 @@ func TestRoleMatrix(t *testing.T) {
 		{account.RoleOwner, ActionBillingWrite, true},
 		{account.RoleOwner, ActionMemberWrite, true},
 		{account.RoleOwner, ActionDrillWrite, true},
+		{account.RoleOwner, ActionTeamWrite, true},
 
-		// Admin: everything except billing writes.
+		// Admin: everything except billing writes — including team management.
 		{account.RoleAdmin, ActionAccountWrite, true},
 		{account.RoleAdmin, ActionMemberWrite, true},
 		{account.RoleAdmin, ActionDrillWrite, true},
 		{account.RoleAdmin, ActionBillingWrite, false},
+		{account.RoleAdmin, ActionTeamWrite, true},
+
+		// Teams: only owner/admin manage; members read but can't write; the
+		// external auditor can't even see the team structure.
+		{account.RoleMember, ActionTeamRead, true},
+		{account.RoleMember, ActionTeamWrite, false},
+		{account.RoleViewer, ActionTeamWrite, false},
+		{account.RoleAuditor, ActionTeamRead, false},
+		{account.RoleAuditor, ActionTeamWrite, false},
 
 		// Member: can run drills + manage targets, but not members/account.
 		{account.RoleMember, ActionDrillWrite, true},

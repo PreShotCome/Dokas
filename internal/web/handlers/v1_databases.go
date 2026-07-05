@@ -69,7 +69,7 @@ func (h *Handlers) v1ListDatabases(w http.ResponseWriter, r *http.Request) {
 		afterAt, afterID = &cursor.CreatedAt, &cursor.ID
 	}
 	// Fetch limit+1 to detect whether another page exists.
-	targets, err := h.drills.ListTargetsPage(r.Context(), acct.ID, afterAt, afterID, limit+1)
+	targets, err := h.drills.ListTargetsPage(r.Context(), acct.ID, drill.ScopeAll(), afterAt, afterID, limit+1)
 	if err != nil {
 		writeAPIError(w, http.StatusInternalServerError, "internal", "could not list databases")
 		return
@@ -105,7 +105,7 @@ func (h *Handlers) v1GetDatabase(w http.ResponseWriter, r *http.Request) {
 		writeAPIError(w, http.StatusNotFound, "not_found", "database not found")
 		return
 	}
-	t, err := h.drills.GetTarget(r.Context(), acct.ID, id)
+	t, err := h.drills.GetTarget(r.Context(), acct.ID, id, drill.ScopeAll())
 	if err != nil {
 		writeAPIError(w, http.StatusNotFound, "not_found", "database not found")
 		return
@@ -165,7 +165,7 @@ func (h *Handlers) v1CreateDatabase(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	existing, _ := h.drills.ListTargets(r.Context(), acct.ID)
+	existing, _ := h.drills.ListTargets(r.Context(), acct.ID, drill.ScopeAll())
 	if limit := account.EffectiveLimits(*acct); account.AtLimit(len(existing), limit.Databases) {
 		writeAPIError(w, http.StatusForbidden, "plan_limit",
 			fmt.Sprintf("the %s plan is limited to %d databases — upgrade to add more",

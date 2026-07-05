@@ -89,7 +89,7 @@ func (h *Handlers) v1ListDrills(w http.ResponseWriter, r *http.Request) {
 	if cursor != nil {
 		afterAt, afterID = &cursor.CreatedAt, &cursor.ID
 	}
-	drills, err := h.drills.ListDrillsPage(r.Context(), acct.ID, afterAt, afterID, limit+1)
+	drills, err := h.drills.ListDrillsPage(r.Context(), acct.ID, drill.ScopeAll(), afterAt, afterID, limit+1)
 	if err != nil {
 		writeAPIError(w, http.StatusInternalServerError, "internal", "could not list drills")
 		return
@@ -115,7 +115,7 @@ func (h *Handlers) v1GetDrill(w http.ResponseWriter, r *http.Request) {
 		writeAPIError(w, http.StatusNotFound, "not_found", "drill not found")
 		return
 	}
-	d, err := h.drills.GetDrill(r.Context(), acct.ID, id)
+	d, err := h.drills.GetDrill(r.Context(), acct.ID, id, drill.ScopeAll())
 	if err != nil {
 		writeAPIError(w, http.StatusNotFound, "not_found", "drill not found")
 		return
@@ -157,7 +157,7 @@ func (h *Handlers) v1CreateDrill(w http.ResponseWriter, r *http.Request) {
 		writeAPIError(w, http.StatusBadRequest, "validation", "database_id must be a valid UUID")
 		return
 	}
-	target, err := h.drills.GetTarget(r.Context(), acct.ID, targetID)
+	target, err := h.drills.GetTarget(r.Context(), acct.ID, targetID, drill.ScopeAll())
 	if err != nil {
 		writeAPIError(w, http.StatusNotFound, "not_found", "database not found")
 		return
@@ -202,7 +202,7 @@ func (h *Handlers) v1CreateDrill(w http.ResponseWriter, r *http.Request) {
 		writeAPIError(w, http.StatusInternalServerError, "internal", "could not enqueue drill")
 		return
 	}
-	d, err := h.drills.GetDrill(r.Context(), acct.ID, drillID)
+	d, err := h.drills.GetDrill(r.Context(), acct.ID, drillID, drill.ScopeAll())
 	if err != nil {
 		writeAPIError(w, http.StatusInternalServerError, "internal", "drill created but not readable")
 		return
@@ -217,7 +217,7 @@ func (h *Handlers) v1GetEvidence(w http.ResponseWriter, r *http.Request) {
 		writeAPIError(w, http.StatusNotFound, "not_found", "drill not found")
 		return
 	}
-	d, err := h.drills.GetDrill(r.Context(), acct.ID, id)
+	d, err := h.drills.GetDrill(r.Context(), acct.ID, id, drill.ScopeAll())
 	if err != nil {
 		writeAPIError(w, http.StatusNotFound, "not_found", "drill not found")
 		return
@@ -264,7 +264,7 @@ func (h *Handlers) v1GetLogs(w http.ResponseWriter, r *http.Request) {
 		writeAPIError(w, http.StatusNotFound, "not_found", "drill not found")
 		return
 	}
-	if _, err := h.drills.GetDrill(r.Context(), acct.ID, id); err != nil {
+	if _, err := h.drills.GetDrill(r.Context(), acct.ID, id, drill.ScopeAll()); err != nil {
 		writeAPIError(w, http.StatusNotFound, "not_found", "drill not found")
 		return
 	}
@@ -304,7 +304,7 @@ func (h *Handlers) v1GetSignature(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	// Authorize: drill must belong to the authenticated account.
-	if _, err := h.drills.GetDrill(r.Context(), acct.ID, id); err != nil {
+	if _, err := h.drills.GetDrill(r.Context(), acct.ID, id, drill.ScopeAll()); err != nil {
 		writeAPIError(w, http.StatusNotFound, "not_found", "drill not found")
 		return
 	}

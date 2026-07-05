@@ -20,6 +20,11 @@ const (
 	ActionMemberRead  Action = "member.read"
 	ActionMemberWrite Action = "member.write"
 
+	// Teams (issue #29). Read = see team labels; Write = manage teams
+	// (create/rename/delete, assign members and databases). Owner/admin only.
+	ActionTeamRead  Action = "team.read"
+	ActionTeamWrite Action = "team.write"
+
 	ActionBillingRead  Action = "billing.read"
 	ActionBillingWrite Action = "billing.write"
 
@@ -41,6 +46,7 @@ var roleMatrix = map[account.Role]map[Action]bool{
 	account.RoleOwner: {
 		ActionAccountRead: true, ActionAccountWrite: true,
 		ActionMemberRead: true, ActionMemberWrite: true,
+		ActionTeamRead: true, ActionTeamWrite: true,
 		ActionBillingRead: true, ActionBillingWrite: true,
 		ActionTargetRead: true, ActionTargetWrite: true,
 		ActionDrillRead: true, ActionDrillWrite: true,
@@ -50,6 +56,7 @@ var roleMatrix = map[account.Role]map[Action]bool{
 	account.RoleAdmin: {
 		ActionAccountRead: true, ActionAccountWrite: true,
 		ActionMemberRead: true, ActionMemberWrite: true,
+		ActionTeamRead: true, ActionTeamWrite: true,
 		ActionBillingRead: true, ActionBillingWrite: false,
 		ActionTargetRead: true, ActionTargetWrite: true,
 		ActionDrillRead: true, ActionDrillWrite: true,
@@ -59,6 +66,7 @@ var roleMatrix = map[account.Role]map[Action]bool{
 	account.RoleMember: {
 		ActionAccountRead: true, ActionAccountWrite: false,
 		ActionMemberRead: true, ActionMemberWrite: false,
+		ActionTeamRead: true, ActionTeamWrite: false,
 		ActionBillingRead: true, ActionBillingWrite: false,
 		ActionTargetRead: true, ActionTargetWrite: true,
 		ActionDrillRead: true, ActionDrillWrite: true,
@@ -68,6 +76,7 @@ var roleMatrix = map[account.Role]map[Action]bool{
 	account.RoleViewer: {
 		ActionAccountRead: true, ActionAccountWrite: false,
 		ActionMemberRead: true, ActionMemberWrite: false,
+		ActionTeamRead: true, ActionTeamWrite: false,
 		ActionBillingRead: true, ActionBillingWrite: false,
 		ActionTargetRead: true, ActionTargetWrite: false,
 		ActionDrillRead: true, ActionDrillWrite: false,
@@ -80,6 +89,7 @@ var roleMatrix = map[account.Role]map[Action]bool{
 	account.RoleExec: {
 		ActionAccountRead: true, ActionAccountWrite: false,
 		ActionMemberRead: true, ActionMemberWrite: false,
+		ActionTeamRead: true, ActionTeamWrite: false,
 		ActionBillingRead: true, ActionBillingWrite: false,
 		ActionTargetRead: true, ActionTargetWrite: false,
 		ActionDrillRead: true, ActionDrillWrite: false,
@@ -94,6 +104,7 @@ var roleMatrix = map[account.Role]map[Action]bool{
 	account.RoleAuditor: {
 		ActionAccountRead: true, ActionAccountWrite: false,
 		ActionMemberRead: false, ActionMemberWrite: false,
+		ActionTeamRead: false, ActionTeamWrite: false,
 		ActionBillingRead: false, ActionBillingWrite: false,
 		ActionTargetRead: true, ActionTargetWrite: false,
 		ActionDrillRead: true, ActionDrillWrite: false,
