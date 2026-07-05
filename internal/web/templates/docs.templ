@@ -16,10 +16,26 @@ templ DocsPage(lc LayoutCtx) {
 			<p class="text-sm text-zinc-600 dark:text-zinc-400">
 				Create an API key on the
 				<a href="/account/api-keys" class="underline">API keys</a> page,
-				then send it as a bearer token:
+				then send it as a bearer token. The examples below are identical
+				requests — pick the one for your shell.
 			</p>
-			<pre class="overflow-x-auto rounded bg-zinc-100 p-3 text-xs dark:bg-zinc-800"><code>curl https://app.dokaz.net/v1/drills \
-  -H "Authorization: Bearer so_your_key_here"</code></pre>
+			<div class="space-y-3">
+				<div>
+					<div class="mb-1 text-xs font-medium text-zinc-500">macOS / Linux (bash, zsh)</div>
+					<pre class="overflow-x-auto rounded bg-zinc-100 p-3 text-xs dark:bg-zinc-800"><code>curl https://app.dokaz.net/v1/drills -H "Authorization: Bearer so_your_key_here"</code></pre>
+				</div>
+				<div>
+					<div class="mb-1 text-xs font-medium text-zinc-500">Windows (PowerShell)</div>
+					<pre class="overflow-x-auto rounded bg-zinc-100 p-3 text-xs dark:bg-zinc-800"><code>curl.exe https://app.dokaz.net/v1/drills -H "Authorization: Bearer so_your_key_here"</code></pre>
+					<p class="mt-1 text-xs text-zinc-500">
+						In PowerShell, <code>curl</code> is an alias for
+						<code>Invoke-WebRequest</code>, which does not accept
+						<code>-H</code>. Call <code>curl.exe</code> to use the real
+						curl, or use the native cmdlet:
+					</p>
+					<pre class="mt-1 overflow-x-auto rounded bg-zinc-100 p-3 text-xs dark:bg-zinc-800"><code>{ "Invoke-RestMethod https://app.dokaz.net/v1/drills -Headers @{ Authorization = \"Bearer so_your_key_here\" }" }</code></pre>
+				</div>
+			</div>
 
 			<h2 class="text-base font-semibold">Conventions</h2>
 			<ul class="list-disc space-y-1 pl-5 text-sm text-zinc-600 dark:text-zinc-400">
