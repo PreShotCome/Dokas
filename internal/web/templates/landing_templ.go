@@ -134,7 +134,7 @@ func landingHero() templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, " restores your database backups in an isolated sandbox on a schedule, proves the data really came back, and signs the result — so a broken backup shows up in a report, not an outage.</p><div class=\"mt-8 flex flex-wrap justify-center gap-3\"><a href=\"/signup\" class=\"btn-primary px-6 py-3 text-base\">Start free</a> <a href=\"/pricing\" class=\"btn-ghost px-6 py-3 text-base\">View pricing</a></div><p class=\"mt-4 text-xs text-zinc-500\">First month $1 · Cancel anytime · Postgres supported today</p><div class=\"mx-auto mt-12 max-w-3xl\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, " restores your database backups in an isolated sandbox on a schedule, proves the data really came back, and signs the result — so a broken backup shows up in a report, not an outage.</p><div class=\"mt-8 flex flex-wrap justify-center gap-3\"><a href=\"/signup\" class=\"btn-primary px-6 py-3 text-base\">Start free</a> <a href=\"/pricing\" class=\"btn-ghost px-6 py-3 text-base\">View pricing</a></div><p class=\"mt-4 text-xs text-zinc-500\">Daily drills on every paid tier · First month $1 · Cancel anytime · Postgres supported today</p><div class=\"mx-auto mt-12 max-w-3xl\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -867,6 +867,10 @@ func landingFAQ() templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
+		templ_7745c5c3_Err = faqItem("What does it cost?", "Three self-serve tiers — Starter $100/mo, Growth $300/mo, Grounded $600/mo — all with daily drills, unlimited team seats, signed PDF evidence, and 7-year retention. Tiers differ by capacity (databases + backup check-ins). First month is $1, cancel anytime. See the pricing page for the breakdown.").Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
 		templ_7745c5c3_Err = faqItem("Can I get drill results in my own tools?", "Yes. A versioned JSON API and signed webhooks push results straight into your alerting and dashboards.").Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
@@ -907,7 +911,7 @@ func faqItem(q, a string) templ.Component {
 		var templ_7745c5c3_Var30 string
 		templ_7745c5c3_Var30, templ_7745c5c3_Err = templ.JoinStringErrs(q)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/templates/landing.templ`, Line: 263, Col: 6}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/templates/landing.templ`, Line: 264, Col: 6}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var30))
 		if templ_7745c5c3_Err != nil {
@@ -920,7 +924,7 @@ func faqItem(q, a string) templ.Component {
 		var templ_7745c5c3_Var31 string
 		templ_7745c5c3_Var31, templ_7745c5c3_Err = templ.JoinStringErrs(a)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/templates/landing.templ`, Line: 266, Col: 62}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/templates/landing.templ`, Line: 267, Col: 62}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var31))
 		if templ_7745c5c3_Err != nil {
@@ -995,7 +999,7 @@ func sectionHead(eyebrow, title string) templ.Component {
 		var templ_7745c5c3_Var34 string
 		templ_7745c5c3_Var34, templ_7745c5c3_Err = templ.JoinStringErrs(eyebrow)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/templates/landing.templ`, Line: 290, Col: 101}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/templates/landing.templ`, Line: 291, Col: 101}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var34))
 		if templ_7745c5c3_Err != nil {
@@ -1008,7 +1012,7 @@ func sectionHead(eyebrow, title string) templ.Component {
 		var templ_7745c5c3_Var35 string
 		templ_7745c5c3_Var35, templ_7745c5c3_Err = templ.JoinStringErrs(title)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/templates/landing.templ`, Line: 291, Col: 64}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/templates/landing.templ`, Line: 292, Col: 64}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var35))
 		if templ_7745c5c3_Err != nil {
@@ -1058,7 +1062,7 @@ func landingBullet(text string) templ.Component {
 		var templ_7745c5c3_Var37 string
 		templ_7745c5c3_Var37, templ_7745c5c3_Err = templ.JoinStringErrs(text)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/templates/landing.templ`, Line: 300, Col: 8}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/templates/landing.templ`, Line: 301, Col: 8}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var37))
 		if templ_7745c5c3_Err != nil {

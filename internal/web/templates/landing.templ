@@ -47,7 +47,7 @@ templ landingHero() {
 				<a href="/signup" class="btn-primary px-6 py-3 text-base">Start free</a>
 				<a href="/pricing" class="btn-ghost px-6 py-3 text-base">View pricing</a>
 			</div>
-			<p class="mt-4 text-xs text-zinc-500">First month $1 · Cancel anytime · Postgres supported today</p>
+			<p class="mt-4 text-xs text-zinc-500">Daily drills on every paid tier · First month $1 · Cancel anytime · Postgres supported today</p>
 			<div class="mx-auto mt-12 max-w-3xl">
 				@landingMockup()
 			</div>
@@ -252,6 +252,7 @@ templ landingFAQ() {
 			@faqItem("Which databases are supported?", "PostgreSQL today — every pg_dump format: plain, custom, tar, and directory archives. MySQL and MongoDB are on the roadmap.")
 			@faqItem("Where do drills run?", "In an isolated, ephemeral sandbox that is destroyed the moment the drill finishes. The working copy of your dump is deleted with it.")
 			@faqItem("What do I actually get?", "A signed PDF report and an immutable audit entry for every drill, retained for seven years — the evidence SOC 2 and HIPAA reviewers ask for.")
+			@faqItem("What does it cost?", "Three self-serve tiers — Starter $100/mo, Growth $300/mo, Grounded $600/mo — all with daily drills, unlimited team seats, signed PDF evidence, and 7-year retention. Tiers differ by capacity (databases + backup check-ins). First month is $1, cancel anytime. See the pricing page for the breakdown.")
 			@faqItem("Can I get drill results in my own tools?", "Yes. A versioned JSON API and signed webhooks push results straight into your alerting and dashboards.")
 		</div>
 	</section>
