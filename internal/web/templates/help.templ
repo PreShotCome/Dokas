@@ -43,7 +43,11 @@ templ HelpPage(lc LayoutCtx) {
 			@faq("Who can do what in my account?",
 				"Owners and admins manage members, databases, and drills; members "+
 					"can run drills and manage databases; viewers have read-only "+
-					"access. Invite teammates from the Account page.")
+					"access across the account; execs read the same surface as "+
+					"viewers with the label matching their function; auditors read "+
+					"drills, evidence, targets, and check-in status but cannot see "+
+					"billing or the member roster. Invite teammates from the "+
+					"Account page.")
 			@faq("How do I export or delete my data?",
 				"From the Account page: Export downloads everything we hold as "+
 					"JSON; Delete account soft-deletes immediately and permanently "+

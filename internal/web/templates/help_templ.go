@@ -99,7 +99,11 @@ func HelpPage(lc LayoutCtx) templ.Component {
 			templ_7745c5c3_Err = faq("Who can do what in my account?",
 				"Owners and admins manage members, databases, and drills; members "+
 					"can run drills and manage databases; viewers have read-only "+
-					"access. Invite teammates from the Account page.").Render(ctx, templ_7745c5c3_Buffer)
+					"access across the account; execs read the same surface as "+
+					"viewers with the label matching their function; auditors read "+
+					"drills, evidence, targets, and check-in status but cannot see "+
+					"billing or the member roster. Invite teammates from the "+
+					"Account page.").Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -152,7 +156,7 @@ func faq(q string, a string) templ.Component {
 		var templ_7745c5c3_Var4 string
 		templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(q)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/templates/help.templ`, Line: 61, Col: 57}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/templates/help.templ`, Line: 65, Col: 57}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 		if templ_7745c5c3_Err != nil {
@@ -165,7 +169,7 @@ func faq(q string, a string) templ.Component {
 		var templ_7745c5c3_Var5 string
 		templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(a)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/templates/help.templ`, Line: 62, Col: 62}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/templates/help.templ`, Line: 66, Col: 62}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
 		if templ_7745c5c3_Err != nil {
