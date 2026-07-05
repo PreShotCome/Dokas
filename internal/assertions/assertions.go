@@ -212,8 +212,16 @@ func runRowCount(ctx context.Context, conn Querier, cfg map[string]any) (Outcome
 	}
 	minRows := intVal(cfg, "min_rows")
 
+	// Schema-qualify to public. Without it the query relies on the sandbox
+	// connection's search_path, which can silently omit public (e.g. Neon's
+	// managed default, or a DATABASE_URL carrying `?options=-c search_path=…`)
+	// and fail with "relation events does not exist" even when the table is
+	// there. table_exists uses information_schema so it wasn't affected; this
+	// gives row_count the same scoping. Fix for the sample-drill mismatch
+	// where table_exists(events) passed and row_count(events) failed on the
+	// same restored dump.
 	var n int64
-	if err := conn.QueryRow(ctx, fmt.Sprintf(`SELECT count(*) FROM %q`, table)).Scan(&n); err != nil {
+	if err := conn.QueryRow(ctx, fmt.Sprintf(`SELECT count(*) FROM public.%q`, table)).Scan(&n); err != nil {
 		return Outcome{}, fmt.Errorf("row_count: %w", err)
 	}
 	return outcome(KindRowCount,
@@ -273,9 +281,10 @@ func runNoNulls(ctx context.Context, conn Querier, cfg map[string]any) (Outcome,
 	if err != nil {
 		return Outcome{}, err
 	}
+	// Schema-qualify to public — see runRowCount for the reason.
 	var nulls int64
 	if err := conn.QueryRow(ctx,
-		fmt.Sprintf(`SELECT count(*) FROM %q WHERE %q IS NULL`, table, column)).Scan(&nulls); err != nil {
+		fmt.Sprintf(`SELECT count(*) FROM public.%q WHERE %q IS NULL`, table, column)).Scan(&nulls); err != nil {
 		return Outcome{}, fmt.Errorf("no_nulls: %w", err)
 	}
 	return outcome(KindNoNulls,
