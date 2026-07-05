@@ -323,3 +323,17 @@ engine-dialing querier (the `assertions.Querier` interface abstracts the
 right surface, and row_count/table_exists/no_nulls are `information_schema`-portable).
 Days, not weeks. The genuinely expensive part is the mysqldump/xtrabackup
 format matrix and its fixture corpus — v2 cost, not the interfaces.
+
+## Restore timeout — per-plan (surfaced by `cmd/drill-stress`)
+
+`RestoreWorker.Timeout` is a global 6h now (was 30 min — bumped after the
+stress harness showed 30 min fails every Growth restore near cap and every
+Grounded restore period). 6h covers Growth's 500 GB at ~30 MB/s (Neon
+network-bound). Grounded's 2 TB ceiling at that throughput needs ~19h and
+still times out; today a 2 TB customer is Enterprise-sales-supported, not
+self-serve. Follow-up: make it plan-aware — Starter 1h, Growth 8h, Grounded
+24h — by carrying the timeout on `drill.RestoreArgs` (enqueue side already
+knows the plan) and wrapping `Work` with `context.WithTimeout`. The global
+`Timeout()` becomes a stuck-worker safety net, not the per-drill deadline.
+Files: `internal/drill/args.go`, `internal/drill/steps/steps.go`,
+`internal/drill/orchestrator.go`.

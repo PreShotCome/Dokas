@@ -370,8 +370,19 @@ func (w *RestoreWorker) Work(ctx context.Context, job *river.Job[drill.RestoreAr
 	return err
 }
 
+// Restore is the long pole in the drill pipeline — it's the only step whose
+// wall-clock scales with the customer's dump size. Advertised MaxDumpBytes
+// caps are Starter 50 GB / Growth 500 GB / Grounded 2 TB. At a conservative
+// 30 MB/s throughput from the Fly app to Neon Postgres (network-bound), a
+// 500 GB Growth restore takes ~4h 45m; the 30-minute timeout we shipped
+// with would fail every Growth customer that filled anywhere near their cap.
+//
+// 6 h covers Growth end-to-end. Grounded's 2 TB ceiling exceeds this on
+// paper (~19 h at 30 MB/s), but a Grounded customer restoring 2 TB is a
+// sales-supported case, not a self-serve happy path. TODO: make this
+// per-plan (see cmd/drill-stress findings + docs/backlog.md).
 func (w *RestoreWorker) Timeout(*river.Job[drill.RestoreArgs]) time.Duration {
-	return 30 * time.Minute
+	return 6 * time.Hour
 }
 
 // ---- Assert ----
