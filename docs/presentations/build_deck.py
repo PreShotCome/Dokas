@@ -319,8 +319,8 @@ left = Inches(0.6)
 
 onboarding_steps = [
     ('1', 'Sign up',
-     'Email + password. $1 first month; card required, cancel anytime. '
-     'The trial gives one real database at weekly cadence, so the buyer proves the product on their own dump.'),
+     'Email + password. Free to start, no card required. '
+     'A trial account can run drills against the built-in sample and connect one real database at weekly cadence to prove the product on their own dump.'),
     ('2', 'Run the sample',
      'A one-click drill against our built-in Postgres fixture runs the full '
      'six-step pipeline in ~2 seconds and produces a real signed PDF. This is the '
@@ -582,7 +582,7 @@ pricing_card(s, left0 + (card_w + card_gap) * 3, card_top, card_w, card_h,
 
 textbox(s, Inches(0.6), Inches(7.2), Inches(12), Inches(0.3),
         'Every tier: daily drills, signed PDF evidence, 7-year retention, '
-        'unlimited seats. Trial: $1 first month, one real database.',
+        'unlimited seats. Free trial: one real database at weekly cadence.',
         size=10, color=MUTED, align=PP_ALIGN.CENTER)
 
 

@@ -323,7 +323,7 @@ for i, (title, body, accent) in enumerate(features):
 # =============================================================================
 s = add_slide()
 page_chrome(s, 'Pricing',
-            '$100 to start. $1 first month, on your own dump. Daily drills on every tier.', 5, TOTAL)
+            '$100 starter. Free to try, no card required. Daily drills on every tier.', 5, TOTAL)
 
 
 def pricing_card(slide, left, top, w, h, name, price, period, cadence_label,
@@ -387,7 +387,7 @@ pricing_card(s, left0 + (card_w + card_gap) * 3, card_top, card_w, card_h,
               'Custom SLA · named account manager'])
 
 textbox(s, Inches(0.6), Inches(7.2), Inches(12), Inches(0.3),
-        '$1 first month. One real database at weekly cadence during the trial. '
+        'Free trial, no card required — one real database at weekly cadence. '
         'Every paid tier includes daily drills, unlimited seats, 7-year retention.',
         size=10, color=MUTED, align=PP_ALIGN.CENTER)
 
@@ -447,7 +447,7 @@ textbox(s, Inches(0.9), Inches(3.15), Inches(11), Inches(0.9),
         'Let\'s prove they restore.', size=42, bold=True, color=PINK_300)
 
 textbox(s, Inches(0.9), Inches(4.5), Inches(11), Inches(1.6),
-        'Sign up at dokaz.net. $1 first month. Run a drill against our sample dataset in 30 seconds — '
+        'Sign up at dokaz.net. Free trial, no card required. Run a drill against our sample dataset in 30 seconds — '
         'you\'ll see the exact signed PDF your auditor will see. Then connect your own '
         'pg_dump and prove it on your real backup, still inside the trial.',
         size=15, color=BODY)

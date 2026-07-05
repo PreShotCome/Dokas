@@ -134,7 +134,7 @@ func landingHero() templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, " restores your database backups in an isolated sandbox on a schedule, proves the data really came back, and signs the result — so a broken backup shows up in a report, not an outage.</p><div class=\"mt-8 flex flex-wrap justify-center gap-3\"><a href=\"/signup\" class=\"btn-primary px-6 py-3 text-base\">Start free</a> <a href=\"/pricing\" class=\"btn-ghost px-6 py-3 text-base\">View pricing</a></div><p class=\"mt-4 text-xs text-zinc-500\">Daily drills on every paid tier · First month $1 · Cancel anytime · Postgres supported today</p><div class=\"mx-auto mt-12 max-w-3xl\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, " restores your database backups in an isolated sandbox on a schedule, proves the data really came back, and signs the result — so a broken backup shows up in a report, not an outage.</p><div class=\"mt-8 flex flex-wrap justify-center gap-3\"><a href=\"/signup\" class=\"btn-primary px-6 py-3 text-base\">Start free</a> <a href=\"/pricing\" class=\"btn-ghost px-6 py-3 text-base\">View pricing</a></div><p class=\"mt-4 text-xs text-zinc-500\">Daily drills on every paid tier · Cancel anytime · Postgres supported today</p><div class=\"mx-auto mt-12 max-w-3xl\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -867,7 +867,7 @@ func landingFAQ() templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = faqItem("What does it cost?", "Three self-serve tiers — Starter $100/mo, Growth $300/mo, Grounded $600/mo — all with daily drills, unlimited team seats, signed PDF evidence, and 7-year retention. Tiers differ by capacity (databases + backup check-ins). First month is $1, cancel anytime. See the pricing page for the breakdown.").Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = faqItem("What does it cost?", "Three self-serve tiers — Starter $100/mo, Growth $300/mo, Grounded $600/mo — all with daily drills, unlimited team seats, signed PDF evidence, and 7-year retention. Tiers differ by database count, drills-per-day throughput, restore-size limit, and where you sit in the drill queue. Cancel any time from Account → Billing. See the pricing page for the full breakdown.").Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

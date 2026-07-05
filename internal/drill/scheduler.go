@@ -134,15 +134,25 @@ func (w *SchedulerWorker) Timeout(*river.Job[SchedulerArgs]) time.Duration {
 }
 
 // priorityForPlan maps an account plan to a River insert priority so paid
-// tiers preempt trial jobs on the shared queue. Keep in sync with the web
-// handlers' drillInsertOpts.
+// tiers preempt trial jobs on the shared queue, and higher-tier customers
+// jump the queue over lower-tier ones. River priority 1 (highest) → 4
+// (lowest); the scheduler picks lower numbers first.
+//
+//	Grounded (scale) : 1  — advertised on the pricing page as top-priority
+//	Growth  (pro)    : 2  — advertised as priority queue
+//	Starter          : 3  — standard queue
+//	Trial            : 4  — deferrable, prevents a free tenant from starving paid
+//
+// Keep in sync with the web handlers' drillInsertOpts.
 func priorityForPlan(plan string) *river.InsertOpts {
-	priority := 2
+	priority := 3
 	switch account.Plan(plan) {
-	case account.PlanScale, account.PlanPro:
+	case account.PlanScale:
 		priority = 1
-	case account.PlanStarter:
+	case account.PlanPro:
 		priority = 2
+	case account.PlanStarter:
+		priority = 3
 	case account.PlanTrial:
 		priority = 4
 	}
