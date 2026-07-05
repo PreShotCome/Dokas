@@ -1,6 +1,7 @@
 package templates
 
 import (
+	"fmt"
 	"strconv"
 
 	"github.com/preshotcome/dokaz/internal/account"
@@ -26,24 +27,10 @@ templ Pricing(lc LayoutCtx, starterLabel, proLabel, scaleLabel string, stripeEna
 					Proof-of-Recovery evidence for SOC 2, ISO 27001, and
 					cyber-insurance renewals — with daily drills, unlimited
 					seats, and 7-year retention on every tier. Plans differ by
-					how many databases and heartbeats { branding.ProductName }
-					covers for you.
+					how many databases { branding.ProductName } covers, how
+					much data it can restore, and where you sit in the drill
+					queue.
 				</p>
-			</div>
-
-			<div class="mb-8 rounded-xl border border-brand-300 bg-brand-50 px-6 py-5 text-center dark:border-brand-700 dark:bg-brand-900/40">
-				<p class="font-semibold text-brand-900 dark:text-brand-100">
-					First month $1. Card required. Cancel anytime.
-				</p>
-				<p class="mx-auto mt-1 max-w-2xl text-sm text-brand-800 dark:text-brand-200">
-					Sign up, run a drill on the built-in sample, then connect your
-					own backup and prove a real restore — all in your first month.
-					After 30 days you continue at your chosen tier; full refund if
-					it didn't deliver value.
-				</p>
-				if lc.User == nil {
-					<a href="/signup" class="btn-primary mt-3 inline-block">Start for $1</a>
-				}
 			</div>
 
 			<div class="mb-6 rounded-lg border border-zinc-200 bg-white px-5 py-4 text-center text-sm text-zinc-700 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300">
@@ -71,10 +58,12 @@ templ Pricing(lc LayoutCtx, starterLabel, proLabel, scaleLabel string, stripeEna
 	}
 }
 
-// pricingCard renders one self-serve plan tier. Daily drills are the
-// baseline for every paid tier now, so the headline is capacity (databases
-// + heartbeats), not cadence. `popular` adds the gold border + "MOST
-// POPULAR" badge — exactly one tier should be marked popular at a time.
+// pricingCard renders one self-serve plan tier. Each tier gets a
+// deliberately different feature list (drill throughput, dump-size cap,
+// queue priority, integration capacity, support depth) so a prospect can
+// see why they'd pick a larger tier as they scale, not just count seats.
+// `popular` adds the gold border + "MOST POPULAR" badge — exactly one tier
+// should be marked popular at a time.
 templ pricingCard(lc LayoutCtx, plan, name, price, period string, popular, stripeEnabled bool, limits account.Limits) {
 	<div class={ "flex flex-col gap-5 rounded-lg p-6 shadow-sm relative bg-white dark:bg-zinc-900",
 		templ.KV("border-2 border-gold-500 dark:border-gold-400 shadow-lg", popular),
@@ -90,6 +79,7 @@ templ pricingCard(lc LayoutCtx, plan, name, price, period string, popular, strip
 					<span class="text-sm text-zinc-500">{ period }</span>
 				}
 			</p>
+			<p class="mt-1 text-xs text-zinc-500">{ pricingTagline(plan) }</p>
 		</div>
 		<div class="rounded-lg bg-brand-50 px-3 py-2 text-center dark:bg-brand-900/40">
 			<p class="text-[11px] font-medium uppercase tracking-wide text-brand-600 dark:text-brand-300">Capacity</p>
@@ -98,12 +88,9 @@ templ pricingCard(lc LayoutCtx, plan, name, price, period string, popular, strip
 			</p>
 		</div>
 		<ul class="flex-1 space-y-2 text-sm text-zinc-600 dark:text-zinc-400">
-			@pricingFeature(limitText(limits.Heartbeats, "backup check-in"))
-			@pricingFeature("Unlimited team seats")
-			@pricingFeature("Daily drills · signed PDF evidence")
-			@pricingFeature("7-year retention · auditor share links")
-			@pricingFeature("JSON API & signed webhooks")
-			@pricingFeature(supportLevel(plan))
+			for _, feat := range pricingFeatures(plan, limits) {
+				@pricingFeature(feat)
+			}
 		</ul>
 		@pricingCTA(lc, plan, stripeEnabled)
 	</div>
@@ -162,6 +149,64 @@ templ pricingCTA(lc LayoutCtx, plan string, stripeEnabled bool) {
 	}
 }
 
+// pricingTagline is the one-line positioning under each price. Written to
+// name the buyer, not the feature — the feature list handles that.
+func pricingTagline(plan string) string {
+	switch plan {
+	case "starter":
+		return "For a single team getting an audit off the ground"
+	case "pro":
+		return "For the engineering org running a growing production fleet"
+	case "scale":
+		return "For high-volume infrastructure at fleet scale"
+	default:
+		return ""
+	}
+}
+
+// pricingFeatures returns the tier-differentiated bullet list. Each tier
+// pulls in the concrete limit values so a change to LimitsFor propagates
+// automatically to the page.
+func pricingFeatures(plan string, limits account.Limits) []string {
+	switch plan {
+	case "starter":
+		return []string{
+			limitText(limits.Heartbeats, "backup check-in"),
+			fmt.Sprintf("Up to %d drills per day", limits.DrillsPerDay),
+			"Restore dumps up to " + dumpSizeLabel(limits.MaxDumpBytes),
+			fmt.Sprintf("%d API keys · %d webhooks", limits.APIKeys, limits.Webhooks),
+			"Standard drill queue",
+			"Slack · PagerDuty · email alerts",
+			"Email support (next business day)",
+		}
+	case "pro":
+		return []string{
+			limitText(limits.Heartbeats, "backup check-in"),
+			fmt.Sprintf("Up to %d drills per day (5× Starter)", limits.DrillsPerDay),
+			"Restore dumps up to " + dumpSizeLabel(limits.MaxDumpBytes) + " (10× Starter)",
+			"Unlimited API keys & webhooks",
+			"Priority drill queue — jumps Starter jobs",
+			"Custom assertion library across all databases",
+			"Priority email support (same-day)",
+		}
+	case "scale":
+		return []string{
+			"Unlimited backup check-ins",
+			fmt.Sprintf("Up to %d drills per day (fleet-scale)", limits.DrillsPerDay),
+			"Restore dumps up to " + dumpSizeLabel(limits.MaxDumpBytes),
+			"Unlimited API keys & webhooks",
+			"Top-priority drill queue — never waits behind smaller tiers",
+			"Extended raw restore logs (30 days) for post-mortem review",
+			"Quarterly evidence bundle export for auditors",
+			"Deployment region selection (roadmap)",
+			"SSO / SAML (roadmap)",
+			"Dedicated support channel + named contact",
+		}
+	default:
+		return nil
+	}
+}
+
 // limitText renders a resource cap: "1 database", "10 databases", or
 // "Unlimited databases" for an uncapped tier.
 func limitText(n int, singular string) string {
@@ -175,16 +220,14 @@ func limitText(n int, singular string) string {
 	}
 }
 
-// supportLevel is the support tier shown on each plan card.
-func supportLevel(plan string) string {
-	switch plan {
-	case "scale":
-		return "Priority support + dedicated channel"
-	case "pro":
-		return "Priority support"
-	case "starter":
-		return "Email support"
-	default:
-		return "Community support"
+// dumpSizeLabel formats a MaxDumpBytes cap in the largest round unit —
+// "50 GB", "500 GB", "2 TB". Round because prospects skim; the actual
+// enforcement compares bytes, not the label.
+func dumpSizeLabel(n int64) string {
+	const gb = int64(1) << 30
+	const tb = 1024 * gb
+	if n >= tb && n%tb == 0 {
+		return strconv.FormatInt(n/tb, 10) + " TB"
 	}
+	return strconv.FormatInt(n/gb, 10) + " GB"
 }

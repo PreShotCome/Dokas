@@ -154,23 +154,29 @@ func humanBytes(n int64) string {
 }
 
 // drillInsertOpts returns River insert options for a drill's jobs, priority
-// keyed off the account's plan: paid plans preempt trial jobs when workers
-// are scarce. Without this, one trial account hammering /databases/sample-drill
-// can starve every paying customer on the shared 8-worker queue. Unlimited
+// keyed off the account's plan. Grounded jumps every other tier, Growth
+// jumps Starter, and every paid plan preempts trial jobs. Without this
+// stratification, one trial account hammering /databases/sample-drill can
+// starve every paying customer on the shared 8-worker queue. Unlimited
 // (founder/staff) also gets top priority.
+//
+// Priority map is deliberately in sync with drill.priorityForPlan — that
+// path handles scheduled drills, this one handles interactive ones.
 func drillInsertOpts(acct *account.Account) *river.InsertOpts {
 	// River priorities are 1 (highest) through 4 (lowest); the scheduler
 	// picks lower priority numbers first from the queue.
-	priority := 2
+	priority := 3
 	if acct != nil {
 		if acct.Unlimited {
 			priority = 1
 		} else {
 			switch acct.Plan {
-			case account.PlanScale, account.PlanPro:
+			case account.PlanScale:
 				priority = 1
-			case account.PlanStarter:
+			case account.PlanPro:
 				priority = 2
+			case account.PlanStarter:
+				priority = 3
 			case account.PlanTrial:
 				priority = 4
 			}

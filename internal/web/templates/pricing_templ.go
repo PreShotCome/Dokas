@@ -9,6 +9,7 @@ import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
 import (
+	"fmt"
 	"strconv"
 
 	"github.com/preshotcome/dokaz/internal/account"
@@ -57,30 +58,20 @@ func Pricing(lc LayoutCtx, starterLabel, proLabel, scaleLabel string, stripeEnab
 				}()
 			}
 			ctx = templ.InitializeContext(ctx)
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"mx-auto max-w-6xl\"><div class=\"mb-8 text-center\"><h1 class=\"text-3xl font-semibold tracking-tight\">Pricing that pays for itself at one audit</h1><p class=\"mx-auto mt-3 max-w-2xl text-zinc-600 dark:text-zinc-400\">Every plan produces signed, independently verifiable Proof-of-Recovery evidence for SOC 2, ISO 27001, and cyber-insurance renewals — with daily drills, unlimited seats, and 7-year retention on every tier. Plans differ by how many databases and heartbeats ")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"mx-auto max-w-6xl\"><div class=\"mb-8 text-center\"><h1 class=\"text-3xl font-semibold tracking-tight\">Pricing that pays for itself at one audit</h1><p class=\"mx-auto mt-3 max-w-2xl text-zinc-600 dark:text-zinc-400\">Every plan produces signed, independently verifiable Proof-of-Recovery evidence for SOC 2, ISO 27001, and cyber-insurance renewals — with daily drills, unlimited seats, and 7-year retention on every tier. Plans differ by how many databases ")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var3 string
 			templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(branding.ProductName)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/templates/pricing.templ`, Line: 29, Col: 61}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/templates/pricing.templ`, Line: 30, Col: 46}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, " covers for you.</p></div><div class=\"mb-8 rounded-xl border border-brand-300 bg-brand-50 px-6 py-5 text-center dark:border-brand-700 dark:bg-brand-900/40\"><p class=\"font-semibold text-brand-900 dark:text-brand-100\">First month $1. Card required. Cancel anytime.</p><p class=\"mx-auto mt-1 max-w-2xl text-sm text-brand-800 dark:text-brand-200\">Sign up, run a drill on the built-in sample, then connect your own backup and prove a real restore — all in your first month. After 30 days you continue at your chosen tier; full refund if it didn't deliver value.</p>")
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			if lc.User == nil {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "<a href=\"/signup\" class=\"btn-primary mt-3 inline-block\">Start for $1</a>")
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "</div><div class=\"mb-6 rounded-lg border border-zinc-200 bg-white px-5 py-4 text-center text-sm text-zinc-700 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300\"><span class=\"font-semibold text-zinc-900 dark:text-zinc-100\">Included on every tier:</span> daily drills · signed PDF evidence · 7-year retention · auditor share links · unlimited team seats · JSON API + signed webhooks</div><div class=\"grid gap-6 pt-3 sm:grid-cols-2 lg:grid-cols-3\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, " covers, how much data it can restore, and where you sit in the drill queue.</p></div><div class=\"mb-6 rounded-lg border border-zinc-200 bg-white px-5 py-4 text-center text-sm text-zinc-700 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300\"><span class=\"font-semibold text-zinc-900 dark:text-zinc-100\">Included on every tier:</span> daily drills · signed PDF evidence · 7-year retention · auditor share links · unlimited team seats · JSON API + signed webhooks</div><div class=\"grid gap-6 pt-3 sm:grid-cols-2 lg:grid-cols-3\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -99,7 +90,7 @@ func Pricing(lc LayoutCtx, starterLabel, proLabel, scaleLabel string, stripeEnab
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "</div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "</div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -107,7 +98,7 @@ func Pricing(lc LayoutCtx, starterLabel, proLabel, scaleLabel string, stripeEnab
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "<p class=\"mt-8 text-center text-xs text-zinc-500\">Paid plans are billed monthly through Stripe — no card details touch our servers. Change or cancel any time from Account → Billing. Annual billing available on request — save 20%.</p></div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "<p class=\"mt-8 text-center text-xs text-zinc-500\">Paid plans are billed monthly through Stripe — no card details touch our servers. Change or cancel any time from Account → Billing. Annual billing available on request — save 20%.</p></div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -121,10 +112,12 @@ func Pricing(lc LayoutCtx, starterLabel, proLabel, scaleLabel string, stripeEnab
 	})
 }
 
-// pricingCard renders one self-serve plan tier. Daily drills are the
-// baseline for every paid tier now, so the headline is capacity (databases
-// + heartbeats), not cadence. `popular` adds the gold border + "MOST
-// POPULAR" badge — exactly one tier should be marked popular at a time.
+// pricingCard renders one self-serve plan tier. Each tier gets a
+// deliberately different feature list (drill throughput, dump-size cap,
+// queue priority, integration capacity, support depth) so a prospect can
+// see why they'd pick a larger tier as they scale, not just count seats.
+// `popular` adds the gold border + "MOST POPULAR" badge — exactly one tier
+// should be marked popular at a time.
 func pricingCard(lc LayoutCtx, plan, name, price, period string, popular, stripeEnabled bool, limits account.Limits) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
@@ -153,7 +146,7 @@ func pricingCard(lc LayoutCtx, plan, name, price, period string, popular, stripe
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "<div class=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "<div class=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -166,107 +159,102 @@ func pricingCard(lc LayoutCtx, plan, name, price, period string, popular, stripe
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		if popular {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "<span class=\"absolute -top-3 left-1/2 -translate-x-1/2 inline-flex items-center rounded-full bg-gold-500 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-brand-900 shadow-md\">Most popular</span>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "<span class=\"absolute -top-3 left-1/2 -translate-x-1/2 inline-flex items-center rounded-full bg-gold-500 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-brand-900 shadow-md\">Most popular</span>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "<div><h2 class=\"text-lg font-semibold\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "<div><h2 class=\"text-lg font-semibold\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var7 string
 		templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinStringErrs(name)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/templates/pricing.templ`, Line: 86, Col: 43}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/templates/pricing.templ`, Line: 75, Col: 43}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var7))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "</h2><p class=\"mt-1\"><span class=\"text-3xl font-semibold tracking-tight\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "</h2><p class=\"mt-1\"><span class=\"text-3xl font-semibold tracking-tight\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var8 string
 		templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(price)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/templates/pricing.templ`, Line: 88, Col: 63}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/templates/pricing.templ`, Line: 77, Col: 63}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var8))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "</span> ")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "</span> ")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		if period != "" {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "<span class=\"text-sm text-zinc-500\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "<span class=\"text-sm text-zinc-500\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var9 string
 			templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs(period)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/templates/pricing.templ`, Line: 90, Col: 49}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/templates/pricing.templ`, Line: 79, Col: 49}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var9))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "</span>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "</span>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, "</p></div><div class=\"rounded-lg bg-brand-50 px-3 py-2 text-center dark:bg-brand-900/40\"><p class=\"text-[11px] font-medium uppercase tracking-wide text-brand-600 dark:text-brand-300\">Capacity</p><p class=\"font-semibold text-brand-800 dark:text-brand-100\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "</p><p class=\"mt-1 text-xs text-zinc-500\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var10 string
-		templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.JoinStringErrs(limitText(limits.Databases, "database"))
+		templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.JoinStringErrs(pricingTagline(plan))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/templates/pricing.templ`, Line: 97, Col: 45}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/templates/pricing.templ`, Line: 82, Col: 63}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var10))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, "</p></div><ul class=\"flex-1 space-y-2 text-sm text-zinc-600 dark:text-zinc-400\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "</p></div><div class=\"rounded-lg bg-brand-50 px-3 py-2 text-center dark:bg-brand-900/40\"><p class=\"text-[11px] font-medium uppercase tracking-wide text-brand-600 dark:text-brand-300\">Capacity</p><p class=\"font-semibold text-brand-800 dark:text-brand-100\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = pricingFeature(limitText(limits.Heartbeats, "backup check-in")).Render(ctx, templ_7745c5c3_Buffer)
+		var templ_7745c5c3_Var11 string
+		templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.JoinStringErrs(limitText(limits.Databases, "database"))
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/templates/pricing.templ`, Line: 87, Col: 45}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var11))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = pricingFeature("Unlimited team seats").Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, "</p></div><ul class=\"flex-1 space-y-2 text-sm text-zinc-600 dark:text-zinc-400\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = pricingFeature("Daily drills · signed PDF evidence").Render(ctx, templ_7745c5c3_Buffer)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
+		for _, feat := range pricingFeatures(plan, limits) {
+			templ_7745c5c3_Err = pricingFeature(feat).Render(ctx, templ_7745c5c3_Buffer)
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
 		}
-		templ_7745c5c3_Err = pricingFeature("7-year retention · auditor share links").Render(ctx, templ_7745c5c3_Buffer)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = pricingFeature("JSON API & signed webhooks").Render(ctx, templ_7745c5c3_Buffer)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = pricingFeature(supportLevel(plan)).Render(ctx, templ_7745c5c3_Buffer)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 17, "</ul>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, "</ul>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -274,7 +262,7 @@ func pricingCard(lc LayoutCtx, plan, name, price, period string, popular, stripe
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 18, "</div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 17, "</div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -303,12 +291,12 @@ func pricingEnterpriseCallout() templ.Component {
 			}()
 		}
 		ctx = templ.InitializeContext(ctx)
-		templ_7745c5c3_Var11 := templ.GetChildren(ctx)
-		if templ_7745c5c3_Var11 == nil {
-			templ_7745c5c3_Var11 = templ.NopComponent
+		templ_7745c5c3_Var12 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var12 == nil {
+			templ_7745c5c3_Var12 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 19, "<div class=\"mt-10 rounded-xl border border-zinc-200 bg-white px-6 py-5 dark:border-zinc-800 dark:bg-zinc-900\"><div class=\"flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:justify-between\"><div><h3 class=\"text-lg font-semibold text-zinc-900 dark:text-zinc-100\">Need something in between?</h3><p class=\"mt-1 max-w-2xl text-sm text-zinc-600 dark:text-zinc-400\">Regulated environments, sub-daily cadence, and hands-on onboarding: BYO-runner-in-VPC, SSO/SAML, BAA/DPA, hourly drills, custom SLA, and dedicated support — priced to the engagement.</p></div><a href=\"mailto:sales@dokaz.net?subject=Dokaz%20Enterprise%20plan\" class=\"btn-primary whitespace-nowrap\">Talk to sales</a></div></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 18, "<div class=\"mt-10 rounded-xl border border-zinc-200 bg-white px-6 py-5 dark:border-zinc-800 dark:bg-zinc-900\"><div class=\"flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:justify-between\"><div><h3 class=\"text-lg font-semibold text-zinc-900 dark:text-zinc-100\">Need something in between?</h3><p class=\"mt-1 max-w-2xl text-sm text-zinc-600 dark:text-zinc-400\">Regulated environments, sub-daily cadence, and hands-on onboarding: BYO-runner-in-VPC, SSO/SAML, BAA/DPA, hourly drills, custom SLA, and dedicated support — priced to the engagement.</p></div><a href=\"mailto:sales@dokaz.net?subject=Dokaz%20Enterprise%20plan\" class=\"btn-primary whitespace-nowrap\">Talk to sales</a></div></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -332,12 +320,12 @@ func pricingFeature(text string) templ.Component {
 			}()
 		}
 		ctx = templ.InitializeContext(ctx)
-		templ_7745c5c3_Var12 := templ.GetChildren(ctx)
-		if templ_7745c5c3_Var12 == nil {
-			templ_7745c5c3_Var12 = templ.NopComponent
+		templ_7745c5c3_Var13 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var13 == nil {
+			templ_7745c5c3_Var13 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 20, "<li class=\"flex items-start gap-2\"><span class=\"mt-0.5 shrink-0 text-emerald-500\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 19, "<li class=\"flex items-start gap-2\"><span class=\"mt-0.5 shrink-0 text-emerald-500\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -345,20 +333,20 @@ func pricingFeature(text string) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 21, "</span> <span>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 20, "</span> <span>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		var templ_7745c5c3_Var13 string
-		templ_7745c5c3_Var13, templ_7745c5c3_Err = templ.JoinStringErrs(text)
+		var templ_7745c5c3_Var14 string
+		templ_7745c5c3_Var14, templ_7745c5c3_Err = templ.JoinStringErrs(text)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/templates/pricing.templ`, Line: 138, Col: 14}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/templates/pricing.templ`, Line: 125, Col: 14}
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var13))
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var14))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 22, "</span></li>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 21, "</span></li>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -385,24 +373,24 @@ func pricingCTA(lc LayoutCtx, plan string, stripeEnabled bool) templ.Component {
 			}()
 		}
 		ctx = templ.InitializeContext(ctx)
-		templ_7745c5c3_Var14 := templ.GetChildren(ctx)
-		if templ_7745c5c3_Var14 == nil {
-			templ_7745c5c3_Var14 = templ.NopComponent
+		templ_7745c5c3_Var15 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var15 == nil {
+			templ_7745c5c3_Var15 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
 		if lc.User == nil {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 23, "<a href=\"/signup?next=/pricing\" class=\"btn-primary w-full\">Get started</a>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 22, "<a href=\"/signup?next=/pricing\" class=\"btn-primary w-full\">Get started</a>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 		} else if lc.Account != nil && string(lc.Account.Plan) == plan {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 24, "<span class=\"btn-ghost w-full cursor-default\" aria-disabled=\"true\">Current plan</span>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 23, "<span class=\"btn-ghost w-full cursor-default\" aria-disabled=\"true\">Current plan</span>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 		} else if lc.Membership != nil && auth.Allowed(lc.Membership.Role, auth.ActionBillingWrite) {
 			if stripeEnabled {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 25, "<form method=\"POST\" action=\"/account/billing/checkout\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 24, "<form method=\"POST\" action=\"/account/billing/checkout\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -410,37 +398,95 @@ func pricingCTA(lc LayoutCtx, plan string, stripeEnabled bool) templ.Component {
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 26, "<input type=\"hidden\" name=\"plan\" value=\"")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 25, "<input type=\"hidden\" name=\"plan\" value=\"")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				var templ_7745c5c3_Var15 string
-				templ_7745c5c3_Var15, templ_7745c5c3_Err = templ.ResolveAttributeValue(plan)
+				var templ_7745c5c3_Var16 string
+				templ_7745c5c3_Var16, templ_7745c5c3_Err = templ.ResolveAttributeValue(plan)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/templates/pricing.templ`, Line: 154, Col: 49}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/templates/pricing.templ`, Line: 141, Col: 49}
 				}
-				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var15)
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var16)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 27, "\"> <button type=\"submit\" class=\"btn-primary w-full\">Subscribe</button></form>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 26, "\"> <button type=\"submit\" class=\"btn-primary w-full\">Subscribe</button></form>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 			} else {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 28, "<span class=\"block text-center text-xs text-zinc-500\">Billing is not configured yet</span>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 27, "<span class=\"block text-center text-xs text-zinc-500\">Billing is not configured yet</span>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 			}
 		} else {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 29, "<span class=\"block text-center text-xs text-zinc-500\">Ask your account owner to upgrade</span>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 28, "<span class=\"block text-center text-xs text-zinc-500\">Ask your account owner to upgrade</span>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 		}
 		return nil
 	})
+}
+
+// pricingTagline is the one-line positioning under each price. Written to
+// name the buyer, not the feature — the feature list handles that.
+func pricingTagline(plan string) string {
+	switch plan {
+	case "starter":
+		return "For a single team getting an audit off the ground"
+	case "pro":
+		return "For the engineering org running a growing production fleet"
+	case "scale":
+		return "For high-volume infrastructure at fleet scale"
+	default:
+		return ""
+	}
+}
+
+// pricingFeatures returns the tier-differentiated bullet list. Each tier
+// pulls in the concrete limit values so a change to LimitsFor propagates
+// automatically to the page.
+func pricingFeatures(plan string, limits account.Limits) []string {
+	switch plan {
+	case "starter":
+		return []string{
+			limitText(limits.Heartbeats, "backup check-in"),
+			fmt.Sprintf("Up to %d drills per day", limits.DrillsPerDay),
+			"Restore dumps up to " + dumpSizeLabel(limits.MaxDumpBytes),
+			fmt.Sprintf("%d API keys · %d webhooks", limits.APIKeys, limits.Webhooks),
+			"Standard drill queue",
+			"Slack · PagerDuty · email alerts",
+			"Email support (next business day)",
+		}
+	case "pro":
+		return []string{
+			limitText(limits.Heartbeats, "backup check-in"),
+			fmt.Sprintf("Up to %d drills per day (5× Starter)", limits.DrillsPerDay),
+			"Restore dumps up to " + dumpSizeLabel(limits.MaxDumpBytes) + " (10× Starter)",
+			"Unlimited API keys & webhooks",
+			"Priority drill queue — jumps Starter jobs",
+			"Custom assertion library across all databases",
+			"Priority email support (same-day)",
+		}
+	case "scale":
+		return []string{
+			"Unlimited backup check-ins",
+			fmt.Sprintf("Up to %d drills per day (fleet-scale)", limits.DrillsPerDay),
+			"Restore dumps up to " + dumpSizeLabel(limits.MaxDumpBytes),
+			"Unlimited API keys & webhooks",
+			"Top-priority drill queue — never waits behind smaller tiers",
+			"Extended raw restore logs (30 days) for post-mortem review",
+			"Quarterly evidence bundle export for auditors",
+			"Deployment region selection (roadmap)",
+			"SSO / SAML (roadmap)",
+			"Dedicated support channel + named contact",
+		}
+	default:
+		return nil
+	}
 }
 
 // limitText renders a resource cap: "1 database", "10 databases", or
@@ -456,18 +502,16 @@ func limitText(n int, singular string) string {
 	}
 }
 
-// supportLevel is the support tier shown on each plan card.
-func supportLevel(plan string) string {
-	switch plan {
-	case "scale":
-		return "Priority support + dedicated channel"
-	case "pro":
-		return "Priority support"
-	case "starter":
-		return "Email support"
-	default:
-		return "Community support"
+// dumpSizeLabel formats a MaxDumpBytes cap in the largest round unit —
+// "50 GB", "500 GB", "2 TB". Round because prospects skim; the actual
+// enforcement compares bytes, not the label.
+func dumpSizeLabel(n int64) string {
+	const gb = int64(1) << 30
+	const tb = 1024 * gb
+	if n >= tb && n%tb == 0 {
+		return strconv.FormatInt(n/tb, 10) + " TB"
 	}
+	return strconv.FormatInt(n/gb, 10) + " GB"
 }
 
 var _ = templruntime.GeneratedTemplate
