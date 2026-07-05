@@ -10,9 +10,9 @@ import (
 
 // Pricing is the public pricing page. starterLabel / proLabel / scaleLabel
 // are the headline monthly prices (display-only — Stripe holds the real
-// amount) for Starter, Growth, and Scale respectively. Internal plan IDs
-// stay "starter" / "pro" / "scale" so existing Stripe products and DB
-// values keep working; only the user-facing names change.
+// amount) for Starter, Growth, and Grounded respectively. Internal plan
+// IDs stay "starter" / "pro" / "scale" so existing Stripe products and DB
+// values keep working; only the user-facing names change (scale → Grounded).
 //
 // stripeEnabled is false when no Stripe keys are configured, in which case
 // the subscribe action is replaced with a notice.
@@ -24,9 +24,10 @@ templ Pricing(lc LayoutCtx, starterLabel, proLabel, scaleLabel string, stripeEna
 				<p class="mx-auto mt-3 max-w-2xl text-zinc-600 dark:text-zinc-400">
 					Every plan produces signed, independently verifiable
 					Proof-of-Recovery evidence for SOC 2, ISO 27001, and
-					cyber-insurance renewals. Plans differ by how often { branding.ProductName }
-					drills your databases and how many you run — the more critical
-					your data, the more often you verify it.
+					cyber-insurance renewals — with daily drills, unlimited
+					seats, and 7-year retention on every tier. Plans differ by
+					how many databases and heartbeats { branding.ProductName }
+					covers for you.
 				</p>
 			</div>
 
@@ -45,15 +46,22 @@ templ Pricing(lc LayoutCtx, starterLabel, proLabel, scaleLabel string, stripeEna
 				}
 			</div>
 
-			<div class="grid gap-6 pt-3 sm:grid-cols-2 lg:grid-cols-4">
+			<div class="mb-6 rounded-lg border border-zinc-200 bg-white px-5 py-4 text-center text-sm text-zinc-700 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300">
+				<span class="font-semibold text-zinc-900 dark:text-zinc-100">Included on every tier:</span>
+				daily drills · signed PDF evidence · 7-year retention · auditor share links · unlimited team seats · JSON API + signed webhooks
+			</div>
+
+			<div class="grid gap-6 pt-3 sm:grid-cols-2 lg:grid-cols-3">
 				@pricingCard(lc, "starter", "Starter", starterLabel, "/mo", false, stripeEnabled,
 					account.LimitsFor(account.PlanStarter))
 				@pricingCard(lc, "pro", "Growth", proLabel, "/mo", true, stripeEnabled,
 					account.LimitsFor(account.PlanPro))
-				@pricingCard(lc, "scale", "Scale", scaleLabel, "/mo", false, stripeEnabled,
+				@pricingCard(lc, "scale", "Grounded", scaleLabel, "/mo", false, stripeEnabled,
 					account.LimitsFor(account.PlanScale))
-				@pricingEnterpriseCard()
 			</div>
+
+			@pricingEnterpriseCallout()
+
 			<p class="mt-8 text-center text-xs text-zinc-500">
 				Paid plans are billed monthly through Stripe — no card details
 				touch our servers. Change or cancel any time from Account → Billing.
@@ -63,10 +71,10 @@ templ Pricing(lc LayoutCtx, starterLabel, proLabel, scaleLabel string, stripeEna
 	}
 }
 
-// pricingCard renders one self-serve plan tier. Drill frequency is the
-// headline; the database count is a fair-use allowance below it. `popular`
-// adds the gold border + "MOST POPULAR" badge — exactly one tier should be
-// marked popular at a time.
+// pricingCard renders one self-serve plan tier. Daily drills are the
+// baseline for every paid tier now, so the headline is capacity (databases
+// + heartbeats), not cadence. `popular` adds the gold border + "MOST
+// POPULAR" badge — exactly one tier should be marked popular at a time.
 templ pricingCard(lc LayoutCtx, plan, name, price, period string, popular, stripeEnabled bool, limits account.Limits) {
 	<div class={ "flex flex-col gap-5 rounded-lg p-6 shadow-sm relative bg-white dark:bg-zinc-900",
 		templ.KV("border-2 border-gold-500 dark:border-gold-400 shadow-lg", popular),
@@ -84,16 +92,16 @@ templ pricingCard(lc LayoutCtx, plan, name, price, period string, popular, strip
 			</p>
 		</div>
 		<div class="rounded-lg bg-brand-50 px-3 py-2 text-center dark:bg-brand-900/40">
-			<p class="text-[11px] font-medium uppercase tracking-wide text-brand-600 dark:text-brand-300">Drill frequency</p>
+			<p class="text-[11px] font-medium uppercase tracking-wide text-brand-600 dark:text-brand-300">Capacity</p>
 			<p class="font-semibold text-brand-800 dark:text-brand-100">
-				{ cadenceLabel(account.TopCadence(account.Plan(plan))) } drills
+				{ limitText(limits.Databases, "database") }
 			</p>
 		</div>
 		<ul class="flex-1 space-y-2 text-sm text-zinc-600 dark:text-zinc-400">
-			@pricingFeature(limitText(limits.Databases, "database"))
 			@pricingFeature(limitText(limits.Heartbeats, "backup check-in"))
-			@pricingFeature(limitText(limits.Seats, "team seat"))
-			@pricingFeature("Signed PDF evidence · 7-year retention")
+			@pricingFeature("Unlimited team seats")
+			@pricingFeature("Daily drills · signed PDF evidence")
+			@pricingFeature("7-year retention · auditor share links")
 			@pricingFeature("JSON API & signed webhooks")
 			@pricingFeature(supportLevel(plan))
 		</ul>
@@ -101,31 +109,24 @@ templ pricingCard(lc LayoutCtx, plan, name, price, period string, popular, strip
 	</div>
 }
 
-// pricingEnterpriseCard is the top, sales-led tier. Not a self-serve plan
-// key — onboarding is hands-on — so it shows a "Talk to us" contact CTA
-// rather than a Stripe checkout. Features listed are real or clearly
-// marked as roadmap, so the page never overpromises.
-templ pricingEnterpriseCard() {
-	<div class="flex flex-col gap-5 rounded-lg border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
-		<div>
-			<h2 class="text-lg font-semibold">Enterprise</h2>
-			<p class="mt-1">
-				<span class="text-3xl font-semibold tracking-tight">Custom</span>
-			</p>
-			<p class="mt-1 text-xs text-zinc-500">Typical starting point ~$2,000/mo</p>
+// pricingEnterpriseCallout is a subtle "something in between" line for
+// deals that self-serve doesn't cover — BYO-runner-in-VPC, SSO/SAML,
+// BAA/DPA, hourly cadence, custom SLA. Deliberately NOT a fourth card so
+// it doesn't visually compete with the three self-serve tiers; it points
+// at a sales inbox.
+templ pricingEnterpriseCallout() {
+	<div class="mt-10 rounded-xl border border-zinc-200 bg-white px-6 py-5 dark:border-zinc-800 dark:bg-zinc-900">
+		<div class="flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:justify-between">
+			<div>
+				<h3 class="text-lg font-semibold text-zinc-900 dark:text-zinc-100">Need something in between?</h3>
+				<p class="mt-1 max-w-2xl text-sm text-zinc-600 dark:text-zinc-400">
+					Regulated environments, sub-daily cadence, and hands-on onboarding:
+					BYO-runner-in-VPC, SSO/SAML, BAA/DPA, hourly drills, custom SLA,
+					and dedicated support — priced to the engagement.
+				</p>
+			</div>
+			<a href="mailto:sales@dokaz.net?subject=Dokaz%20Enterprise%20plan" class="btn-primary whitespace-nowrap">Talk to sales</a>
 		</div>
-		<div class="rounded-lg bg-brand-50 px-3 py-2 text-center dark:bg-brand-900/40">
-			<p class="text-[11px] font-medium uppercase tracking-wide text-brand-600 dark:text-brand-300">For audit programs</p>
-			<p class="font-semibold text-brand-800 dark:text-brand-100">Everything in Scale</p>
-		</div>
-		<ul class="flex-1 space-y-2 text-sm text-zinc-600 dark:text-zinc-400">
-			@pricingFeature("Unlimited databases, drills, and seats")
-			@pricingFeature("Quarterly evidence bundle for your auditor")
-			@pricingFeature("Longer evidence retention on request")
-			@pricingFeature("SSO + auditor read-only access (roadmap)")
-			@pricingFeature("Dedicated support + custom SLA")
-		</ul>
-		<a href="mailto:sales@dokaz.net?subject=Dokaz%20Enterprise%20plan" class="btn-primary w-full">Talk to us</a>
 	</div>
 }
 
@@ -162,7 +163,7 @@ templ pricingCTA(lc LayoutCtx, plan string, stripeEnabled bool) {
 }
 
 // limitText renders a resource cap: "1 database", "10 databases", or
-// "Unlimited databases" for an uncapped (Growth) tier.
+// "Unlimited databases" for an uncapped tier.
 func limitText(n int, singular string) string {
 	switch {
 	case n == account.Unlimited:

@@ -35,18 +35,22 @@ func TestLimitsFor(t *testing.T) {
 		plan Plan
 		want Limits
 	}{
-		// Active trials get ONE real database + a small team footprint. The
-		// point of the trial is to prove the product on the user's own dump
-		// before they subscribe, not to host a production fleet for free.
-		{PlanTrial, Limits{Databases: 1, Seats: 2, APIKeys: 2, Webhooks: 2, Heartbeats: 3,
+		// Active trials get ONE real database and unlimited seats — walk-
+		// through pricing gives them the daily-cadence experience of Growth
+		// so they see what they'd upgrade to.
+		{PlanTrial, Limits{Databases: 1, Seats: Unlimited, APIKeys: 2, Webhooks: 2, Heartbeats: 3,
 			DrillsPerDay: 5, MaxDumpBytes: 5 * gb}},
-		{PlanStarter, Limits{Databases: 5, Seats: 3, APIKeys: 3, Webhooks: 3, Heartbeats: 10,
-			DrillsPerDay: 20, MaxDumpBytes: 20 * gb}},
-		{PlanPro, Limits{Databases: 25, Seats: 10, APIKeys: 10, Webhooks: 10, Heartbeats: 25,
-			DrillsPerDay: 100, MaxDumpBytes: 200 * gb}},
-		// Scale is uncapped on Databases/Seats/etc but drills and dumps still
-		// carry hard ceilings — protects the shared queue.
-		{PlanScale, Limits{DrillsPerDay: 500, MaxDumpBytes: 1024 * gb}},
+		{PlanStarter, Limits{Databases: 5, Seats: Unlimited, APIKeys: 10, Webhooks: 10, Heartbeats: 25,
+			DrillsPerDay: 30, MaxDumpBytes: 50 * gb}},
+		{PlanPro, Limits{Databases: 25, Seats: Unlimited, APIKeys: Unlimited,
+			Webhooks: Unlimited, Heartbeats: 50,
+			DrillsPerDay: 150, MaxDumpBytes: 500 * gb}},
+		// Grounded (DB value 'scale') is the top self-serve tier. Databases
+		// capped at 100; drills/dump size still carry hard ceilings so a
+		// single tenant can't starve the shared queue.
+		{PlanScale, Limits{Databases: 100, Seats: Unlimited, APIKeys: Unlimited,
+			Webhooks: Unlimited, Heartbeats: Unlimited,
+			DrillsPerDay: 500, MaxDumpBytes: 2 * 1024 * gb}},
 		{Plan("garbage"), Limits{Databases: 1, Seats: 2, APIKeys: 1, Webhooks: 1, Heartbeats: 1,
 			DrillsPerDay: 2, MaxDumpBytes: 1 * gb}},
 	}
@@ -66,12 +70,12 @@ func TestCadenceGating(t *testing.T) {
 		{PlanTrial, "off", true},
 		{PlanTrial, "monthly", true},
 		{PlanTrial, "weekly", true},
-		{PlanTrial, "daily", false}, // daily is Scale-only now
+		{PlanTrial, "daily", false}, // trial stays weekly — daily is the reason to convert
 		{PlanStarter, "monthly", true},
 		{PlanStarter, "weekly", true},
-		{PlanStarter, "daily", false},
+		{PlanStarter, "daily", true}, // daily is the paid baseline now
 		{PlanPro, "weekly", true},
-		{PlanPro, "daily", false}, // Growth tops out at weekly
+		{PlanPro, "daily", true},     // Growth includes daily
 		{PlanScale, "daily", true},
 		{PlanScale, "hourly", false}, // hourly is Enterprise/custom, not self-serve
 		{Plan("garbage"), "daily", false},
@@ -84,11 +88,11 @@ func TestCadenceGating(t *testing.T) {
 	if got := TopCadence(PlanTrial); got != "weekly" {
 		t.Errorf("TopCadence(trial) = %q, want weekly", got)
 	}
-	if got := TopCadence(PlanStarter); got != "weekly" {
-		t.Errorf("TopCadence(starter) = %q, want weekly", got)
+	if got := TopCadence(PlanStarter); got != "daily" {
+		t.Errorf("TopCadence(starter) = %q, want daily", got)
 	}
-	if got := TopCadence(PlanPro); got != "weekly" {
-		t.Errorf("TopCadence(pro) = %q, want weekly", got)
+	if got := TopCadence(PlanPro); got != "daily" {
+		t.Errorf("TopCadence(pro) = %q, want daily", got)
 	}
 	if got := TopCadence(PlanScale); got != "daily" {
 		t.Errorf("TopCadence(scale) = %q, want daily", got)

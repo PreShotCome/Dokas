@@ -72,9 +72,9 @@ type Service interface {
 type Config struct {
 	SecretKey     string // sk_test_... / sk_live_...
 	WebhookSecret string // whsec_... — webhook signing secret
-	PriceStarter  string // price_... for the Starter plan ($99/mo)
-	PricePro      string // price_... for the Growth (pro) plan ($299/mo)
-	PriceScale    string // price_... for the Scale plan ($799/mo)
+	PriceStarter  string // price_... for the Starter plan ($100/mo)
+	PricePro      string // price_... for the Growth (pro) plan ($300/mo)
+	PriceScale    string // price_... for the Grounded plan ($600/mo). DB value stays "scale".
 	// MeterEvent is the Stripe Billing Meter event name that drill usage is
 	// reported under. Empty disables usage reporting.
 	MeterEvent string

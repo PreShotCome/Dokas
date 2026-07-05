@@ -323,7 +323,7 @@ for i, (title, body, accent) in enumerate(features):
 # =============================================================================
 s = add_slide()
 page_chrome(s, 'Pricing',
-            '$99 to start. $1 first month, on your own dump.', 5, TOTAL)
+            '$100 to start. $1 first month, on your own dump. Daily drills on every tier.', 5, TOTAL)
 
 
 def pricing_card(slide, left, top, w, h, name, price, period, cadence_label,
@@ -360,30 +360,35 @@ card_top = Inches(2.4)
 left0 = Inches(0.6)
 
 pricing_card(s, left0, card_top, card_w, card_h,
-             'Starter', '$99', '/mo', 'Drill frequency', 'Weekly',
-             ['5 databases', '3 seats', 'Signed PDF · 7-year retention',
+             'Starter', '$100', '/mo', 'Capacity', '5 databases',
+             ['Daily drills · signed PDF · 7-year retention',
+              'Unlimited seats · 25 backup check-ins',
               'Auditor share links', 'Slack + PagerDuty', 'Email support'])
 
 pricing_card(s, left0 + (card_w + card_gap), card_top, card_w, card_h,
-             'Growth', '$299', '/mo', 'Drill frequency', 'Weekly',
-             ['25 databases', '10 seats', 'Everything in Starter',
-              'API access · signed webhooks', 'Priority support'],
+             'Growth', '$300', '/mo', 'Capacity', '25 databases',
+             ['Daily drills · everything in Starter',
+              '50 backup check-ins',
+              'Unlimited API keys · signed webhooks',
+              'Priority support'],
              popular=True)
 
 pricing_card(s, left0 + (card_w + card_gap) * 2, card_top, card_w, card_h,
-             'Scale', '$799', '/mo', 'Drill frequency', 'Daily',
-             ['Unlimited databases', 'Unlimited seats',
-              'Everything in Growth', 'Priority + dedicated channel', 'SSO (roadmap)'])
+             'Grounded', '$600', '/mo', 'Capacity', '100 databases',
+             ['Daily drills · everything in Growth',
+              'Unlimited backup check-ins',
+              'Priority + dedicated channel', 'SSO (roadmap)'])
 
 pricing_card(s, left0 + (card_w + card_gap) * 3, card_top, card_w, card_h,
-             'Enterprise', 'From $1.5k', '/mo', 'Drill frequency', 'Custom',
-             ['Hourly + custom cadence', 'Auditor read-only accounts',
-              'BYO runner in your VPC', 'Longer retention · custom SLA',
-              'Named account manager'])
+             'Enterprise', 'Custom', '', 'Regulated / hands-on', 'Sales-led',
+             ['BYO runner in your VPC · SSO/SAML',
+              'BAA / DPA · hourly cadence',
+              'Auditor read-only accounts',
+              'Custom SLA · named account manager'])
 
 textbox(s, Inches(0.6), Inches(7.2), Inches(12), Inches(0.3),
         '$1 first month. One real database at weekly cadence during the trial. '
-        'Cancel any time from the billing portal.',
+        'Every paid tier includes daily drills, unlimited seats, 7-year retention.',
         size=10, color=MUTED, align=PP_ALIGN.CENTER)
 
 

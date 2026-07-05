@@ -29,9 +29,9 @@ type Config struct {
 	SourceDir           string
 	StripeSecretKey     string
 	StripeWebhookSecret string
-	StripePriceStarter  string // Starter — $99/mo
-	StripePricePro      string // Growth (internal id "pro") — $299/mo
-	StripePriceScale    string // Scale — $799/mo
+	StripePriceStarter  string // Starter — $100/mo
+	StripePricePro      string // Growth (internal id "pro") — $300/mo
+	StripePriceScale    string // Grounded (internal id "scale") — $600/mo
 	// StripeMeterEvent is the Stripe Billing Meter event name drill usage is
 	// reported under. Empty disables usage-based billing.
 	StripeMeterEvent string
@@ -103,9 +103,9 @@ func Load() (Config, error) {
 		StripePricePro:           os.Getenv("STRIPE_PRICE_PRO"),
 		StripePriceScale:         os.Getenv("STRIPE_PRICE_SCALE"),
 		StripeMeterEvent:         os.Getenv("STRIPE_METER_EVENT"),
-		PriceStarterLabel:        getenv("PRICE_STARTER_LABEL", "$99"),
-		PriceProLabel:            getenv("PRICE_PRO_LABEL", "$299"),
-		PriceScaleLabel:          getenv("PRICE_SCALE_LABEL", "$799"),
+		PriceStarterLabel:        getenv("PRICE_STARTER_LABEL", "$100"),
+		PriceProLabel:            getenv("PRICE_PRO_LABEL", "$300"),
+		PriceScaleLabel:          getenv("PRICE_SCALE_LABEL", "$600"),
 		EvidenceSigningKey:       os.Getenv("EVIDENCE_SIGNING_KEY"),
 		EvidenceVerificationKeys: os.Getenv("EVIDENCE_VERIFICATION_KEYS"),
 		EvidenceEncryptionKey:    os.Getenv("EVIDENCE_ENCRYPTION_KEY"),

@@ -8,7 +8,7 @@ their careers page.
 hire, but doesn't have the headcount yet. Every quarter the audit /
 insurance renewal pressure keeps climbing while the actual builder isn't
 there. Dokaz gives them the evidence a full-time hire would produce
-(restore-tested proof) at $99/mo — a rounding error on the salary.
+(restore-tested proof) at $100/mo — a rounding error on the salary.
 
 ---
 
@@ -27,7 +27,7 @@ backups actually restore. Auditors and cyber-insurance renewals both
 ask for it now, and the fix is a real restore in an isolated sandbox on
 a schedule — signed, timestamped, retained.
 
-We do that automatically. $99/mo. A full-time hire would take weeks
+We do that automatically. $100/mo. A full-time hire would take weeks
 just to design the pipeline, and it wouldn't produce the auditor-usable
 signed PDF our runs do.
 

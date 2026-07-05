@@ -155,7 +155,7 @@ func AccountSettings(lc LayoutCtx, members []account.MembershipWithUser, pending
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = billingCheckout("scale", "Subscribe — Scale").Render(ctx, templ_7745c5c3_Buffer)
+					templ_7745c5c3_Err = billingCheckout("scale", "Subscribe — Grounded").Render(ctx, templ_7745c5c3_Buffer)
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}

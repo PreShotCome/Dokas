@@ -48,9 +48,10 @@ Dokaz — dokaz.net
 
 {{first_name}} — the piece I forgot in the last note: cost.
 
-$99/mo covers weekly drills on up to 5 databases with 7-year evidence
-retention. Cheaper than one hour of your compliance eng's time; produces
-the artifact your broker is going to ask for anyway.
+$100/mo covers daily drills on up to 5 databases with 7-year evidence
+retention and unlimited team seats. Cheaper than one hour of your
+compliance eng's time; produces the artifact your broker is going to ask
+for anyway.
 
 Happy to send you a sample PDF you can hand your underwriter as a
 reference — reply "sample" and it'll be in your inbox in 5 minutes.
