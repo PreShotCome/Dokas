@@ -11,9 +11,22 @@ import (
 	"github.com/preshotcome/dokaz/internal/account"
 	"github.com/preshotcome/dokaz/internal/audit"
 	"github.com/preshotcome/dokaz/internal/billing"
+	"github.com/preshotcome/dokaz/internal/branding"
 	mail "github.com/preshotcome/dokaz/internal/email"
 	"github.com/preshotcome/dokaz/internal/web/templates"
 )
+
+// billingFailed logs a billing/Stripe failure with account context and shows
+// the user a generic message. Stripe's raw error text can name internal price
+// and customer IDs and portal-configuration URLs, so it is logged, never shown
+// — and without this log line a prod failure (e.g. an unconfigured live
+// Customer Portal) leaves no server-side trace at all.
+func (h *Handlers) billingFailed(w http.ResponseWriter, op, accountID string, err error) {
+	h.logger().Error("billing operation failed", "op", op, "account_id", accountID, "err", err)
+	http.Error(w,
+		"Billing is temporarily unavailable. Please try again in a moment; if it keeps happening, email "+branding.SupportEmail+".",
+		http.StatusInternalServerError)
+}
 
 // postCancellationGrace is how long an account keeps full access after the
 // Stripe subscription is canceled. Long enough for the owner to notice and
@@ -51,13 +64,15 @@ func (h *Handlers) billingCheckout(w http.ResponseWriter, r *http.Request) {
 	// new Checkout from here.
 	if lc.Account.Plan != account.PlanTrial {
 		if lc.Account.StripeCustomerID == nil || *lc.Account.StripeCustomerID == "" {
-			http.Error(w, "billing: subscription state out of sync — contact support",
+			h.logger().Error("billing: paid account has no stripe customer id",
+				"op", "checkout:sync_check", "account_id", lc.Account.ID.String())
+			http.Error(w, "Your billing account is out of sync — please email "+branding.SupportEmail+".",
 				http.StatusInternalServerError)
 			return
 		}
 		portalURL, err := h.billing.Portal(r.Context(), *lc.Account.StripeCustomerID, h.absoluteURL(r, "/account"))
 		if err != nil {
-			http.Error(w, "billing: "+err.Error(), http.StatusInternalServerError)
+			h.billingFailed(w, "checkout:portal_redirect", lc.Account.ID.String(), err)
 			return
 		}
 		http.Redirect(w, r, portalURL, http.StatusSeeOther)
@@ -66,7 +81,7 @@ func (h *Handlers) billingCheckout(w http.ResponseWriter, r *http.Request) {
 
 	customerID, err := h.ensureStripeCustomer(r.Context(), lc)
 	if err != nil {
-		http.Error(w, "billing: "+err.Error(), http.StatusInternalServerError)
+		h.billingFailed(w, "checkout:ensure_customer", lc.Account.ID.String(), err)
 		return
 	}
 	url, err := h.billing.Checkout(r.Context(), billing.CheckoutInput{
@@ -76,7 +91,7 @@ func (h *Handlers) billingCheckout(w http.ResponseWriter, r *http.Request) {
 		CancelURL:  h.absoluteURL(r, "/account"),
 	})
 	if err != nil {
-		http.Error(w, "billing: "+err.Error(), http.StatusInternalServerError)
+		h.billingFailed(w, "checkout:create_session", lc.Account.ID.String(), err)
 		return
 	}
 	_ = h.audit.Record(r.Context(), audit.Event{
@@ -97,7 +112,7 @@ func (h *Handlers) billingPortal(w http.ResponseWriter, r *http.Request) {
 	}
 	url, err := h.billing.Portal(r.Context(), *lc.Account.StripeCustomerID, h.absoluteURL(r, "/account"))
 	if err != nil {
-		http.Error(w, "billing: "+err.Error(), http.StatusInternalServerError)
+		h.billingFailed(w, "portal:create_session", lc.Account.ID.String(), err)
 		return
 	}
 	http.Redirect(w, r, url, http.StatusSeeOther)

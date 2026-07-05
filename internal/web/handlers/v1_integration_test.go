@@ -529,9 +529,12 @@ func firstError(env map[string]any) (code string, ok bool) {
 func mustAbsTestdata(t *testing.T) string {
 	t.Helper()
 	// The drill fixture, resolved relative to this package's directory.
+	// ToSlash normalises the Windows backslashes os.Getwd returns — this
+	// path is embedded into JSON request bodies, where a literal backslash
+	// is an invalid escape and the create handler (correctly) rejects it.
 	p, err := os.Getwd()
 	if err != nil {
 		t.Fatalf("getwd: %v", err)
 	}
-	return p + "/../../../testdata/fixtures/tiny.dump"
+	return filepath.ToSlash(p) + "/../../../testdata/fixtures/tiny.dump"
 }
