@@ -1612,6 +1612,14 @@ func failureHint(s drill.Step) string {
 	if strings.Contains(err, "table_exists") || strings.Contains(err, "column_exists") {
 		return "an expected table or column was missing from the restored dump. The most common cause is a schema-migration deploy that didn't run in the environment producing the backup — verify the source database's schema and re-run."
 	}
+	// "relation X does not exist" (SQLSTATE 42P01) is a schema mismatch —
+	// the table isn't in the sandbox connection's search_path even though
+	// it may exist under a schema. Fixed on the assertion side (queries
+	// are schema-qualified), but this hint stays so an older assertion
+	// definition still gets an actionable message.
+	if strings.Contains(err, "does not exist") && (strings.Contains(err, "relation") || strings.Contains(err, "42p01")) {
+		return "the assertion couldn't find the referenced table. If table_exists passed but this failed, it's a schema-qualification issue — this Dokaz release schema-qualifies to public automatically; re-run the drill. Otherwise the table was dropped, renamed, or lives in a non-public schema."
+	}
 	// row_count assertion.
 	if strings.Contains(err, "row_count") {
 		return "the restored row count was below the expected minimum. Either the backup is stale (produced before recent inserts) or a truncate/DROP ran between backup and drill — check the backup job's timing."
