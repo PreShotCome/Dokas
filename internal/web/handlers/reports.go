@@ -16,12 +16,12 @@ import (
 )
 
 // reports renders the month-over-month drill reporting page. The lookback
-// window is 12 months on Pro, 3 months on every other plan.
+// window is 12 months on any paid plan, 3 months on trial/free.
 func (h *Handlers) reports(w http.ResponseWriter, r *http.Request) {
 	lc := h.layoutCtx(r)
-	isPro := lc.Account.Plan == account.PlanPro
+	paid := account.IsPaidAccount(*lc.Account)
 	months := 3
-	if isPro {
+	if paid {
 		months = 12
 	}
 	// Snap to the first day of the (months-ago) calendar month — so a
@@ -49,8 +49,7 @@ func (h *Handlers) reports(w http.ResponseWriter, r *http.Request) {
 		Months:       monthly,
 		Databases:    dbs,
 		WindowMonths: months,
-		IsPro:        isPro,
-		IsPaid:       account.IsPaid(lc.Account.Plan),
+		IsPaid:       paid,
 	}
 	for _, m := range monthly {
 		view.TotalDrills += m.Total
@@ -60,11 +59,11 @@ func (h *Handlers) reports(w http.ResponseWriter, r *http.Request) {
 	render(w, r, templates.Reports(view))
 }
 
-// reportsExport streams the 12-month drill report as CSV. Pro only.
+// reportsExport streams the 12-month drill report as CSV. Any paid plan.
 func (h *Handlers) reportsExport(w http.ResponseWriter, r *http.Request) {
 	lc := h.layoutCtx(r)
-	if lc.Account.Plan != account.PlanPro {
-		http.Error(w, "CSV export is a Pro-plan feature", http.StatusForbidden)
+	if !account.IsPaidAccount(*lc.Account) {
+		http.Error(w, "CSV export is a paid-plan feature", http.StatusForbidden)
 		return
 	}
 	since := monthsAgoUTC(time.Now(), 12)

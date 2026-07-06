@@ -42,7 +42,7 @@ Each report is independently verifiable: nothing here depends on trusting Dokaz.
 // only (free/trial accounts only have sample evidence).
 func (h *Handlers) evidenceBundle(w http.ResponseWriter, r *http.Request) {
 	lc := h.layoutCtx(r)
-	if !account.IsPaid(lc.Account.Plan) {
+	if !account.IsPaidAccount(*lc.Account) {
 		http.Error(w, "The evidence bundle is a paid-plan feature.", http.StatusForbidden)
 		return
 	}

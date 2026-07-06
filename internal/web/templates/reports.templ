@@ -16,7 +16,6 @@ type ReportsView struct {
 	Succeeded    int
 	Failed       int
 	WindowMonths int
-	IsPro        bool
 	IsPaid       bool
 }
 
@@ -33,7 +32,7 @@ templ Reports(v ReportsView) {
 				if v.IsPaid {
 					<a href="/reports/evidence-bundle.zip" class="btn-ghost text-sm">Download evidence bundle (.zip)</a>
 				}
-				if v.IsPro {
+				if v.IsPaid {
 					<a href="/reports/export.csv" class="btn-ghost text-sm">Download CSV</a>
 				}
 			</div>
@@ -88,9 +87,9 @@ templ Reports(v ReportsView) {
 				</div>
 			</section>
 		}
-		if !v.IsPro {
+		if !v.IsPaid {
 			<p class="mt-6 text-center text-xs text-zinc-500">
-				This view covers { strconv.Itoa(v.WindowMonths) } months. The Pro plan unlocks a full
+				This view covers { strconv.Itoa(v.WindowMonths) } months. A paid plan unlocks a full
 				12-month window and CSV export — <a href="/pricing" class="underline">see plans</a>.
 			</p>
 		}
