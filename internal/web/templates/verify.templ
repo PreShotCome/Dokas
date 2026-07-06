@@ -59,9 +59,13 @@ templ VerifyEvidence(lc LayoutCtx, result *VerifyResult) {
 			</form>
 
 			<p class="mt-6 text-center text-xs text-steel-500">
-				Prefer to verify offline? The open-source <code class="font-mono text-steel-300">dokaz-verify</code> CLI does the
-				same check on your own machine against the published key — nothing leaves your computer.
+				Prefer to verify offline?
+				<a href="https://github.com/PreShotCome/Dokas/tree/main/cmd/dokaz-verify" target="_blank" rel="noopener noreferrer" class="underline text-brand-300 hover:text-brand-200"><code class="font-mono">dokaz-verify</code></a>
+				is a single, Apache-2.0-licensed Go file that runs the same check on your own machine against our
+				<a href="/.well-known/evidence-signing-keys.pem" class="underline text-brand-300 hover:text-brand-200">published signing keys</a>
+				— nothing leaves your computer. Build it from source and run:
 			</p>
+			<pre class="mx-auto mt-2 max-w-md overflow-x-auto rounded bg-steel-800 p-3 text-left text-[11px] text-steel-300"><code>go run ./cmd/dokaz-verify --pdf=report.pdf --sig=signature.json --pubkey=keys.pem</code></pre>
 		</div>
 	}
 }

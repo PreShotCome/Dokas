@@ -123,7 +123,7 @@ func VerifyEvidence(lc LayoutCtx, result *VerifyResult) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "<div><label class=\"label\" for=\"pdf\">Evidence PDF</label> <input id=\"pdf\" name=\"pdf\" type=\"file\" accept=\"application/pdf,.pdf\" required class=\"block w-full text-sm text-steel-300 file:mr-3 file:rounded-md file:border-0 file:bg-brand-600 file:px-3 file:py-2 file:text-sm file:font-medium file:text-white hover:file:bg-brand-500\"><p class=\"form-hint\">The PDF from the drill's <span class=\"font-medium\">Evidence</span> link.</p></div><div><label class=\"label\" for=\"signature\">Signature JSON</label> <input id=\"signature\" name=\"signature\" type=\"file\" accept=\"application/json,.json\" required class=\"block w-full text-sm text-steel-300 file:mr-3 file:rounded-md file:border-0 file:bg-brand-600 file:px-3 file:py-2 file:text-sm file:font-medium file:text-white hover:file:bg-brand-500\"><p class=\"form-hint\">The JSON from the drill's <span class=\"font-medium\">Signature</span> link.</p></div><button type=\"submit\" class=\"btn-primary w-full\">Verify report</button></form><p class=\"mt-6 text-center text-xs text-steel-500\">Prefer to verify offline? The open-source <code class=\"font-mono text-steel-300\">dokaz-verify</code> CLI does the same check on your own machine against the published key — nothing leaves your computer.</p></div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "<div><label class=\"label\" for=\"pdf\">Evidence PDF</label> <input id=\"pdf\" name=\"pdf\" type=\"file\" accept=\"application/pdf,.pdf\" required class=\"block w-full text-sm text-steel-300 file:mr-3 file:rounded-md file:border-0 file:bg-brand-600 file:px-3 file:py-2 file:text-sm file:font-medium file:text-white hover:file:bg-brand-500\"><p class=\"form-hint\">The PDF from the drill's <span class=\"font-medium\">Evidence</span> link.</p></div><div><label class=\"label\" for=\"signature\">Signature JSON</label> <input id=\"signature\" name=\"signature\" type=\"file\" accept=\"application/json,.json\" required class=\"block w-full text-sm text-steel-300 file:mr-3 file:rounded-md file:border-0 file:bg-brand-600 file:px-3 file:py-2 file:text-sm file:font-medium file:text-white hover:file:bg-brand-500\"><p class=\"form-hint\">The JSON from the drill's <span class=\"font-medium\">Signature</span> link.</p></div><button type=\"submit\" class=\"btn-primary w-full\">Verify report</button></form><p class=\"mt-6 text-center text-xs text-steel-500\">Prefer to verify offline? <a href=\"https://github.com/PreShotCome/Dokas/tree/main/cmd/dokaz-verify\" target=\"_blank\" rel=\"noopener noreferrer\" class=\"underline text-brand-300 hover:text-brand-200\"><code class=\"font-mono\">dokaz-verify</code></a> is a single, Apache-2.0-licensed Go file that runs the same check on your own machine against our <a href=\"/.well-known/evidence-signing-keys.pem\" class=\"underline text-brand-300 hover:text-brand-200\">published signing keys</a> — nothing leaves your computer. Build it from source and run:</p><pre class=\"mx-auto mt-2 max-w-md overflow-x-auto rounded bg-steel-800 p-3 text-left text-[11px] text-steel-300\"><code>go run ./cmd/dokaz-verify --pdf=report.pdf --sig=signature.json --pubkey=keys.pem</code></pre></div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -177,7 +177,7 @@ func verifyReceipt(r *VerifyResult) templ.Component {
 		var templ_7745c5c3_Var7 string
 		templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinStringErrs(branding.ProductName)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/templates/verify.templ`, Line: 78, Col: 69}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/templates/verify.templ`, Line: 82, Col: 69}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var7))
 		if templ_7745c5c3_Err != nil {
@@ -190,7 +190,7 @@ func verifyReceipt(r *VerifyResult) templ.Component {
 		var templ_7745c5c3_Var8 string
 		templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(r.Message)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/templates/verify.templ`, Line: 84, Col: 52}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/templates/verify.templ`, Line: 88, Col: 52}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var8))
 		if templ_7745c5c3_Err != nil {
@@ -219,7 +219,7 @@ func verifyReceipt(r *VerifyResult) templ.Component {
 		var templ_7745c5c3_Var9 string
 		templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs(branding.ProductName)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/templates/verify.templ`, Line: 91, Col: 57}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/templates/verify.templ`, Line: 95, Col: 57}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var9))
 		if templ_7745c5c3_Err != nil {
