@@ -206,6 +206,7 @@ templ AppShell(title string, lc LayoutCtx) {
 				@sideNav(lc.Path, "/account", "Account", "M12 15a3 3 0 100-6 3 3 0 000 6zM19 12a7 7 0 00-.1-1l2-1.6-2-3.4-2.4 1a7 7 0 00-1.7-1L14.5 2h-4l-.4 2.4a7 7 0 00-1.7 1l-2.4-1-2 3.4 2 1.6a7 7 0 000 2l-2 1.6 2 3.4 2.4-1a7 7 0 001.7 1l.4 2.4h4l.4-2.4a7 7 0 001.7-1l2.4 1 2-3.4-2-1.6a7 7 0 00.1-1z")
 				<div class="pt-3">
 					<p class="px-3 pb-1 text-[10px] font-semibold uppercase tracking-widest text-steel-500">More</p>
+					@sideNav(lc.Path, "/verify", "Verify a report", "M9 12l2 2 4-4m-3-7l7 4v6c0 4-3 7-7 8-4-1-7-4-7-8V7z")
 					@sideNav(lc.Path, "/pricing", "Pricing", "M12 8v13m0-13l-4 4m4-4l4 4m8 5H0")
 					@sideNav(lc.Path, "/help", "Help", "M9.1 9a3 3 0 015.8 1c0 2-3 2-3 4M12 17h.01M22 12a10 10 0 11-20 0 10 10 0 0120 0z")
 				</div>
@@ -286,8 +287,9 @@ templ MarketingShell(lc LayoutCtx) {
 					@Logo()
 					<span>{ branding.ProductName }</span>
 				</a>
-				<nav class="flex items-center gap-3 text-sm">
+				<nav class="flex flex-wrap items-center gap-3 text-sm">
 					<a href="/how-it-works" class="btn-ghost">How it works</a>
+					<a href="/verify" class="btn-ghost">Verify a report</a>
 					<a href="/pricing" class="btn-ghost">Pricing</a>
 					<a href="/login" class="btn-ghost">Sign in</a>
 					<a href="/signup" class="btn-primary">Sign up</a>
