@@ -4,5 +4,6 @@ dist
 tmp
 node_modules
 *.md
+!CHANGELOG.md
 .github
 assets/static/app.css
