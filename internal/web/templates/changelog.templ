@@ -1,0 +1,74 @@
+package templates
+
+import (
+	"strings"
+
+	"github.com/preshotcome/dokaz/internal/changelog"
+)
+
+// ChangelogPage renders the public, dated record of shipped changes. The
+// content is parsed from the repository's CHANGELOG.md (single source of
+// truth) and styled with the site's own utility classes.
+templ ChangelogPage(lc LayoutCtx, doc changelog.Doc) {
+	@LayoutWith("Changelog", lc) {
+		<article class="mx-auto max-w-2xl space-y-5">
+			<div>
+				<h1 class="text-2xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-100">Changelog</h1>
+				<p class="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
+					A dated record of what we've shipped — features, fixes, and
+					security changes. Every entry is backed by a public commit in
+					<a href="https://github.com/PreShotCome/Dokas" target="_blank" rel="noopener noreferrer" class="underline text-brand-600 dark:text-brand-300 hover:text-brand-200">the source repository</a>.
+				</p>
+			</div>
+			for _, rel := range doc.Releases {
+				<section class="space-y-3">
+					<h2 class="border-b border-zinc-200 pb-1 text-lg font-semibold text-zinc-900 dark:border-zinc-800 dark:text-zinc-100">{ rel.Heading }</h2>
+					for _, note := range rel.Notes {
+						<p class="text-sm text-zinc-600 dark:text-zinc-400">
+							@changelogInline(note)
+						</p>
+					}
+					for _, g := range rel.Groups {
+						<div>
+							<h3 class="text-xs font-semibold uppercase tracking-wide text-brand-600 dark:text-brand-300">{ g.Title }</h3>
+							<ul class="mt-1 list-disc space-y-1 pl-5 text-sm text-zinc-600 dark:text-zinc-400">
+								for _, it := range g.Items {
+									<li>
+										@changelogInline(it)
+									</li>
+								}
+							</ul>
+						</div>
+					}
+				</section>
+			}
+		</article>
+	}
+}
+
+// changelogInline renders one item's inline segments (text / bold / code /
+// link) with proper escaping.
+templ changelogInline(it changelog.Item) {
+	for _, s := range it.Segments {
+		switch s.Kind {
+			case changelog.KindBold:
+				<strong class="font-semibold text-zinc-900 dark:text-zinc-100">{ s.Text }</strong>
+			case changelog.KindCode:
+				<code class="rounded bg-zinc-100 px-1 font-mono text-xs text-zinc-700 dark:bg-zinc-800 dark:text-zinc-100">{ s.Text }</code>
+			case changelog.KindLink:
+				<a href={ templ.SafeURL(changelogHref(s.URL)) } target="_blank" rel="noopener noreferrer" class="underline text-brand-600 dark:text-brand-300 hover:text-brand-200">{ s.Text }</a>
+			default:
+				{ s.Text }
+		}
+	}
+}
+
+// changelogHref keeps absolute links as-is and rewrites repo-relative doc
+// links (e.g. docs/backlog.md) to their public location on GitHub, so every
+// link on the page actually resolves.
+func changelogHref(u string) string {
+	if strings.HasPrefix(u, "http://") || strings.HasPrefix(u, "https://") {
+		return u
+	}
+	return "https://github.com/PreShotCome/Dokas/blob/main/" + u
+}

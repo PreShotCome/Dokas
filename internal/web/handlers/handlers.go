@@ -284,6 +284,9 @@ func (h *Handlers) Router(staticFS http.FileSystem) http.Handler {
 	// Public pricing page — self-serve subscribers start here.
 	r.Get("/pricing", h.pricingPage)
 
+	// Public changelog — a dated, auditor-facing record of shipped changes.
+	r.Get("/changelog", h.changelogPage)
+
 	// Public explainer — what backup drilling is and how Dokaz helps.
 	r.Get("/how-it-works", h.howItWorks)
 

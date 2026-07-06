@@ -59,3 +59,75 @@ limitations live in [`docs/backlog.md`](docs/backlog.md).
 - **Evidence-key rotation** — closes the "lost or changed master key ⇒
   permanently unrecoverable evidence" risk by making key rotation a supported,
   no-data-loss operation.
+
+## [2026-07-05]
+
+### Added
+- **Exec and Auditor roles** — an internal executive (read-only) role, and an
+  external **Auditor** role: a real account for a compliance reviewer, scoped
+  to drills, evidence, and targets, with no access to billing or the member
+  roster.
+- **Backup check-ins (heartbeats)** — a passive complement to drills. Register
+  a monitor with an expected period, ping a URL from your backup job, and get
+  alerted (webhook + audit event) when a check-in goes overdue.
+
+### Changed
+- **Pricing rebrand** — self-serve tiers renamed **Starter / Growth /
+  Grounded**, daily drills on every tier, and the drills/day cap reframed as a
+  workload budget.
+- **Restore timeout** raised from 30 minutes to 6 hours to accommodate large
+  dumps (surfaced by a new drill-stress harness).
+
+### Fixed
+- **Assertions on schema-qualified tables** — `row_count` / `no_nulls` now
+  schema-qualify their target, and a "relation does not exist" failure is
+  explained clearly instead of leaking a raw database error.
+
+## [2026-05-25]
+
+### Security
+- **Hardening pass** — a security-review remediation across revenue- and
+  data-safety-critical paths (idempotency, CSRF, and related fixes). See
+  [`docs/security-audit-2026-05.md`](docs/security-audit-2026-05.md).
+
+### Added
+- **Full pg_dump format coverage** — the runner restores all four logical
+  formats (plain, custom, tar, directory), detected from file content rather
+  than the extension.
+
+## [2026-05-22]
+
+### Added
+- **Public marketing surface** — landing page, a "how it works" explainer, and
+  a public pricing page.
+- **Subscriptions & billing** — Stripe subscription lifecycle (Checkout,
+  Customer Portal, signature-verified webhooks), usage-based metering,
+  staff-issued refunds, and per-tier plan limits.
+- **14-day trial** (read-only until subscribed), scheduled recurring drills,
+  and month-over-month drill reporting.
+- **Per-drill Fly Machine sandbox** and an **S3 / R2 evidence store**
+  (SigV4-signed, Object-Lock capable).
+- **Staff admin panel** with SSO step-up and safe, reason-logged impersonation;
+  **feature flags** (PostHog) and **Grafana dashboards as code**.
+
+## [2026-05-21]
+
+### Added
+- **The 11-layer foundation** — the drill orchestrator and
+  restore-and-assert pipeline; multi-tenant accounts with RBAC; perimeter
+  security (CSRF, rate limiting, login throttle, signed webhooks); signed
+  Ed25519 evidence with 7-year retention and GDPR data rights; observability
+  (structured logs, metrics, tracing); transactional email + analytics; legal
+  pages and a WCAG 2.2 AA pass; the staff support/admin panel; and the
+  versioned `/v1` JSON API (API keys, idempotency, cursor pagination).
+- **Identity & auth** — TOTP two-factor, passwordless magic-link login,
+  Google + GitHub OAuth, and email verification.
+- **Evidence integrity** — at-rest encryption with per-account crypto-shred,
+  signing-key rotation via a verification-key set, and multiple assertion
+  kinds per database.
+
+## [2026-05-20]
+
+- Project began as **Restore Drill**, the automated backup-verification product
+  that became Dokaz (renamed Restore Drill → Soteria → Vesta → Dokaz). Earlier
+  commits under a "Screen Dissector" prototype predate that pivot.
