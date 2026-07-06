@@ -68,7 +68,7 @@ func v1TestServer(t *testing.T, pool *pgxpool.Pool) (*httptest.Server, string, u
 	}
 
 	signer, _ := evidence.NewSigner("")
-	evCipher, err := evidence.NewCipher("", pool)
+	evCipher, err := evidence.NewCipher("", nil, pool)
 	if err != nil {
 		t.Fatalf("cipher: %v", err)
 	}

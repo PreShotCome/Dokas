@@ -53,6 +53,11 @@ type Config struct {
 	// EvidenceEncryptionKey is the base64 32-byte master key that wraps each
 	// account's evidence data-encryption key (at-rest encryption / crypto-shred).
 	EvidenceEncryptionKey string
+	// EvidenceEncryptionKeysRetired holds base64 32-byte master keys retired by
+	// a rotation (comma-separated). They only unwrap DEKs still sealed under
+	// them; those DEKs are re-wrapped under the active key on access. Drop a
+	// retired key once every DEK has migrated (see docs/runbooks/evidence-key-rotation.md).
+	EvidenceEncryptionKeysRetired []string
 	// EvidenceS3* configure an S3-compatible evidence bucket; with an empty
 	// bucket evidence is stored on local disk instead.
 	EvidenceS3Bucket          string
@@ -112,7 +117,8 @@ func Load() (Config, error) {
 		PriceScaleLabel:          getenv("PRICE_SCALE_LABEL", "$600"),
 		EvidenceSigningKey:       os.Getenv("EVIDENCE_SIGNING_KEY"),
 		EvidenceVerificationKeys: os.Getenv("EVIDENCE_VERIFICATION_KEYS"),
-		EvidenceEncryptionKey:    os.Getenv("EVIDENCE_ENCRYPTION_KEY"),
+		EvidenceEncryptionKey:         os.Getenv("EVIDENCE_ENCRYPTION_KEY"),
+		EvidenceEncryptionKeysRetired: splitCSVRaw(os.Getenv("EVIDENCE_ENCRYPTION_KEYS_RETIRED")),
 
 		EvidenceS3Bucket:          os.Getenv("EVIDENCE_S3_BUCKET"),
 		EvidenceS3Region:          os.Getenv("EVIDENCE_S3_REGION"),
@@ -185,6 +191,21 @@ func getenv(key, def string) string {
 		return v
 	}
 	return def
+}
+
+// splitCSVRaw splits a comma-separated env value into trimmed, non-empty
+// entries WITHOUT lower-casing — for case-sensitive values like base64 keys.
+func splitCSVRaw(v string) []string {
+	if v == "" {
+		return nil
+	}
+	var out []string
+	for _, part := range strings.Split(v, ",") {
+		if p := strings.TrimSpace(part); p != "" {
+			out = append(out, p)
+		}
+	}
+	return out
 }
 
 // parseList splits a comma-separated env value into trimmed, lower-cased,

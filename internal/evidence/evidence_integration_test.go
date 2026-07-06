@@ -55,7 +55,7 @@ func seedDrill(t *testing.T, ctx context.Context, pool *pgxpool.Pool) (uuid.UUID
 func newSvc(t *testing.T, pool *pgxpool.Pool) *Service {
 	t.Helper()
 	signer, _ := NewSigner("")
-	c, err := NewCipher("", pool)
+	c, err := NewCipher("", nil, pool)
 	if err != nil {
 		t.Fatalf("cipher: %v", err)
 	}

@@ -99,7 +99,7 @@ func TestDrillEndToEnd(t *testing.T) {
 	if err != nil {
 		t.Fatalf("signer: %v", err)
 	}
-	evCipher, err := evidence.NewCipher("", pool)
+	evCipher, err := evidence.NewCipher("", nil, pool)
 	if err != nil {
 		t.Fatalf("cipher: %v", err)
 	}

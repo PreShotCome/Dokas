@@ -18,6 +18,8 @@ RUN CGO_ENABLED=0 go build -ldflags="-s -w" -o /out/server ./cmd/server
 RUN CGO_ENABLED=0 go build -ldflags="-s -w" -o /out/migrate ./cmd/migrate
 # Ops tool: flip the founder/staff is_unlimited flag from `flyctl ssh console`.
 RUN CGO_ENABLED=0 go build -ldflags="-s -w" -o /out/set-unlimited ./cmd/set-unlimited
+# Ops tool: audit / rewrap / shred evidence master-key DEKs (key rotation).
+RUN CGO_ENABLED=0 go build -ldflags="-s -w" -o /out/evidence-keys ./cmd/evidence-keys
 
 # The final image runs the app, which shells out to pg_restore/psql during
 # drills — so it needs the PostgreSQL client tools, plus CA certificates
@@ -28,6 +30,7 @@ WORKDIR /app
 COPY --from=build /out/server /app/server
 COPY --from=build /out/migrate /app/migrate
 COPY --from=build /out/set-unlimited /app/set-unlimited
+COPY --from=build /out/evidence-keys /app/evidence-keys
 COPY --from=build /src/assets/static /app/assets/static
 COPY --from=build /src/migrations /app/migrations
 EXPOSE 8080

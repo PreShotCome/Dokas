@@ -206,7 +206,7 @@ func main() {
 		logger.Warn("evidence signing key not configured — using an EPHEMERAL key; " +
 			"signatures will not verify across restarts. Set EVIDENCE_SIGNING_KEY in production.")
 	}
-	evidenceCipher, err := evidence.NewCipher(cfg.EvidenceEncryptionKey, pool)
+	evidenceCipher, err := evidence.NewCipher(cfg.EvidenceEncryptionKey, cfg.EvidenceEncryptionKeysRetired, pool)
 	if err != nil {
 		logger.Error("evidence cipher", "err", err)
 		os.Exit(1)

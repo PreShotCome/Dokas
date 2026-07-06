@@ -71,7 +71,7 @@ func newEvidence(t *testing.T, pool *pgxpool.Pool) *evidence.Service {
 	if err != nil {
 		t.Fatalf("signer: %v", err)
 	}
-	cipher, err := evidence.NewCipher("", pool)
+	cipher, err := evidence.NewCipher("", nil, pool)
 	if err != nil {
 		t.Fatalf("cipher: %v", err)
 	}
