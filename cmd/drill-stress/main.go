@@ -1,3 +1,7 @@
+// Copyright (c) 2026 Ian Lee. All rights reserved.
+// Proprietary and confidential; use is governed by the LICENSE file at the
+// repository root. Access to this source grants no license. See NOTICE.
+
 // Command drill-stress drives the LocalRunner directly against synthetic
 // pg_dumps of a configurable size, so we can see where the provision →
 // fetch → restore → assert → teardown pipeline breaks before a paying

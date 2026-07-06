@@ -1,3 +1,7 @@
+// Copyright (c) 2026 Ian Lee. All rights reserved.
+// Proprietary and confidential; use is governed by the LICENSE file at the
+// repository root. Access to this source grants no license. See NOTICE.
+
 // Package csrf implements double-submit-cookie CSRF protection.
 //
 // The middleware ensures a random token cookie exists on every request and

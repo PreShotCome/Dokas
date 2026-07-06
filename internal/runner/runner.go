@@ -1,3 +1,7 @@
+// Copyright (c) 2026 Ian Lee. All rights reserved.
+// Proprietary and confidential; use is governed by the LICENSE file at the
+// repository root. Access to this source grants no license. See NOTICE.
+
 // Package runner defines the sandbox abstraction that executes drill steps
 // in isolation from the application database. Phase 2 ships a local mock that
 // uses temp databases on the same Postgres host; later phases add Fly Machines

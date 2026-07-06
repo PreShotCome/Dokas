@@ -1,3 +1,7 @@
+// Copyright (c) 2026 Ian Lee. All rights reserved.
+// Proprietary and confidential; use is governed by the LICENSE file at the
+// repository root. Access to this source grants no license. See NOTICE.
+
 // Package apikey issues and verifies API keys for the /v1 REST API. Keys
 // authenticate machine clients; only a SHA-256 hash is stored, so a database
 // leak doesn't expose usable keys.

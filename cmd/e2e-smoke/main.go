@@ -1,3 +1,7 @@
+// Copyright (c) 2026 Ian Lee. All rights reserved.
+// Proprietary and confidential; use is governed by the LICENSE file at the
+// repository root. Access to this source grants no license. See NOTICE.
+
 // Command e2e-smoke walks a real signup → connect → assert → run drill →
 // download PDF flow against a running Dokaz server and exits 0 only if
 // the resulting PDF reads "Verdict: PASSED". Wired into CI to catch the

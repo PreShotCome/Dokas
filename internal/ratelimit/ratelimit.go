@@ -1,3 +1,7 @@
+// Copyright (c) 2026 Ian Lee. All rights reserved.
+// Proprietary and confidential; use is governed by the LICENSE file at the
+// repository root. Access to this source grants no license. See NOTICE.
+
 // Package ratelimit provides an in-process token-bucket limiter and HTTP
 // middleware. Single-binary deployment means no Redis: buckets live in a map
 // guarded by a mutex, with a background sweep to evict idle keys.

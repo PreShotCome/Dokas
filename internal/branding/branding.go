@@ -1,3 +1,7 @@
+// Copyright (c) 2026 Ian Lee. All rights reserved.
+// Proprietary and confidential; use is governed by the LICENSE file at the
+// repository root. Access to this source grants no license. See NOTICE.
+
 // Package branding is the single source of truth for the product's name,
 // domains, and contact addresses. Inject these constants instead of
 // hard-coding the product name so the wordmark stays swappable.

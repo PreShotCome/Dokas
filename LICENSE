@@ -1,0 +1,51 @@
+Dokaz — Proprietary Software License
+Copyright (c) 2026 Ian Lee. All rights reserved.
+
+1. Ownership. This repository and all of its contents — including the
+   source code, object code, templates, database migrations, SQL, styles,
+   configuration, documentation, designs, logos, and other assets (the
+   "Software") — are the exclusive property of Ian Lee ("the Licensor") and
+   are protected by copyright and other intellectual-property laws. "Dokaz"
+   and associated names, logos, and brand assets are trademarks of the
+   Licensor.
+
+2. No license granted. No license or right, express or implied, is granted
+   to any person or entity by the mere availability of this Software or by
+   access to its source. You may NOT use, copy, reproduce, modify, adapt,
+   translate, publish, distribute, sublicense, sell, lease, transmit,
+   create derivative works from, publicly display, or otherwise exploit the
+   Software, in whole or in part, in any form or by any means, without the
+   prior written consent of the Licensor.
+
+3. Access does not imply permission. This Software may be published to a
+   public source-code host for transparency, security review, and to let
+   customers and their auditors independently verify Dokaz evidence (see
+   Section 4). Public visibility is NOT a grant of rights. Viewing, cloning,
+   or forking the repository for those purposes does not permit any use
+   beyond what this License expressly allows.
+
+4. Evidence-verifier exception. The directory `cmd/dokaz-verify/` is the
+   independent, self-contained tool that lets anyone confirm the
+   authenticity of Dokaz-signed evidence without trusting the Licensor's
+   servers. That directory — and only that directory — is licensed
+   separately under the Apache License, Version 2.0, a copy of which is at
+   `cmd/dokaz-verify/LICENSE`. You may build, run, copy, modify, and
+   distribute the contents of `cmd/dokaz-verify/` under, and subject to, the
+   terms of that Apache-2.0 license. Nothing in this exception grants any
+   right to the rest of the Software.
+
+5. Reservation of rights. All rights not expressly granted in Section 4 are
+   reserved by the Licensor. The Licensor may offer separate written
+   commercial or evaluation licenses on negotiated terms; contact
+   legal@dokaz.net.
+
+6. No warranty. THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY
+   KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+   MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT.
+
+7. Limitation of liability. IN NO EVENT SHALL THE LICENSOR BE LIABLE FOR ANY
+   CLAIM, DAMAGES, OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+   TORT, OR OTHERWISE, ARISING FROM, OUT OF, OR IN CONNECTION WITH THE
+   SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+For licensing inquiries: legal@dokaz.net

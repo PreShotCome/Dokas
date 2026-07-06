@@ -1,3 +1,7 @@
+// Copyright (c) 2026 Ian Lee. All rights reserved.
+// Proprietary and confidential; use is governed by the LICENSE file at the
+// repository root. Access to this source grants no license. See NOTICE.
+
 // Package report renders the evidence PDF for a completed drill: timestamps
 // per step, an assertions table, and an overall verdict. The rendered bytes
 // are handed to internal/evidence, which stores and signs them.

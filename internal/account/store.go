@@ -1,3 +1,7 @@
+// Copyright (c) 2026 Ian Lee. All rights reserved.
+// Proprietary and confidential; use is governed by the LICENSE file at the
+// repository root. Access to this source grants no license. See NOTICE.
+
 // Package account owns the multi-tenant data model: accounts, memberships,
 // and invitations. Drills and targets are scoped to accounts; users join
 // accounts through memberships and carry a role on each one.

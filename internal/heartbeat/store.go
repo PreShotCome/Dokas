@@ -1,3 +1,7 @@
+// Copyright (c) 2026 Ian Lee. All rights reserved.
+// Proprietary and confidential; use is governed by the LICENSE file at the
+// repository root. Access to this source grants no license. See NOTICE.
+
 // Package heartbeat holds the backup check-in domain: monitors that expect a
 // periodic ping from a customer's backup job, the public ping ingest, and the
 // sweeper that flips a monitor to "down" when a ping is overdue.

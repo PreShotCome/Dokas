@@ -1,3 +1,7 @@
+// Copyright (c) 2026 Ian Lee. All rights reserved.
+// Proprietary and confidential; use is governed by the LICENSE file at the
+// repository root. Access to this source grants no license. See NOTICE.
+
 // Package steps defines the River worker for each drill step. Each step is
 // its own job kind so retries, timeouts, and failure handling happen per
 // step rather than per drill.

@@ -1,0 +1,19 @@
+Dokaz
+Copyright (c) 2026 Ian Lee. All rights reserved.
+
+"Dokaz", the Dokaz logo, and associated brand assets are trademarks of
+Ian Lee. Their inclusion in this repository does not grant any right to
+use them.
+
+This repository is published for transparency, security review, and to
+let customers and their auditors independently verify Dokaz-signed
+evidence. Except for the directory `cmd/dokaz-verify/` (licensed under the
+Apache License, Version 2.0 — see `cmd/dokaz-verify/LICENSE`), all of the
+Software is proprietary and is governed by the LICENSE file at the root of
+this repository. No license is granted by the availability of, or access
+to, this source.
+
+Third-party open-source dependencies retain their own licenses; see
+`go.mod`/`go.sum` and each dependency's repository for details.
+
+Licensing inquiries: legal@dokaz.net

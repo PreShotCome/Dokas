@@ -1,3 +1,7 @@
+// Copyright (c) 2026 Ian Lee. All rights reserved.
+// Proprietary and confidential; use is governed by the LICENSE file at the
+// repository root. Access to this source grants no license. See NOTICE.
+
 // Package email sends transactional mail. Production uses Postmark; dev/CI
 // uses LogMailer, which renders the message to the log instead of sending.
 // Both honour the suppression list so a bounced or complaining address is

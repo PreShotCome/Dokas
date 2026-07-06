@@ -1,3 +1,7 @@
+// Copyright (c) 2026 Ian Lee. All rights reserved.
+// Proprietary and confidential; use is governed by the LICENSE file at the
+// repository root. Access to this source grants no license. See NOTICE.
+
 // Command set-unlimited flips the is_unlimited flag on an account, resolved
 // by the account owner's email. Intended for ops use only — invoked via
 // `flyctl ssh console -a dokaz -C '/app/set-unlimited --email <owner> [--off]'`

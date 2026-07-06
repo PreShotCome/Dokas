@@ -1,3 +1,9 @@
+// Copyright 2026 Ian Lee
+//
+// Licensed under the Apache License, Version 2.0 (the "License"); you may not
+// use this file except in compliance with the License. A copy is in this
+// directory (LICENSE) and at http://www.apache.org/licenses/LICENSE-2.0
+
 // Command dokaz-verify independently checks a Selket evidence PDF
 // against its detached Ed25519 signature and a public key. It depends on
 // the Go standard library only (crypto/ed25519, crypto/sha256, encoding/

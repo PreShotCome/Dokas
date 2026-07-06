@@ -1,3 +1,7 @@
+// Copyright (c) 2026 Ian Lee. All rights reserved.
+// Proprietary and confidential; use is governed by the LICENSE file at the
+// repository root. Access to this source grants no license. See NOTICE.
+
 // Package sharelink issues and validates tokenized read-only share URLs for a
 // single drill. An account owner mints one; an auditor (or the person who
 // needs to see the receipt) opens the URL to view the drill's mono receipt +

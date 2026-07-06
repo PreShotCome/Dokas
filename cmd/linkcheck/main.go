@@ -1,3 +1,7 @@
+// Copyright (c) 2026 Ian Lee. All rights reserved.
+// Proprietary and confidential; use is governed by the LICENSE file at the
+// repository root. Access to this source grants no license. See NOTICE.
+
 // Command linkcheck crawls a running Dokaz server and fails if any page
 // errors or any internal link is broken. It complements cmd/e2e-smoke
 // (which proves the signup -> drill -> PDF flow): linkcheck proves the

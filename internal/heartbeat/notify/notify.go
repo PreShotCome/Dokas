@@ -1,3 +1,7 @@
+// Copyright (c) 2026 Ian Lee. All rights reserved.
+// Proprietary and confidential; use is governed by the LICENSE file at the
+// repository root. Access to this source grants no license. See NOTICE.
+
 // Package notify implements heartbeat.Notifier by emailing an account's
 // members when a monitor changes state. It lives outside the heartbeat domain
 // package so that package stays free of email/account dependencies.

@@ -1,3 +1,7 @@
+// Copyright (c) 2026 Ian Lee. All rights reserved.
+// Proprietary and confidential; use is governed by the LICENSE file at the
+// repository root. Access to this source grants no license. See NOTICE.
+
 // Package billing wraps Stripe for subscription billing: customer creation,
 // Checkout, the Customer Portal, and webhook event verification + parsing.
 // It talks to Stripe's REST API directly over net/http — no SDK — so the

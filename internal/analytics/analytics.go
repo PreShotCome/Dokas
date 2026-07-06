@@ -1,3 +1,7 @@
+// Copyright (c) 2026 Ian Lee. All rights reserved.
+// Proprietary and confidential; use is governed by the LICENSE file at the
+// repository root. Access to this source grants no license. See NOTICE.
+
 // Package analytics captures product events for growth funnels. Production
 // sends to PostHog; without POSTHOG_API_KEY it falls back to a no-op that
 // only logs. Capture is always best-effort and asynchronous — it must never

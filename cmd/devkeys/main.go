@@ -1,3 +1,7 @@
+// Copyright (c) 2026 Ian Lee. All rights reserved.
+// Proprietary and confidential; use is governed by the LICENSE file at the
+// repository root. Access to this source grants no license. See NOTICE.
+
 // Command devkeys generates stable EVIDENCE_ENCRYPTION_KEY and
 // EVIDENCE_SIGNING_KEY values for local development, then prints them
 // as KEY=value lines on stdout so dev.ps1 / make dev can save them to

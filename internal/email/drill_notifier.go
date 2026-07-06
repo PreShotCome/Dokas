@@ -1,3 +1,7 @@
+// Copyright (c) 2026 Ian Lee. All rights reserved.
+// Proprietary and confidential; use is governed by the LICENSE file at the
+// repository root. Access to this source grants no license. See NOTICE.
+
 // Package email — DrillNotifier implements drill.Notifier by emailing the
 // account owner when a drill finishes. Sits in the drill.MultiNotifier
 // fan-out alongside push (mobile) and alerting (Slack/PagerDuty).

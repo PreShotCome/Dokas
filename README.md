@@ -29,13 +29,15 @@ link and verification fails loudly.
    bytes and the recorded timestamp, not one or the other. Past keys
    are kept as verification-only so evidence signed before a key
    rotation still verifies.
-4. **Open-source verifier.** [`cmd/dokaz-verify`](cmd/dokaz-verify)
+4. **Independently licensed verifier.** [`cmd/dokaz-verify`](cmd/dokaz-verify)
    is a single Go file that depends on `crypto/ed25519` and nothing of
-   ours. Build it from this source, point it at the PDF, the signature
-   JSON, and our published public key, and exit code 0 means the chain
-   holds. Anyone with the three files can prove the result; the path
-   does not go through Dokaz's servers, and there is no Dokaz SDK
-   you are asked to trust.
+   ours. It is licensed under **Apache-2.0** (see
+   [`cmd/dokaz-verify/LICENSE`](cmd/dokaz-verify/LICENSE)) — separate from
+   the rest of this repository — so you have an unambiguous right to build,
+   run, and audit it yourself. Point it at the PDF, the signature JSON, and
+   our published public key, and exit code 0 means the chain holds. Anyone
+   with the three files can prove the result; the path does not go through
+   Dokaz's servers, and there is no Dokaz SDK you are asked to trust.
 
 ```sh
 # Independently verify a drill:
@@ -72,7 +74,9 @@ Implemented:
 - `cmd/dokaz-verify` — stdlib-only third-party verifier
 - Idempotency on `POST /drills` (per-account, per-key)
 - Multi-tenant accounts + memberships; signup auto-creates a personal account
-- RBAC (`owner`/`admin`/`member`/`viewer`) via a single `Authorize` matrix
+- RBAC (`owner`/`admin`/`member`/`viewer`/`exec`/`auditor`) via a single `Authorize` matrix
+- Teams within an org — databases and members partition into teams; a member
+  sees only their teams' databases (plus unassigned), owners/admins see all
 - Email invitations (dev: link logged to stdout), account switcher
 - Stripe billing — Checkout, Customer Portal, signed-webhook plan sync
 - CSRF double-submit-cookie protection on every unsafe verb
@@ -147,7 +151,7 @@ To exercise a drill end-to-end:
 ## Tests
 
 ```sh
-DATABASE_URL=postgres://selket:selket@localhost:5432/selket?sslmode=disable \
+DATABASE_URL=postgres://dokaz:dokaz@localhost:5432/dokaz?sslmode=disable \
   go test ./...
 ```
 
@@ -160,7 +164,7 @@ skips.
 ```
 cmd/server               HTTP + River worker entrypoint
 cmd/migrate              goose + River migration CLI
-cmd/dokaz-verify       stdlib-only third-party evidence verifier
+cmd/dokaz-verify       stdlib-only third-party evidence verifier (Apache-2.0)
 internal/auth            sessions, password hashing, RBAC, MFA, magic-link
 internal/apikey          /v1 API-key issuance + verification
 internal/account         accounts, memberships, invitations, trial window
@@ -194,3 +198,22 @@ See [`docs/plan.md`](docs/plan.md) for the full plan against the rubric,
 [`docs/backlog.md`](docs/backlog.md) for deferred items, and
 [`docs/security-audit-2026-05.md`](docs/security-audit-2026-05.md) for
 the most recent third-party-style audit + fixes.
+
+## License
+
+Copyright (c) 2026 Ian Lee. All rights reserved. "Dokaz" and its logo are
+trademarks of Ian Lee.
+
+This repository is **proprietary and source-available**. It is published
+for transparency, security review, and so customers and their auditors can
+independently verify Dokaz evidence — **not** as open-source. No license to
+use, copy, modify, or distribute the code is granted by its availability
+here. See [`LICENSE`](LICENSE) and [`NOTICE`](NOTICE) for the full terms.
+
+**One exception:** the evidence verifier in
+[`cmd/dokaz-verify/`](cmd/dokaz-verify) is licensed under **Apache-2.0**
+([`cmd/dokaz-verify/LICENSE`](cmd/dokaz-verify/LICENSE)), so you may freely
+build, run, modify, and distribute *that* tool to confirm evidence without
+trusting our servers. Everything else is reserved.
+
+For a commercial or evaluation license: legal@dokaz.net

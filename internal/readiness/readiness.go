@@ -1,3 +1,7 @@
+// Copyright (c) 2026 Ian Lee. All rights reserved.
+// Proprietary and confidential; use is governed by the LICENSE file at the
+// repository root. Access to this source grants no license. See NOTICE.
+
 // Package readiness turns a database's drill history into a single
 // recovery-readiness score — a glanceable answer to "if I had to restore this
 // right now, how confident should I be?". It is pure and dependency-free so it

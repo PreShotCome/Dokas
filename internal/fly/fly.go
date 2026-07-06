@@ -1,3 +1,7 @@
+// Copyright (c) 2026 Ian Lee. All rights reserved.
+// Proprietary and confidential; use is governed by the LICENSE file at the
+// repository root. Access to this source grants no license. See NOTICE.
+
 // Package fly is a small client for the Fly.io Machines API — enough to
 // provision and destroy a per-drill sandbox VM. It talks to the REST API
 // directly over net/http (Bearer-token auth); no SDK.

@@ -1,3 +1,7 @@
+// Copyright (c) 2026 Ian Lee. All rights reserved.
+// Proprietary and confidential; use is governed by the LICENSE file at the
+// repository root. Access to this source grants no license. See NOTICE.
+
 // Package alerting delivers drill-failure and backup-check-in alerts to a
 // team's own Slack and PagerDuty, alongside the built-in email + mobile push.
 // It implements both the heartbeat and drill notifier interfaces, so it slots

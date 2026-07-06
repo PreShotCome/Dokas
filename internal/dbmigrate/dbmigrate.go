@@ -1,3 +1,7 @@
+// Copyright (c) 2026 Ian Lee. All rights reserved.
+// Proprietary and confidential; use is governed by the LICENSE file at the
+// repository root. Access to this source grants no license. See NOTICE.
+
 // Package dbmigrate applies the application's schema migrations (goose) and
 // then River's queue migrations against a database. It reads migrations
 // embedded in the binary (see package migrations), so it runs identically

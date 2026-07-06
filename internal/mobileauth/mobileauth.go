@@ -1,3 +1,7 @@
+// Copyright (c) 2026 Ian Lee. All rights reserved.
+// Proprietary and confidential; use is governed by the LICENSE file at the
+// repository root. Access to this source grants no license. See NOTICE.
+
 // Package mobileauth issues and verifies bearer tokens for the native mobile
 // app. Like internal/apikey, only a SHA-256 hash is stored, so a database leak
 // doesn't expose usable tokens. Unlike API keys, a token is bound to a single

@@ -1,3 +1,7 @@
+// Copyright (c) 2026 Ian Lee. All rights reserved.
+// Proprietary and confidential; use is governed by the LICENSE file at the
+// repository root. Access to this source grants no license. See NOTICE.
+
 // Package push delivers mobile push notifications for the responder app. It
 // owns the device-token registry and a Sender abstraction so the actual
 // transport (Firebase Cloud Messaging) can be swapped for a logging no-op when

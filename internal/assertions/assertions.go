@@ -1,3 +1,7 @@
+// Copyright (c) 2026 Ian Lee. All rights reserved.
+// Proprietary and confidential; use is governed by the LICENSE file at the
+// repository root. Access to this source grants no license. See NOTICE.
+
 // Package assertions defines the checks a drill runs against a restored
 // sandbox database. Each kind is a small, parameterised SQL query; the
 // drill's assert step runs every assertion configured on its target.

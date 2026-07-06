@@ -1,3 +1,7 @@
+// Copyright (c) 2026 Ian Lee. All rights reserved.
+// Proprietary and confidential; use is governed by the LICENSE file at the
+// repository root. Access to this source grants no license. See NOTICE.
+
 // Package flags evaluates feature flags. Production reads flags from
 // PostHog; without POSTHOG_API_KEY it falls back to StaticFlags, which reads
 // FEATURE_<NAME> environment variables. Every new surface is meant to be

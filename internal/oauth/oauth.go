@@ -1,3 +1,7 @@
+// Copyright (c) 2026 Ian Lee. All rights reserved.
+// Proprietary and confidential; use is governed by the LICENSE file at the
+// repository root. Access to this source grants no license. See NOTICE.
+
 // Package oauth implements OAuth 2.0 "sign in with" social login for Google
 // and GitHub. It talks to each provider's REST endpoints directly over
 // net/http — no SDK — consistent with the rest of the codebase.
