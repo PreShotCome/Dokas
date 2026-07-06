@@ -194,7 +194,8 @@ assets                   Tailwind input, static files (HTMX, app.css, favicons)
 branding                 logo SVGs + brand assets
 ```
 
-See [`docs/plan.md`](docs/plan.md) for the full plan against the rubric,
+See [`CHANGELOG.md`](CHANGELOG.md) for the record of shipped changes,
+[`docs/plan.md`](docs/plan.md) for the full plan against the rubric,
 [`docs/backlog.md`](docs/backlog.md) for deferred items, and
 [`docs/security-audit-2026-05.md`](docs/security-audit-2026-05.md) for
 the most recent third-party-style audit + fixes.
